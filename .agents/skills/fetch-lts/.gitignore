@@ -1,0 +1,4 @@
+# Runtime state and outputs: never commit
+state/
+reports/
+.cache/

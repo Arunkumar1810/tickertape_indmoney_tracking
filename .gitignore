@@ -1,0 +1,23 @@
+# Credentials and tokens
+token.json
+tokens.json
+client_credentials.json
+kite_portfolio_data.json
+.env
+
+# Dependencies
+node_modules/
+
+# Logs and scratch
+*.log
+scratch/
+
+#Openspec
+.agents/**/openspec*
+.agents/**/opsx*
+
+#BMAD
+.agents/**/bmad*
+.agents/**/bmod*
+_bmad/**
+_bmad-output/**

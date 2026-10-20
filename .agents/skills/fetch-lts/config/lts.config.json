@@ -1,0 +1,31 @@
+{
+  "weights": {
+    "quality": 0.25,
+    "valuation": 0.25,
+    "momentum": 0.15,
+    "analyst": 0.15,
+    "risk": 0.20
+  },
+  "caps": {
+    "stockWeightPct": 15,
+    "sectorWeightPct": 30
+  },
+  "thresholds": {
+    "accumulateOverall": 70,
+    "accumulateMinValuation": 50,
+    "holdOverall": 50,
+    "reviewBelow": 45,
+    "exitBelow": 30,
+    "exitMaxRisk": 30,
+    "trimValuationMax": 25,
+    "trimMaxOverall": 60,
+    "concentrationTrimMaxOverall": 65,
+    "hysteresis": 5
+  },
+  "tax": {
+    "ltcgDays": 365,
+    "nearWindowDays": 60
+  },
+  "concurrency": 3,
+  "buyDates": {}
+}

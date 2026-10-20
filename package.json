@@ -1,0 +1,24 @@
+{
+  "name": "tickertape_indmoney_tracking",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Arunkumar1810/tickertape_indmoney_tracking.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Arunkumar1810/tickertape_indmoney_tracking/issues"
+  },
+  "homepage": "https://github.com/Arunkumar1810/tickertape_indmoney_tracking#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1"
+  }
+}
