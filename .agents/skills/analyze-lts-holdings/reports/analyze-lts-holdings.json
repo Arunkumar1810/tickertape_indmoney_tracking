@@ -1,0 +1,960 @@
+{
+  "meta": {
+    "generatedAt": "2026-10-25T11:08:12.633Z",
+    "broker": "angelone",
+    "partialCount": 0,
+    "disclaimer": "Informational only; not investment advice."
+  },
+  "summary": {
+    "invested": 44481.64,
+    "current": 46263.99,
+    "pnl": 1782.3499999999985,
+    "returnPct": 4.006934096854339,
+    "dayChange": -291.98,
+    "health": 60,
+    "dataAsOf": "2026-10-23T10:28:58.000Z",
+    "brokerSummary": {
+      "totalInvested": 44481.63999999999,
+      "totalCurrent": 46263.99,
+      "totalPnl": 1782.3500000000058,
+      "totalReturnPct": 4.006934096854357,
+      "availableCash": 3.99,
+      "totalAccountEquity": 46267.979999999996,
+      "holdingsCount": 9
+    }
+  },
+  "sectors": [
+    {
+      "sector": "Information Technology",
+      "value": 16900.68,
+      "weight": 36.53096068886406,
+      "overCap": true
+    },
+    {
+      "sector": "Health Care",
+      "value": 11189.95,
+      "weight": 24.187170194356348,
+      "overCap": false
+    },
+    {
+      "sector": "Financials",
+      "value": 10694.259999999998,
+      "weight": 23.115732127730443,
+      "overCap": false
+    },
+    {
+      "sector": "Consumer Staples",
+      "value": 7479.099999999999,
+      "weight": 16.16613698904915,
+      "overCap": false
+    }
+  ],
+  "queue": [
+    {
+      "ticker": "ITC",
+      "verdict": "Trim",
+      "reason": "Position is over its weight cap and quality is not strong enough to justify it."
+    }
+  ],
+  "holdings": [
+    {
+      "ticker": "ITC",
+      "name": "ITC Ltd",
+      "sector": "Consumer Staples",
+      "subSector": null,
+      "marketCap": null,
+      "quantity": 29,
+      "averagePrice": 268.87,
+      "investedValue": 7797.2300000000005,
+      "currentValue": 7479.099999999999,
+      "pnl": -318.1300000000008,
+      "returnPct": -4.080038680403178,
+      "weight": 16.16613698904915,
+      "price": 257.9,
+      "high52": 426.4,
+      "low52": 253.15,
+      "dayChange": -1,
+      "dayChangePct": -0.3862495171881036,
+      "dataAsOf": "2026-10-23T10:28:44.000Z",
+      "partial": false,
+      "warnings": [],
+      "scores": {
+        "quality": 67.3,
+        "valuation": 63,
+        "momentum": 12.9,
+        "analyst": 74.9,
+        "risk": 92.5
+      },
+      "overall": 64.2,
+      "verdict": "Trim",
+      "reason": "Position is over its weight cap and quality is not strong enough to justify it.",
+      "triggers": [
+        {
+          "label": "Weight %",
+          "value": 16.2
+        },
+        {
+          "label": "Overall score",
+          "value": 64.2
+        }
+      ],
+      "confidence": 100,
+      "flags": [],
+      "concentration": [
+        "Position is 16.2% of portfolio (cap 15%)."
+      ],
+      "taxNote": null,
+      "grade": "C",
+      "wouldBuyToday": "yes",
+      "metrics": {
+        "ttmPe": 16.642596302526794,
+        "indpe": 33.786466262696216,
+        "peerMeanPe": 12.335473065569177,
+        "erqr": 92,
+        "upside": 20.201628538193106,
+        "breco": 59.375,
+        "nBreco": 19,
+        "totalAnalysts": 32,
+        "fundamental": 6.66666666666667
+      },
+      "scorecard": [
+        {
+          "name": "Performance",
+          "tag": "Low",
+          "value": 2.3,
+          "colour": "red"
+        },
+        {
+          "name": "Valuation",
+          "tag": "High",
+          "value": 1.9,
+          "colour": "red"
+        },
+        {
+          "name": "Growth",
+          "tag": "Low",
+          "value": 2.7,
+          "colour": "red"
+        },
+        {
+          "name": "Profitability",
+          "tag": "High",
+          "value": 8.3,
+          "colour": "green"
+        },
+        {
+          "name": "Entry point",
+          "tag": "Good",
+          "value": null,
+          "colour": "green"
+        },
+        {
+          "name": "Red flags",
+          "tag": "Low",
+          "value": null,
+          "colour": "green"
+        }
+      ]
+    },
+    {
+      "ticker": "WIPRO",
+      "name": "Wipro Ltd",
+      "sector": "Information Technology",
+      "subSector": null,
+      "marketCap": null,
+      "quantity": 17,
+      "averagePrice": 171.31,
+      "investedValue": 2912.27,
+      "currentValue": 3227.28,
+      "pnl": 315.01,
+      "returnPct": 10.81664818165898,
+      "weight": 6.975792619702712,
+      "price": 189.84,
+      "high52": 273.1,
+      "low52": 156.79,
+      "dayChange": -0.57,
+      "dayChangePct": -0.2993540255238695,
+      "dataAsOf": "2026-10-23T10:27:00.000Z",
+      "partial": false,
+      "warnings": [],
+      "scores": {
+        "quality": 54.7,
+        "valuation": 47,
+        "momentum": 22.7,
+        "analyst": 32,
+        "risk": 72.5
+      },
+      "overall": 48.1,
+      "verdict": "Hold",
+      "reason": "Balanced profile (overall 48/100); no action needed.",
+      "triggers": [
+        {
+          "label": "Overall score",
+          "value": 48.1
+        },
+        {
+          "label": "Weakest dimension",
+          "value": "momentum (23)"
+        }
+      ],
+      "confidence": 100,
+      "flags": [],
+      "concentration": [],
+      "taxNote": null,
+      "grade": "D",
+      "wouldBuyToday": "maybe",
+      "metrics": {
+        "ttmPe": 13.848863067077582,
+        "indpe": 22.297944261411534,
+        "peerMeanPe": 21.17718064558847,
+        "erqr": 62,
+        "upside": -7.817109144542775,
+        "breco": 29.62962962962963,
+        "nBreco": 8,
+        "totalAnalysts": 27,
+        "fundamental": 4.69871794871795
+      },
+      "scorecard": [
+        {
+          "name": "Performance",
+          "tag": "Low",
+          "value": 1.7,
+          "colour": "red"
+        },
+        {
+          "name": "Valuation",
+          "tag": "High",
+          "value": 2.6,
+          "colour": "red"
+        },
+        {
+          "name": "Growth",
+          "tag": "Low",
+          "value": 2.8,
+          "colour": "red"
+        },
+        {
+          "name": "Profitability",
+          "tag": "High",
+          "value": 7.4,
+          "colour": "green"
+        },
+        {
+          "name": "Entry point",
+          "tag": "Bad",
+          "value": null,
+          "colour": "red"
+        },
+        {
+          "name": "Red flags",
+          "tag": "Low",
+          "value": null,
+          "colour": "green"
+        }
+      ]
+    },
+    {
+      "ticker": "HCLTECH",
+      "name": "HCL Technologies Ltd",
+      "sector": "Information Technology",
+      "subSector": null,
+      "marketCap": null,
+      "quantity": 2,
+      "averagePrice": 1235.36,
+      "investedValue": 2470.72,
+      "currentValue": 2844.4,
+      "pnl": 373.6800000000003,
+      "returnPct": 15.12433622587749,
+      "weight": 6.148194308359483,
+      "price": 1422.2,
+      "high52": 1780.1,
+      "low52": 1030,
+      "dayChange": 0.5,
+      "dayChangePct": 0.03516916367728776,
+      "dataAsOf": "2026-10-23T10:27:20.000Z",
+      "partial": false,
+      "warnings": [],
+      "scores": {
+        "quality": 62.7,
+        "valuation": 36.6,
+        "momentum": 41.1,
+        "analyst": 34.5,
+        "risk": 72.5
+      },
+      "overall": 50.7,
+      "verdict": "Hold",
+      "reason": "Balanced profile (overall 51/100); no action needed.",
+      "triggers": [
+        {
+          "label": "Overall score",
+          "value": 50.7
+        },
+        {
+          "label": "Weakest dimension",
+          "value": "analyst (34)"
+        }
+      ],
+      "confidence": 100,
+      "flags": [],
+      "concentration": [],
+      "taxNote": null,
+      "grade": "C",
+      "wouldBuyToday": "maybe",
+      "metrics": {
+        "ttmPe": 20.382427876637554,
+        "indpe": 22.297944261411534,
+        "peerMeanPe": 19.543789443198477,
+        "erqr": 84,
+        "upside": -11.756433694276476,
+        "breco": 42.42424242424242,
+        "nBreco": 14,
+        "totalAnalysts": 33,
+        "fundamental": 5.91410256410256
+      },
+      "scorecard": [
+        {
+          "name": "Performance",
+          "tag": "Low",
+          "value": 3,
+          "colour": "red"
+        },
+        {
+          "name": "Valuation",
+          "tag": "High",
+          "value": 1.5,
+          "colour": "red"
+        },
+        {
+          "name": "Growth",
+          "tag": "Low",
+          "value": 2.9,
+          "colour": "red"
+        },
+        {
+          "name": "Profitability",
+          "tag": "High",
+          "value": 7.5,
+          "colour": "green"
+        },
+        {
+          "name": "Entry point",
+          "tag": "Bad",
+          "value": null,
+          "colour": "red"
+        },
+        {
+          "name": "Red flags",
+          "tag": "Low",
+          "value": null,
+          "colour": "green"
+        }
+      ]
+    },
+    {
+      "ticker": "INFY",
+      "name": "Infosys Ltd",
+      "sector": "Information Technology",
+      "subSector": null,
+      "marketCap": null,
+      "quantity": 5,
+      "averagePrice": 1042.99,
+      "investedValue": 5214.95,
+      "currentValue": 5769,
+      "pnl": 554.0499999999997,
+      "returnPct": 10.624262936365636,
+      "weight": 12.469741585194015,
+      "price": 1153.8,
+      "high52": 1728,
+      "low52": 980.4,
+      "dayChange": 0.45,
+      "dayChangePct": 0.03901677721420211,
+      "dataAsOf": "2026-10-23T10:28:44.000Z",
+      "partial": false,
+      "warnings": [],
+      "scores": {
+        "quality": 67.7,
+        "valuation": 45.3,
+        "momentum": 20.6,
+        "analyst": 54.7,
+        "risk": 72.5
+      },
+      "overall": 54,
+      "verdict": "Hold",
+      "reason": "Balanced profile (overall 54/100); no action needed.",
+      "triggers": [
+        {
+          "label": "Overall score",
+          "value": 54
+        },
+        {
+          "label": "Weakest dimension",
+          "value": "momentum (21)"
+        }
+      ],
+      "confidence": 100,
+      "flags": [],
+      "concentration": [],
+      "taxNote": null,
+      "grade": "C",
+      "wouldBuyToday": "maybe",
+      "metrics": {
+        "ttmPe": 15.296643382153706,
+        "indpe": 22.297944261411534,
+        "peerMeanPe": 20.81523556681944,
+        "erqr": 94,
+        "upside": 0.9707054948864661,
+        "breco": 57.5,
+        "nBreco": 23,
+        "totalAnalysts": 40,
+        "fundamental": 5.68461538461538
+      },
+      "scorecard": [
+        {
+          "name": "Performance",
+          "tag": "Low",
+          "value": 1.8,
+          "colour": "red"
+        },
+        {
+          "name": "Valuation",
+          "tag": "High",
+          "value": 2.1,
+          "colour": "red"
+        },
+        {
+          "name": "Growth",
+          "tag": "Low",
+          "value": 3,
+          "colour": "red"
+        },
+        {
+          "name": "Profitability",
+          "tag": "High",
+          "value": 7.9,
+          "colour": "green"
+        },
+        {
+          "name": "Entry point",
+          "tag": "Bad",
+          "value": null,
+          "colour": "red"
+        },
+        {
+          "name": "Red flags",
+          "tag": "Low",
+          "value": null,
+          "colour": "green"
+        }
+      ]
+    },
+    {
+      "ticker": "TCS",
+      "name": "Tata Consultancy Services Ltd",
+      "sector": "Information Technology",
+      "subSector": null,
+      "marketCap": null,
+      "quantity": 2,
+      "averagePrice": 2164.81,
+      "investedValue": 4329.62,
+      "currentValue": 5060,
+      "pnl": 730.3800000000001,
+      "returnPct": 16.869378836941813,
+      "weight": 10.937232175607853,
+      "price": 2530,
+      "high52": 3350,
+      "low52": 1976.8,
+      "dayChange": 23.1,
+      "dayChangePct": 0.9214567792891618,
+      "dataAsOf": "2026-10-23T10:28:48.000Z",
+      "partial": false,
+      "warnings": [],
+      "scores": {
+        "quality": 69.3,
+        "valuation": 41.7,
+        "momentum": 30.6,
+        "analyst": 50.9,
+        "risk": 72.5
+      },
+      "overall": 54.5,
+      "verdict": "Hold",
+      "reason": "Balanced profile (overall 54/100); no action needed.",
+      "triggers": [
+        {
+          "label": "Overall score",
+          "value": 54.5
+        },
+        {
+          "label": "Weakest dimension",
+          "value": "momentum (31)"
+        }
+      ],
+      "confidence": 100,
+      "flags": [],
+      "concentration": [],
+      "taxNote": null,
+      "grade": "C",
+      "wouldBuyToday": "maybe",
+      "metrics": {
+        "ttmPe": 17.281401588649047,
+        "indpe": 22.297944261411534,
+        "peerMeanPe": 20.319046015195607,
+        "erqr": 98,
+        "upside": -5.830039525691699,
+        "breco": 63.41463414634146,
+        "nBreco": 26,
+        "totalAnalysts": 41,
+        "fundamental": 5.65
+      },
+      "scorecard": [
+        {
+          "name": "Performance",
+          "tag": "Low",
+          "value": 2.1,
+          "colour": "red"
+        },
+        {
+          "name": "Valuation",
+          "tag": "High",
+          "value": 1.7,
+          "colour": "red"
+        },
+        {
+          "name": "Growth",
+          "tag": "Low",
+          "value": 2.9,
+          "colour": "red"
+        },
+        {
+          "name": "Profitability",
+          "tag": "High",
+          "value": 8.1,
+          "colour": "green"
+        },
+        {
+          "name": "Entry point",
+          "tag": "Bad",
+          "value": null,
+          "colour": "red"
+        },
+        {
+          "name": "Red flags",
+          "tag": "Low",
+          "value": null,
+          "colour": "green"
+        }
+      ]
+    },
+    {
+      "ticker": "NATCOPHARM",
+      "name": "Natco Pharma Ltd",
+      "sector": "Health Care",
+      "subSector": null,
+      "marketCap": null,
+      "quantity": 7,
+      "averagePrice": 847.28,
+      "investedValue": 5930.96,
+      "currentValue": 5542.95,
+      "pnl": -388.00999999999965,
+      "returnPct": -6.542111226513072,
+      "weight": 11.981132626044575,
+      "price": 791.85,
+      "high52": 1216.9845667965049,
+      "low52": 773.6,
+      "dayChange": 6.7,
+      "dayChangePct": 0.8533401260905561,
+      "dataAsOf": "2026-10-23T10:26:43.000Z",
+      "partial": false,
+      "warnings": [],
+      "scores": {
+        "quality": 61,
+        "valuation": 66,
+        "momentum": 17.6,
+        "analyst": 72.7,
+        "risk": 82.5
+      },
+      "overall": 61.8,
+      "verdict": "Hold",
+      "reason": "Balanced profile (overall 62/100); no action needed.",
+      "triggers": [
+        {
+          "label": "Overall score",
+          "value": 61.8
+        },
+        {
+          "label": "Weakest dimension",
+          "value": "momentum (18)"
+        }
+      ],
+      "confidence": 100,
+      "flags": [],
+      "concentration": [],
+      "taxNote": null,
+      "grade": "C",
+      "wouldBuyToday": "yes",
+      "metrics": {
+        "ttmPe": 13.4581535189723,
+        "indpe": 44.14041125633747,
+        "peerMeanPe": 61.031939497990216,
+        "erqr": 56,
+        "upside": 31.716865567973727,
+        "breco": 45.45454545454545,
+        "nBreco": 5,
+        "totalAnalysts": 11,
+        "fundamental": 3.83071428571429
+      },
+      "scorecard": [
+        {
+          "name": "Performance",
+          "tag": "Low",
+          "value": 3.1,
+          "colour": "red"
+        },
+        {
+          "name": "Valuation",
+          "tag": "High",
+          "value": 2.8,
+          "colour": "red"
+        },
+        {
+          "name": "Growth",
+          "tag": "Avg",
+          "value": 3.8,
+          "colour": "yellow"
+        },
+        {
+          "name": "Profitability",
+          "tag": "High",
+          "value": 8.9,
+          "colour": "green"
+        },
+        {
+          "name": "Entry point",
+          "tag": "Good",
+          "value": null,
+          "colour": "green"
+        },
+        {
+          "name": "Red flags",
+          "tag": "Low",
+          "value": null,
+          "colour": "green"
+        }
+      ]
+    },
+    {
+      "ticker": "HDFCBANK",
+      "name": "HDFC Bank Ltd",
+      "sector": "Financials",
+      "subSector": null,
+      "marketCap": null,
+      "quantity": 8,
+      "averagePrice": 699.28,
+      "investedValue": 5594.24,
+      "currentValue": 5542.4,
+      "pnl": -51.840000000000146,
+      "returnPct": -0.9266674293559115,
+      "weight": 11.97994379646027,
+      "price": 692.8,
+      "high52": 1017.5,
+      "low52": 681.9,
+      "dayChange": -1.25,
+      "dayChangePct": -0.18010229810532385,
+      "dataAsOf": "2026-10-23T10:28:58.000Z",
+      "partial": false,
+      "warnings": [],
+      "scores": {
+        "quality": 50.3,
+        "valuation": 60.5,
+        "momentum": 13.1,
+        "analyst": 97.6,
+        "risk": 92.5
+      },
+      "overall": 62.8,
+      "verdict": "Hold",
+      "reason": "Balanced profile (overall 63/100); no action needed.",
+      "triggers": [
+        {
+          "label": "Overall score",
+          "value": 62.8
+        },
+        {
+          "label": "Weakest dimension",
+          "value": "momentum (13)"
+        }
+      ],
+      "confidence": 100,
+      "flags": [],
+      "concentration": [],
+      "taxNote": null,
+      "grade": "C",
+      "wouldBuyToday": "maybe",
+      "metrics": {
+        "ttmPe": 14.02928822095554,
+        "indpe": 16.3847199480523,
+        "peerMeanPe": 15.549609857434374,
+        "erqr": 34,
+        "upside": 36.258660508083146,
+        "breco": 95.23809523809524,
+        "nBreco": 40,
+        "totalAnalysts": 42,
+        "fundamental": 5.66612903225806
+      },
+      "scorecard": [
+        {
+          "name": "Performance",
+          "tag": "Low",
+          "value": 2.3,
+          "colour": "red"
+        },
+        {
+          "name": "Valuation",
+          "tag": "High",
+          "value": 2.6,
+          "colour": "red"
+        },
+        {
+          "name": "Growth",
+          "tag": "Avg",
+          "value": 4.1,
+          "colour": "yellow"
+        },
+        {
+          "name": "Profitability",
+          "tag": "High",
+          "value": 7.6,
+          "colour": "green"
+        },
+        {
+          "name": "Entry point",
+          "tag": "Good",
+          "value": null,
+          "colour": "green"
+        },
+        {
+          "name": "Red flags",
+          "tag": "Low",
+          "value": null,
+          "colour": "green"
+        }
+      ]
+    },
+    {
+      "ticker": "ZYDUSLIFE",
+      "name": "Zydus Lifesciences Ltd",
+      "sector": "Health Care",
+      "subSector": null,
+      "marketCap": null,
+      "quantity": 5,
+      "averagePrice": 1130.03,
+      "investedValue": 5650.15,
+      "currentValue": 5647,
+      "pnl": -3.149999999999409,
+      "returnPct": -0.05575073228143339,
+      "weight": 12.20603756831177,
+      "price": 1129.4,
+      "high52": 1232.1,
+      "low52": 835.5,
+      "dayChange": -5.6,
+      "dayChangePct": -0.4933920704845815,
+      "dataAsOf": "2026-10-23T10:24:34.000Z",
+      "partial": false,
+      "warnings": [],
+      "scores": {
+        "quality": 62.3,
+        "valuation": 61,
+        "momentum": 59.1,
+        "analyst": 60.4,
+        "risk": 82.5
+      },
+      "overall": 65.2,
+      "verdict": "Hold",
+      "reason": "Balanced profile (overall 65/100); no action needed.",
+      "triggers": [
+        {
+          "label": "Overall score",
+          "value": 65.2
+        },
+        {
+          "label": "Weakest dimension",
+          "value": "momentum (59)"
+        }
+      ],
+      "confidence": 100,
+      "flags": [],
+      "concentration": [],
+      "taxNote": null,
+      "grade": "B",
+      "wouldBuyToday": "yes",
+      "metrics": {
+        "ttmPe": 24.82155558023487,
+        "indpe": 44.14041125633747,
+        "peerMeanPe": 62.766459641046445,
+        "erqr": 71,
+        "upside": 6.516734549318214,
+        "breco": 57.69230769230769,
+        "nBreco": 15,
+        "totalAnalysts": 26
+      },
+      "scorecard": [
+        {
+          "name": "Performance",
+          "tag": "Avg",
+          "value": 4.4,
+          "colour": "yellow"
+        },
+        {
+          "name": "Valuation",
+          "tag": "High",
+          "value": 1.3,
+          "colour": "red"
+        },
+        {
+          "name": "Growth",
+          "tag": "Avg",
+          "value": 4.7,
+          "colour": "yellow"
+        },
+        {
+          "name": "Profitability",
+          "tag": "High",
+          "value": 6.9,
+          "colour": "green"
+        },
+        {
+          "name": "Entry point",
+          "tag": "Good",
+          "value": null,
+          "colour": "green"
+        },
+        {
+          "name": "Red flags",
+          "tag": "Low",
+          "value": null,
+          "colour": "green"
+        }
+      ]
+    },
+    {
+      "ticker": "SOUTHBANK",
+      "name": "South Indian Bank Ltd",
+      "sector": "Financials",
+      "subSector": null,
+      "marketCap": null,
+      "quantity": 98,
+      "averagePrice": 46.75,
+      "investedValue": 4581.5,
+      "currentValue": 5151.86,
+      "pnl": 570.36,
+      "returnPct": 12.449197860962567,
+      "weight": 11.135788331270174,
+      "price": 52.57,
+      "high52": 56.25,
+      "low52": 33.38,
+      "dayChange": -3.18,
+      "dayChangePct": -5.704035874439462,
+      "dataAsOf": "2026-10-23T10:28:53.000Z",
+      "partial": false,
+      "warnings": [],
+      "scores": {
+        "quality": 52.7,
+        "valuation": 72.3,
+        "momentum": 75,
+        "analyst": 82.7,
+        "risk": 72.5
+      },
+      "overall": 69.4,
+      "verdict": "Hold",
+      "reason": "Balanced profile (overall 69/100); no action needed.",
+      "triggers": [
+        {
+          "label": "Overall score",
+          "value": 69.4
+        },
+        {
+          "label": "Weakest dimension",
+          "value": "quality (53)"
+        }
+      ],
+      "confidence": 100,
+      "flags": [],
+      "concentration": [],
+      "taxNote": null,
+      "grade": "B",
+      "wouldBuyToday": "maybe",
+      "metrics": {
+        "ttmPe": 8.498339453499003,
+        "indpe": 16.3847199480523,
+        "peerMeanPe": 16.32519898226979,
+        "erqr": 49,
+        "upside": 16.035761841354386,
+        "breco": 83.33333333333333,
+        "nBreco": 5,
+        "totalAnalysts": 6,
+        "fundamental": 3.68870967741936
+      },
+      "scorecard": [
+        {
+          "name": "Performance",
+          "tag": "High",
+          "value": 6.6,
+          "colour": "green"
+        },
+        {
+          "name": "Valuation",
+          "tag": "Avg",
+          "value": 4.7,
+          "colour": "yellow"
+        },
+        {
+          "name": "Growth",
+          "tag": "Low",
+          "value": 3.1,
+          "colour": "red"
+        },
+        {
+          "name": "Profitability",
+          "tag": "High",
+          "value": 7.8,
+          "colour": "green"
+        },
+        {
+          "name": "Entry point",
+          "tag": "Good",
+          "value": null,
+          "colour": "green"
+        },
+        {
+          "name": "Red flags",
+          "tag": "Low",
+          "value": null,
+          "colour": "green"
+        }
+      ]
+    }
+  ],
+  "config": {
+    "weights": {
+      "quality": 0.25,
+      "valuation": 0.25,
+      "momentum": 0.15,
+      "analyst": 0.15,
+      "risk": 0.2
+    },
+    "thresholds": {
+      "accumulateOverall": 70,
+      "accumulateMinValuation": 50,
+      "holdOverall": 50,
+      "reviewBelow": 45,
+      "exitBelow": 30,
+      "exitMaxRisk": 30,
+      "trimValuationMax": 25,
+      "trimMaxOverall": 60,
+      "concentrationTrimMaxOverall": 65,
+      "hysteresis": 5
+    },
+    "caps": {
+      "stockWeightPct": 15,
+      "sectorWeightPct": 30
+    }
+  }
+}

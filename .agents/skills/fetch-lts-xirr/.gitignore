@@ -1,0 +1,5 @@
+.cache/
+reports/
+state/
+tokens.json
+*.secret

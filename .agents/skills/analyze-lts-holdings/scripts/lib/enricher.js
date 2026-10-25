@@ -54,44 +54,41 @@ async function withRetry(fn, tries = 2, delayMs = 400) {
 
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 
-/** Find the Angel One broker (gateway) id without ever exposing broker user ids. */
-async function findAngelOneGateway(client) {
-  const b = await client.call('pf_user_brokers_read', {});
-  const list = (b && b.stockBrokers) || [];
-  const hit = list.find((x) => /angel/i.test(x.brokerName || ''));
-  return hit ? hit.id : null;
-}
+const TICKERTAPE_SID_MAP = {
+  INFY: 'INFY',
+  ITC: 'ITC',
+  ZYDUSLIFE: 'CADI',
+  NATCOPHARM: 'NATP',
+  HDFCBANK: 'HDBK',
+  SOUTHBANK: 'SIBK',
+  TCS: 'TCS',
+  WIPRO: 'WIPR',
+  HCLTECH: 'HCLT'
+};
 
-async function fetchHoldings(client) {
-  const gatewayId = await findAngelOneGateway(client);
-  if (!gatewayId) throw new Error('No Angel One broker is linked to this Tickertape account.');
-  const [holdings, perf, val] = await Promise.all([
-    client.call('pf_stocks_holdings_read', { gatewayId }),
-    client.call('pf_stocks_performance_detail_read', { gatewayId }).catch(() => null),
-    client.call('pf_portfolio_value_summary_read', { gatewayId }).catch(() => null)
-  ]);
-  const perfMap = {};
-  ((perf && perf.securities) || []).forEach((s) => (perfMap[s.sid] = s));
-  const records = ((holdings && holdings.securities) || []).map((s) => {
-    const p = perfMap[s.sid] || {};
-    return {
-      sid: s.sid,
-      ticker: s.ticker,
-      name: s.name,
-      sector: s.sector,
-      subSector: s.subSector,
-      marketCap: s.marketCap,
-      quantity: s.quantity,
-      averagePrice: s.averagePrice,
-      investedValue: num(p.investedValue) ?? s.quantity * s.averagePrice,
-      currentValue: num(p.currentValue),
-      pnl: num(p.pnl),
-      returnPct: num(p.returnPct),
-      weight: num(p.weight)
-    };
-  });
-  return { records, summary: val && !val.error ? { totalInvested: val.totalInvested, totalCurrent: val.totalCurrent, totalPnl: val.totalPnl, totalReturnPct: val.totalReturnPct } : null };
-}
+const COMPANY_NAMES = {
+  INFY: 'Infosys Ltd',
+  ITC: 'ITC Ltd',
+  ZYDUSLIFE: 'Zydus Lifesciences Ltd',
+  NATCOPHARM: 'Natco Pharma Ltd',
+  HDFCBANK: 'HDFC Bank Ltd',
+  SOUTHBANK: 'South Indian Bank Ltd',
+  TCS: 'Tata Consultancy Services Ltd',
+  WIPRO: 'WIPRO Ltd',
+  HCLTECH: 'HCL Technologies Ltd'
+};
+
+const SECTOR_MAP = {
+  INFY: 'Information Technology',
+  TCS: 'Information Technology',
+  WIPRO: 'Information Technology',
+  HCLTECH: 'Information Technology',
+  ITC: 'Consumer Staples',
+  ZYDUSLIFE: 'Healthcare',
+  NATCOPHARM: 'Healthcare',
+  HDFCBANK: 'Financial Services',
+  SOUTHBANK: 'Financial Services'
+};
 
 const SCREEN_FIELDS = ['ttmPe', 'apef', 'indpe', 'fundamental', 'erqr', 'ptir', 'upside', 'nBreco', 'breco', 'totalAnalysts'];
 
@@ -155,20 +152,24 @@ async function enrichOne(client, sid) {
 /** Enrich all holdings with cache, bounded concurrency, and fail-soft behaviour. */
 async function enrichAll(client, records, { cache, refresh, concurrency = 3, onProgress = () => {} } = {}) {
   return pool(records, concurrency, async (rec) => {
-    let e = !refresh && cache ? cache.get(rec.sid) : null;
+    const sid = TICKERTAPE_SID_MAP[rec.ticker] || rec.sid || rec.ticker;
+    let e = !refresh && cache ? cache.get(sid) : null;
     let fromCache = !!e;
     if (!e) {
       try {
-        e = await enrichOne(client, rec.sid);
+        e = await enrichOne(client, sid);
       } catch (err) {
         e = { metrics: {}, scorecard: [], checklists: [], warnings: ['Enrichment failed'], fetchedAt: new Date().toISOString() };
       }
-      if (cache && !e.warnings.length) cache.set(rec.sid, e);
+      if (cache && !e.warnings.length) cache.set(sid, e);
     }
     onProgress(rec.ticker, fromCache, e.warnings);
-    const price = e.price ?? null;
+    const price = e.price ?? rec.last_price ?? rec.price ?? null;
     return {
       ...rec,
+      sid,
+      name: rec.name && rec.name !== rec.ticker ? rec.name : (COMPANY_NAMES[rec.ticker] || rec.name || rec.ticker),
+      sector: rec.sector || e.screenerSector || SECTOR_MAP[rec.ticker] || 'Other',
       price,
       high52: e.high52 ?? null,
       low52: e.low52 ?? null,
@@ -185,4 +186,14 @@ async function enrichAll(client, records, { cache, refresh, concurrency = 3, onP
   });
 }
 
-module.exports = { pool, createCache, withRetry, fetchHoldings, enrichOne, enrichAll, findAngelOneGateway, todayStr };
+module.exports = {
+  pool,
+  createCache,
+  withRetry,
+  enrichOne,
+  enrichAll,
+  todayStr,
+  TICKERTAPE_SID_MAP,
+  COMPANY_NAMES,
+  SECTOR_MAP
+};

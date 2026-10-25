@@ -1,0 +1,20 @@
+[
+  {
+    "date": "2023-11-15",
+    "amount": -10000,
+    "category": "PAYIN",
+    "description": "UPI Funds Added - Bank"
+  },
+  {
+    "date": "2024-03-20",
+    "amount": -15000,
+    "category": "PAYIN",
+    "description": "Netbanking Fund Transfer"
+  },
+  {
+    "date": "2024-08-10",
+    "amount": -14478,
+    "category": "PAYIN",
+    "description": "UPI Funds Added - Bank"
+  }
+]

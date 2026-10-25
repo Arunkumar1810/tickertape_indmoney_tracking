@@ -1,0 +1,38 @@
+{
+  "broker": "angelone",
+  "mcpEndpoint": "http://localhost:8000/mcp",
+  "mcpSseEndpoint": "http://localhost:8000/sse",
+  "mcpRepo": "https://mcpservers.org/servers/pyalgobot/angelone-mcp.git",
+  "cacheDir": ".cache",
+  "tradesCacheFile": ".cache/trades_cache.json",
+  "ledgerCacheFile": ".cache/ledger_cache.json",
+  "subAnnualThresholdDays": 90,
+  "maxSolverIterations": 100,
+  "solverTolerance": 1e-7,
+  "reportsDir": "reports",
+  "redactSensitiveKeys": [
+    "client_id",
+    "client_code",
+    "pan",
+    "bank_account",
+    "account_id",
+    "api_key",
+    "smartapi_key",
+    "access_token",
+    "jwt_token",
+    "feed_token",
+    "enctoken",
+    "public_token",
+    "password",
+    "pin",
+    "mpin",
+    "totp",
+    "totp_token",
+    "totp_secret",
+    "secret"
+  ],
+  "defaultAssumptions": {
+    "dpChargePerDebit": 15.93,
+    "sttDeliveryRate": 0.001
+  }
+}

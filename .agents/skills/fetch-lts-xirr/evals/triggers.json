@@ -1,0 +1,66 @@
+[
+  {
+    "query": "calculate True Investor XIRR",
+    "should_trigger": true
+  },
+  {
+    "query": "what is my portfolio XIRR net of fees and taxes?",
+    "should_trigger": true
+  },
+  {
+    "query": "calculate compounding return for Angel One account",
+    "should_trigger": true
+  },
+  {
+    "query": "audit true investor returns against bank deposits",
+    "should_trigger": true
+  },
+  {
+    "query": "show friction drag and STT hidden charges on holdings",
+    "should_trigger": true
+  },
+  {
+    "query": "evaluate ledger cashflows and annualized return",
+    "should_trigger": true
+  },
+  {
+    "query": "generate my account XIRR report with trade tranches",
+    "should_trigger": true
+  },
+  {
+    "query": "check per-stock compounding and bank pay-ins",
+    "should_trigger": true
+  },
+  {
+    "query": "fetch my demat holdings",
+    "should_trigger": false
+  },
+  {
+    "query": "fetch LTS",
+    "should_trigger": false
+  },
+  {
+    "query": "list demat positions from Angel One",
+    "should_trigger": false
+  },
+  {
+    "query": "analyze valuation and quality scores of holdings",
+    "should_trigger": false
+  },
+  {
+    "query": "recommend Accumulate or Trim based on sector concentration caps",
+    "should_trigger": false
+  },
+  {
+    "query": "run Tickertape screener checklist on my stocks",
+    "should_trigger": false
+  },
+  {
+    "query": "show fundamental scores for Infosys and TCS",
+    "should_trigger": false
+  },
+  {
+    "query": "review portfolio health gauge and red flags",
+    "should_trigger": false
+  }
+]

@@ -3,337 +3,355 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Long-Term Holdings Review</title>
-<meta name="description" content="Offline portfolio review with an auditable, rule-based rationale for every holding.">
+<title>Angel One Holdings · fetch-lts</title>
+<meta name="description" content="Live Angel One Demat holdings and portfolio valuation.">
 <style>
-:root{
-  --bg:#0b1020; --bg2:#121a33; --card:rgba(255,255,255,.06); --card-b:rgba(255,255,255,.12);
-  --text:#e8ecf8; --muted:#97a3c4; --accent:#7c9cff; --accent2:#b07cff;
-  --good:#34d399; --bad:#fb7185; --warn:#fbbf24; --gold:#f5c451;
-  --shadow:0 10px 30px rgba(0,0,0,.35);
+:root {
+  --bg: #090d16;
+  --surface: #111726;
+  --surface-alt: #172033;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #38bdf8;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --emerald: #10b981;
+  --rose: #f43f5e;
+  --amber: #f59e0b;
+  --cyan: #38bdf8;
+  --indigo: #6366f1;
 }
-[data-theme="light"]{
-  --bg:#f4f6fc; --bg2:#e7ecfa; --card:rgba(255,255,255,.85); --card-b:rgba(20,30,70,.12);
-  --text:#161c33; --muted:#5a6685; --accent:#3d5afe; --accent2:#7c3aed;
-  --good:#059669; --bad:#e11d48; --warn:#b45309; --gold:#b7791f; --shadow:0 8px 24px rgba(30,40,90,.12);
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  padding: 32px 20px 80px;
+  line-height: 1.5;
 }
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter,"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;color:var(--text);
-  background:radial-gradient(1200px 600px at 10% -10%,rgba(124,156,255,.22),transparent 60%),
-             radial-gradient(900px 500px at 100% 0,rgba(176,124,255,.18),transparent 55%),var(--bg);
-  min-height:100vh;line-height:1.45}
-.wrap{max-width:1280px;margin:0 auto;padding:24px 20px 60px}
-header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px}
-h1{margin:0;font-size:28px;letter-spacing:-.02em;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
-.sub{color:var(--muted);font-size:13px;margin-top:4px}
-button,input,select{font:inherit;color:inherit}
-.btn{background:var(--card);border:1px solid var(--card-b);border-radius:10px;padding:8px 14px;cursor:pointer;transition:.2s}
-.btn:hover{transform:translateY(-1px);border-color:var(--accent)}
-.btn.on{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
-.glass{background:var(--card);border:1px solid var(--card-b);border-radius:16px;box-shadow:var(--shadow);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:18px}
-.kpi{padding:16px 18px}
-.kpi .l{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
-.kpi .v{font-size:24px;font-weight:700;margin-top:6px}
-.pos{color:var(--good)} .neg{color:var(--bad)}
-.grid2{display:grid;grid-template-columns:minmax(280px,1fr) minmax(280px,1.4fr);gap:14px;margin-bottom:18px}
-@media(max-width:820px){.grid2{grid-template-columns:1fr}}
-.panel{padding:18px}
-.panel h2{margin:0 0 12px;font-size:15px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-.donut-wrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
-.legend{display:grid;gap:6px;font-size:13px;flex:1;min-width:150px}
-.legend div{display:flex;align-items:center;gap:8px}
-.sw{width:10px;height:10px;border-radius:3px;flex:none}
-svg .slice{transition:transform .2s;transform-origin:50% 50%;cursor:pointer}
-svg .slice:hover{transform:scale(1.04)}
-#tip{position:fixed;pointer-events:none;background:#000c;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;display:none;z-index:9}
-.gauge-row{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
-.queue{margin:0;padding:0;list-style:none;display:grid;gap:8px}
-.queue li{display:flex;gap:10px;align-items:center;font-size:14px;cursor:pointer}
-.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0 14px}
-.controls input[type=search]{flex:1;min-width:200px;background:var(--card);border:1px solid var(--card-b);border-radius:10px;padding:9px 12px;outline:none}
-.controls input:focus{border-color:var(--accent)}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.chip{border:1px solid var(--card-b);background:var(--card);border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer;transition:.2s}
-.chip.on{background:var(--accent);color:#fff;border-color:transparent}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
-.card{padding:16px;transition:.2s;position:relative}
-.card:hover{transform:translateY(-2px);border-color:var(--accent)}
-.card.amber{box-shadow:0 0 0 1px var(--warn),0 0 22px rgba(251,191,36,.25)}
-.card h3{margin:0;font-size:17px}
-.card .meta{color:var(--muted);font-size:12px;margin-top:2px}
-.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.verdict{font-weight:700;font-size:12px;padding:4px 10px;border-radius:999px;color:#fff;white-space:nowrap}
-.v-Accumulate{background:linear-gradient(90deg,#059669,#10b981)}
-.v-Hold{background:linear-gradient(90deg,#3b5bdb,#5c7cfa)}
-.v-Trim{background:linear-gradient(90deg,#d97706,#f59e0b)}
-.v-Review{background:linear-gradient(90deg,#7c3aed,#a78bfa)}
-.v-Exit{background:linear-gradient(90deg,#be123c,#f43f5e)}
-.reason{font-size:14px;margin:10px 0}
-.nums{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;margin:8px 0}
-.nums b{display:block;font-size:15px}
-.bar{height:6px;border-radius:4px;background:rgba(127,127,127,.25);overflow:hidden}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
-.scores{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;font-size:12px;align-items:center;margin-top:8px}
-.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;margin:2px 4px 0 0}
-.b-warn{background:rgba(251,191,36,.2);color:var(--warn)}
-.b-red{background:rgba(251,113,133,.2);color:var(--bad);font-weight:700}
-.b-gold{background:rgba(245,196,81,.2);color:var(--gold)}
-.b-muted{background:rgba(127,127,127,.18);color:var(--muted)}
-.spark{display:block;margin-top:8px}
-details.drawer{margin-top:10px;border-top:1px dashed var(--card-b);padding-top:8px}
-details summary{cursor:pointer;color:var(--accent);font-size:13px}
-.trig{margin:6px 0 0;padding-left:18px;font-size:13px}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{padding:10px 8px;text-align:right;border-bottom:1px solid var(--card-b)}
-th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
-th{cursor:pointer;color:var(--muted);font-weight:600;user-select:none;white-space:nowrap}
-th:hover{color:var(--accent)}
-.tablewrap{overflow-x:auto;padding:6px 10px}
-.hidden{display:none!important}
-section.method{margin-top:22px;padding:18px}
-footer{margin-top:28px;color:var(--muted);font-size:12px;text-align:center}
-.empty{padding:30px;text-align:center;color:var(--muted)}
-@media print{
-  body{background:#fff;color:#000}
-  .controls,.chips,.btn,#tip{display:none!important}
-  .glass{box-shadow:none;backdrop-filter:none;background:#fff;border-color:#bbb}
-  details.drawer{display:block} details.drawer>*{display:block}
-  .card{break-inside:avoid}
+.container { max-width: 1200px; margin: 0 auto; }
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.brand h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.brand p { font-size: 0.88rem; color: var(--text-muted); margin-top: 4px; }
+.badge {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  color: var(--cyan);
+  font-weight: 500;
+}
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  transition: transform 0.15s, border-color 0.15s;
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+.kpi-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.kpi-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 6px 0 2px;
+  font-variant-numeric: tabular-nums;
+}
+.kpi-sub { font-size: 0.8rem; color: var(--text-muted); }
+.rate-emerald { color: var(--emerald); }
+.rate-rose { color: var(--rose); }
+
+.controls-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.search-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: var(--text);
+  font-size: 0.88rem;
+  width: 320px;
+  max-width: 100%;
+}
+.search-input:focus { outline: none; border-color: var(--cyan); }
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow-x: auto;
+  margin-bottom: 30px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+th {
+  padding: 12px 16px;
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+th:hover { color: var(--text); }
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+}
+tr:hover td { background: rgba(255, 255, 255, 0.02); }
+.symbol-cell b { display: block; font-size: 0.95rem; color: var(--text); }
+.symbol-cell span { font-size: 0.75rem; color: var(--text-muted); }
+
+footer {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
 }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <div>
-      <h1>Long-Term Holdings Review</h1>
-      <div class="sub" id="sub"></div>
+
+<div class="container">
+  <header>
+    <div class="brand">
+      <h1>fetch-lts</h1>
+      <p>Angel One Live Demat Equity Holdings & Margin</p>
     </div>
-    <div class="controls">
-      <button class="btn" id="expandAll" title="Expand all (e)">Expand all</button>
-      <button class="btn" id="themeBtn" title="Toggle theme">Light / Dark</button>
-    </div>
+    <div class="badge" id="reportDate">Data as of: Today</div>
   </header>
 
-  <section class="hero" id="hero" aria-label="Portfolio summary"></section>
-
-  <section class="grid2">
-    <div class="glass panel">
-      <h2>Sector allocation</h2>
-      <div class="donut-wrap"><svg id="donut" width="190" height="190" viewBox="0 0 200 200" role="img" aria-label="Sector allocation donut"></svg><div class="legend" id="legend"></div></div>
+  <!-- Hero KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Holdings Market Value</div>
+      <div class="kpi-value rate-emerald" id="kpiCurrent">₹--</div>
+      <div class="kpi-sub" id="kpiHoldingsCount">-- Positions</div>
     </div>
-    <div class="glass panel">
-      <h2>Health &amp; action queue</h2>
-      <div class="gauge-row">
-        <svg id="gauge" width="150" height="100" viewBox="0 0 150 100" role="img" aria-label="Portfolio health score"></svg>
-        <ul class="queue" id="queue"></ul>
-      </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total Invested</div>
+      <div class="kpi-value" id="kpiInvested">₹--</div>
+      <div class="kpi-sub">Acquisition Cost</div>
     </div>
-  </section>
-
-  <div class="chips" id="chips"></div>
-  <div class="controls">
-    <input type="search" id="search" placeholder="Search ticker or name  ( / )" aria-label="Search holdings">
-    <button class="btn on" id="vCards">Cards</button>
-    <button class="btn" id="vTable">Table</button>
+    <div class="kpi-card">
+      <div class="kpi-label">Unrealized P&L</div>
+      <div class="kpi-value" id="kpiPnl">₹--</div>
+      <div class="kpi-sub" id="kpiReturnPct">--% Return</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Available Free Margin</div>
+      <div class="kpi-value" id="kpiMargin">₹--</div>
+      <div class="kpi-sub">Cash Balance</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total Account Equity</div>
+      <div class="kpi-value" id="kpiEquity">₹--</div>
+      <div class="kpi-sub">Holdings + Free Cash</div>
+    </div>
   </div>
 
-  <div id="cards" class="cards"></div>
-  <div id="tableView" class="glass tablewrap hidden"><table id="tbl"></table></div>
-  <div id="empty" class="empty hidden">No holdings match the current filters.</div>
+  <!-- Search & Filter -->
+  <div class="controls-bar">
+    <input type="text" class="search-input" id="searchFilter" placeholder="Search instrument or ISIN..." onkeyup="filterTable()">
+  </div>
 
-  <section class="glass method" id="methodology">
-    <details>
-      <summary>Methodology and scoring weights</summary>
-      <div id="method"></div>
-    </details>
-  </section>
+  <!-- Holdings Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">Instrument</th>
+          <th onclick="sortTable(1)">Qty</th>
+          <th onclick="sortTable(2)">Avg Price</th>
+          <th onclick="sortTable(3)">CMP</th>
+          <th onclick="sortTable(4)">Invested</th>
+          <th onclick="sortTable(5)">Current Value</th>
+          <th onclick="sortTable(6)">P&L (₹)</th>
+          <th onclick="sortTable(7)">Return %</th>
+          <th onclick="sortTable(8)">Weight %</th>
+        </tr>
+      </thead>
+      <tbody id="holdingsTbody">
+        <!-- Rendered dynamically -->
+      </tbody>
+    </table>
+  </div>
 
   <footer>
-    Informational only. This report is generated from public market data using fixed rules and is not investment advice.
-    <br><span id="gen"></span>
+    Generated by <b>fetch-lts</b> · Angel One MCP · Clean Offline Holdings Presentation
   </footer>
 </div>
-<div id="tip"></div>
 
 <script>
 const DATA = /*__DATA__*/null;
-</script>
-<script>
-(function(){
-'use strict';
-const D = DATA;
-const $ = (s)=>document.querySelector(s);
-const el = (tag, cls, text)=>{const e=document.createElement(tag); if(cls) e.className=cls; if(text!==undefined&&text!==null) e.textContent=text; return e;};
-const inr = (n)=> n==null? 'n/a' : '\u20B9'+Number(n).toLocaleString('en-IN',{maximumFractionDigits:0});
-const pct = (n,d=1)=> n==null? 'n/a' : (n>0?'+':'')+Number(n).toFixed(d)+'%';
-const cls = (n)=> n==null? '' : n>=0?'pos':'neg';
-const PAL = ['#7c9cff','#b07cff','#34d399','#fbbf24','#fb7185','#38bdf8','#f472b6','#a3e635','#fb923c','#94a3b8'];
-const VERDICTS = ['Accumulate','Hold','Trim','Review','Exit'];
-const state = {view:'cards', verdict:null, sector:null, flags:false, winners:false, losers:false, q:'', sortKey:'order', sortDir:1, expanded:false};
 
-// ---- header
-$('#sub').textContent = 'Data as of ' + (D.summary.dataAsOf||'unknown') + ' \u00B7 ' + D.holdings.length + ' holdings \u00B7 broker: ' + D.meta.broker;
-$('#gen').textContent = 'Generated ' + D.meta.generatedAt;
-if (D.meta.partialCount) { const w = el('div','badge b-warn', D.meta.partialCount+' holding(s) have partial data'); $('#sub').appendChild(document.createTextNode(' ')); $('#sub').appendChild(w); }
+function formatInr(val) {
+  if (val === null || val === undefined || isNaN(val)) return '—';
+  const num = Number(val);
+  const sign = num < 0 ? '-' : '';
+  const abs = Math.abs(num).toFixed(2);
+  const parts = abs.split('.');
+  let last3 = parts[0].substring(parts[0].length - 3);
+  const other = parts[0].substring(0, parts[0].length - 3);
+  if (other !== '') last3 = ',' + last3;
+  const res = other.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + last3 + '.' + parts[1];
+  return `${sign}₹${res}`;
+}
 
-// ---- hero
-(function(){
-  const s=D.summary;
-  const k=[['Invested',inr(s.invested),''],['Current value',inr(s.current),''],['P&L',inr(s.pnl)+'  ('+pct(s.returnPct)+')',cls(s.pnl)],['Day change',s.dayChange==null?'n/a':inr(s.dayChange),cls(s.dayChange)],['Holdings',String(D.holdings.length),'']];
-  k.forEach(([l,v,c])=>{const d=el('div','glass kpi'); d.appendChild(el('div','l',l)); d.appendChild(el('div','v '+c,v)); $('#hero').appendChild(d);});
-})();
+function formatPct(val) {
+  if (val === null || val === undefined || isNaN(val)) return '—';
+  const num = Number(val);
+  const sign = num > 0 ? '+' : '';
+  return `${sign}${num.toFixed(2)}%`;
+}
 
-// ---- donut
-(function(){
-  const svg=$('#donut'), NS='http://www.w3.org/2000/svg', R=80, C=2*Math.PI*R; let off=0;
-  const tip=$('#tip');
-  D.sectors.forEach((s,i)=>{
-    const len=C*s.weight/100, col=PAL[i%PAL.length];
-    const c=document.createElementNS(NS,'circle');
-    c.setAttribute('class','slice'); c.setAttribute('cx',100); c.setAttribute('cy',100); c.setAttribute('r',R);
-    c.setAttribute('fill','none'); c.setAttribute('stroke',col); c.setAttribute('stroke-width',28);
-    c.setAttribute('stroke-dasharray',len+' '+(C-len)); c.setAttribute('stroke-dashoffset',-off); c.setAttribute('transform','rotate(-90 100 100)');
-    c.addEventListener('mousemove',(e)=>{tip.style.display='block';tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY+12)+'px';tip.textContent=s.sector+': '+s.weight.toFixed(1)+'% ('+inr(s.value)+')';});
-    c.addEventListener('mouseleave',()=>tip.style.display='none');
-    c.addEventListener('click',()=>{state.sector = state.sector===s.sector?null:s.sector; renderAll();});
-    const t=document.createElementNS(NS,'title'); t.textContent=s.sector+': '+s.weight.toFixed(1)+'%'; c.appendChild(t);
-    svg.appendChild(c); off+=len;
-    const row=el('div'); const sw=el('span','sw'); sw.style.background=col; row.appendChild(sw);
-    const lab=el('span',null,s.sector+' \u00B7 '+s.weight.toFixed(1)+'%'); if(s.overCap){lab.style.color='var(--warn)'; lab.textContent+=' (over cap)';} row.appendChild(lab); $('#legend').appendChild(row);
+function init() {
+  if (!DATA) return;
+  const s = DATA.summary || {};
+  const m = DATA.margin || {};
+
+  document.getElementById('reportDate').textContent = `Data as of: ${DATA.evalDate || DATA.generatedAt || new Date().toISOString().split('T')[0]}`;
+  document.getElementById('kpiCurrent').textContent = formatInr(s.totalCurrent || s.current);
+  document.getElementById('kpiHoldingsCount').textContent = `${(DATA.holdings || []).length} Equity Positions`;
+  document.getElementById('kpiInvested').textContent = formatInr(s.totalInvested || s.invested);
+
+  const pnl = s.totalPnl !== undefined ? s.totalPnl : s.pnl;
+  const ret = s.totalReturnPct !== undefined ? s.totalReturnPct : s.returnPct;
+  const pnlEl = document.getElementById('kpiPnl');
+  pnlEl.textContent = formatInr(pnl);
+  pnlEl.className = `kpi-value ${pnl >= 0 ? 'rate-emerald' : 'rate-rose'}`;
+  document.getElementById('kpiReturnPct').textContent = `${formatPct(ret)} Return`;
+
+  const cash = Number(m.available_cash || s.availableCash || 0);
+  document.getElementById('kpiMargin').textContent = formatInr(cash);
+  const equity = Number(s.totalAccountEquity || ((s.totalCurrent || s.current || 0) + cash));
+  document.getElementById('kpiEquity').textContent = formatInr(equity);
+
+  renderHoldings(DATA.holdings || []);
+}
+
+function renderHoldings(list) {
+  const tbody = document.getElementById('holdingsTbody');
+  tbody.innerHTML = '';
+  for (const h of list) {
+    const tr = document.createElement('tr');
+    const pnl = Number(h.pnl || 0);
+    const pnlClass = pnl >= 0 ? 'rate-emerald' : 'rate-rose';
+    const ticker = h.tradingsymbol || h.ticker || h.symbol || '';
+    const name = h.name || ticker;
+    const isin = h.isin || '';
+
+    tr.innerHTML = `
+      <td class="symbol-cell">
+        <b>${ticker}</b>
+        <span>${name}${isin ? ' · ' + isin : ''}</span>
+      </td>
+      <td>${h.quantity}</td>
+      <td>${formatInr(h.average_price || h.averagePrice)}</td>
+      <td>${formatInr(h.last_price || h.price || h.lastPrice)}</td>
+      <td>${formatInr(h.invested || h.investedValue)}</td>
+      <td style="font-weight:600;">${formatInr(h.current_value || h.currentValue)}</td>
+      <td class="${pnlClass}" style="font-weight:600;">${formatInr(pnl)}</td>
+      <td class="${pnlClass}">${formatPct(h.returnPct !== undefined ? h.returnPct : (h.invested > 0 ? (pnl / h.invested) * 100 : 0))}</td>
+      <td style="color:var(--text-muted);">${Number(h.weight || 0).toFixed(2)}%</td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+function filterTable() {
+  const query = document.getElementById('searchFilter').value.toUpperCase();
+  const rows = document.querySelectorAll('#holdingsTbody tr');
+  rows.forEach(r => {
+    const text = r.innerText.toUpperCase();
+    r.style.display = text.includes(query) ? '' : 'none';
   });
-})();
-
-// ---- gauge + queue
-(function(){
-  const svg=$('#gauge'), NS='http://www.w3.org/2000/svg', h=D.summary.health;
-  const mk=(d,col)=>{const p=document.createElementNS(NS,'path'); p.setAttribute('d',d); p.setAttribute('fill','none'); p.setAttribute('stroke',col); p.setAttribute('stroke-width',12); p.setAttribute('stroke-linecap','round'); svg.appendChild(p);};
-  mk('M15 85 A60 60 0 0 1 135 85','rgba(127,127,127,.25)');
-  if(h!=null){ const a=Math.PI*(h/100); const x=75-60*Math.cos(a), y=85-60*Math.sin(a); mk('M15 85 A60 60 0 0 1 '+x+' '+y, h>=65?'#34d399':h>=45?'#fbbf24':'#fb7185'); }
-  const t=document.createElementNS(NS,'text'); t.setAttribute('x',75); t.setAttribute('y',80); t.setAttribute('text-anchor','middle'); t.setAttribute('font-size',26); t.setAttribute('font-weight',700); t.setAttribute('fill','currentColor'); t.textContent=h==null?'n/a':Math.round(h); svg.appendChild(t);
-  const q=$('#queue');
-  if(!D.queue.length){q.appendChild(el('li',null,'Nothing needs attention today.'));}
-  D.queue.forEach((it)=>{const li=el('li'); li.appendChild(el('span','verdict v-'+it.verdict,it.verdict)); li.appendChild(el('span',null,it.ticker+' \u2014 '+it.reason)); li.addEventListener('click',()=>{state.q=it.ticker; $('#search').value=it.ticker; renderAll();}); q.appendChild(li);});
-})();
-
-// ---- chips
-function buildChips(){
-  const box=$('#chips'); box.textContent='';
-  const add=(label,on,fn)=>{const c=el('button','chip'+(on?' on':''),label); c.addEventListener('click',()=>{fn(); renderAll();}); box.appendChild(c);};
-  VERDICTS.forEach(v=>{const n=D.holdings.filter(h=>h.verdict===v).length; if(n) add(v+' ('+n+')',state.verdict===v,()=>{state.verdict=state.verdict===v?null:v;});});
-  add('Red flags only',state.flags,()=>{state.flags=!state.flags;});
-  add('Winners',state.winners,()=>{state.winners=!state.winners; if(state.winners) state.losers=false;});
-  add('Losers',state.losers,()=>{state.losers=!state.losers; if(state.losers) state.winners=false;});
-  if(state.sector) add('Sector: '+state.sector+'  \u2715',true,()=>{state.sector=null;});
 }
 
-function visible(){
-  const q=state.q.trim().toLowerCase();
-  let list=D.holdings.filter(h=>{
-    if(state.verdict&&h.verdict!==state.verdict) return false;
-    if(state.sector&&h.sector!==state.sector) return false;
-    if(state.flags&&!h.flags.some(f=>f.type==='red')) return false;
-    if(state.winners&&!(h.returnPct>0)) return false;
-    if(state.losers&&!(h.returnPct<0)) return false;
-    if(q&&!(h.ticker.toLowerCase().includes(q)||h.name.toLowerCase().includes(q))) return false;
-    return true;
-  });
-  const k=state.sortKey, d=state.sortDir;
-  if(k!=='order') list=list.slice().sort((a,b)=>{const x=a[k],y=b[k]; if(x==null) return 1; if(y==null) return -1; return (typeof x==='string'? x.localeCompare(y): x-y)*d;});
-  return list;
+let sortAsc = true;
+function sortTable(n) {
+  const table = document.querySelector('table');
+  let rows, switching, i, x, y, shouldSwitch, switchcount = 0;
+  switching = true;
+  let dir = 'asc';
+  while (switching) {
+    switching = false;
+    rows = table.rows;
+    for (i = 1; i < (rows.length - 1); i++) {
+      shouldSwitch = false;
+      x = rows[i].getElementsByTagName('TD')[n];
+      y = rows[i + 1].getElementsByTagName('TD')[n];
+      let xVal = x.innerText.replace(/[₹, %+]/g, '');
+      let yVal = y.innerText.replace(/[₹, %+]/g, '');
+      let isNumeric = !isNaN(parseFloat(xVal)) && isFinite(xVal);
+      if (dir == 'asc') {
+        if (isNumeric ? parseFloat(xVal) > parseFloat(yVal) : xVal.toLowerCase() > yVal.toLowerCase()) {
+          shouldSwitch = true;
+          break;
+        }
+      } else if (dir == 'desc') {
+        if (isNumeric ? parseFloat(xVal) < parseFloat(yVal) : xVal.toLowerCase() < yVal.toLowerCase()) {
+          shouldSwitch = true;
+          break;
+        }
+      }
+    }
+    if (shouldSwitch) {
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+      switchcount++;
+    } else {
+      if (switchcount == 0 && dir == 'asc') {
+        dir = 'desc';
+        switching = true;
+      }
+    }
+  }
 }
 
-// ---- sparkline: 52w range with price and cost basis ghost line
-function spark(h){
-  const NS='http://www.w3.org/2000/svg', svg=document.createElementNS(NS,'svg'); svg.setAttribute('class','spark'); svg.setAttribute('width','100%'); svg.setAttribute('height',28); svg.setAttribute('viewBox','0 0 300 28'); svg.setAttribute('preserveAspectRatio','none');
-  if(h.low52==null||h.high52==null||h.high52<=h.low52) return null;
-  const pos=(v)=>Math.max(0,Math.min(300,(v-h.low52)/(h.high52-h.low52)*300));
-  const base=document.createElementNS(NS,'rect'); base.setAttribute('x',0); base.setAttribute('y',12); base.setAttribute('width',300); base.setAttribute('height',4); base.setAttribute('rx',2); base.setAttribute('fill','rgba(127,127,127,.3)'); svg.appendChild(base);
-  const dot=(v,col,r)=>{const c=document.createElementNS(NS,'circle'); c.setAttribute('cx',pos(v)); c.setAttribute('cy',14); c.setAttribute('r',r); c.setAttribute('fill',col); const t=document.createElementNS(NS,'title'); t.textContent=(col==='#fbbf24'?'Your avg buy ':'CMP ')+inr(v); c.appendChild(t); svg.appendChild(c);};
-  dot(h.averagePrice,'#fbbf24',5); dot(h.price,'#7c9cff',6);
-  return svg;
-}
-
-function bars(h){
-  const g=el('div','scores');
-  ['quality','valuation','momentum','analyst','risk'].forEach(k=>{
-    g.appendChild(el('span',null,k)); const b=el('div','bar'); const i=el('i'); i.style.width=(h.scores[k]==null?0:h.scores[k])+'%'; b.appendChild(i); g.appendChild(b); g.appendChild(el('span',null,h.scores[k]==null?'n/a':Math.round(h.scores[k])));
-  });
-  return g;
-}
-
-function drawer(h){
-  const d=el('details','drawer'); if(state.expanded) d.open=true;
-  d.appendChild(el('summary',null,'Why this verdict, metrics and scores'));
-  d.appendChild(bars(h));
-  d.appendChild(el('div','sub','Triggers: confidence '+h.confidence+'% of expected metrics available'));
-  const ul=el('ul','trig'); h.triggers.forEach(t=>ul.appendChild(el('li',null,t.label+': '+t.value))); d.appendChild(ul);
-  const m=h.metrics||{}; const rows=[['TTM P/E',m.ttmPe],['Sector P/E',m.indpe],['Peer mean P/E',m.peerMeanPe],['Earnings quality rank',m.erqr],['Analyst upside %',m.upside],['Buy recommendations %',m.breco],['52w range',h.low52!=null?inr(h.low52)+' \u2013 '+inr(h.high52):null],['Overall score',h.overall],['Report-card grade',h.grade],['Would I buy today?',h.wouldBuyToday]];
-  const ml=el('ul','trig'); rows.forEach(([l,v])=>{ml.appendChild(el('li',null,l+': '+(v==null?'n/a':(typeof v==='number'?v.toFixed(1):v))));}); d.appendChild(ml);
-  (h.scorecard||[]).forEach(s=>{ if(s.value!=null){} });
-  if(h.scorecard&&h.scorecard.length){ const l=el('div','sub','Tickertape scorecard: '+h.scorecard.map(s=>s.name+' '+(s.tag||'')+(s.value!=null?' ('+s.value+'/10)':'')).join(' \u00B7 ')); d.appendChild(l); }
-  h.concentration.forEach(c=>d.appendChild(el('div','badge b-warn',c)));
-  if(h.dataAsOf) d.appendChild(el('div','sub','Data as of '+h.dataAsOf));
-  return d;
-}
-
-function card(h){
-  const c=el('article','glass card'+(h.concentration.length?' amber':''));
-  const top=el('div','row'); const l=el('div'); l.appendChild(el('h3',null,h.ticker)); l.appendChild(el('div','meta',h.name+' \u00B7 '+(h.sector||''))); top.appendChild(l);
-  const r=el('div'); r.appendChild(el('span','verdict v-'+h.verdict,h.verdict)); top.appendChild(r); c.appendChild(top);
-  c.appendChild(el('div','reason',h.reason));
-  const n=el('div','nums');
-  [['Weight',h.weight==null?'n/a':h.weight.toFixed(1)+'%',''],['Return',pct(h.returnPct),cls(h.returnPct)],['P&L',inr(h.pnl),cls(h.pnl)],['Grade',h.grade,'']].forEach(([a,b,k])=>{const d=el('div'); d.appendChild(document.createTextNode(a)); d.appendChild(el('b',k,b)); n.appendChild(d);});
-  c.appendChild(n);
-  const sp=spark(h); if(sp) c.appendChild(sp);
-  const bw=el('div'); h.flags.forEach(f=>bw.appendChild(el('span','badge '+(f.type==='red'?'b-red':'b-gold'),(f.type==='red'?'RED FLAG: ':'')+f.label)));
-  if(h.partial) bw.appendChild(el('span','badge b-warn','Partial data: '+h.warnings.join(', ')));
-  bw.appendChild(el('span','badge b-muted','Confidence '+h.confidence+'%'));
-  c.appendChild(bw); c.appendChild(drawer(h)); return c;
-}
-
-const COLS=[['ticker','Ticker'],['verdict','Verdict'],['weight','Weight %'],['returnPct','Return %'],['pnl','P&L'],['currentValue','Value'],['overall','Score'],['confidence','Conf %']];
-function table(list){
-  const t=$('#tbl'); t.textContent='';
-  const thead=el('thead'), tr=el('tr'); COLS.forEach(([k,l])=>{const th=el('th',null,l+(state.sortKey===k?(state.sortDir>0?' \u25B2':' \u25BC'):'')); th.addEventListener('click',()=>{ if(state.sortKey===k) state.sortDir*=-1; else {state.sortKey=k; state.sortDir=1;} renderAll();}); tr.appendChild(th);}); thead.appendChild(tr); t.appendChild(thead);
-  const tb=el('tbody'); list.forEach(h=>{const r=el('tr'); COLS.forEach(([k])=>{let v=h[k]; let txt=v==null?'n/a':v; if(k==='weight'||k==='overall') txt=v==null?'n/a':v.toFixed(1); if(k==='returnPct') txt=pct(v); if(k==='pnl'||k==='currentValue') txt=inr(v); const td=el('td',(k==='returnPct'||k==='pnl')?cls(v):'',String(txt)); if(k==='verdict'){td.textContent=''; td.appendChild(el('span','verdict v-'+h.verdict,h.verdict));} r.appendChild(td);}); tb.appendChild(r);}); t.appendChild(tb);
-}
-
-function renderAll(){
-  buildChips();
-  const list=visible();
-  $('#empty').classList.toggle('hidden',list.length>0);
-  $('#cards').classList.toggle('hidden',state.view!=='cards');
-  $('#tableView').classList.toggle('hidden',state.view!=='table');
-  $('#vCards').classList.toggle('on',state.view==='cards'); $('#vTable').classList.toggle('on',state.view==='table');
-  const box=$('#cards'); box.textContent='';
-  if(state.view==='cards') list.forEach(h=>box.appendChild(card(h))); else table(list);
-}
-
-// ---- methodology
-(function(){
-  const m=$('#method'), W=D.config.weights, T=D.config.thresholds, C=D.config.caps;
-  m.appendChild(el('p',null,'Each holding gets five 0-100 scores built from Tickertape data: quality (profitability, growth, earnings quality), valuation (scorecard, P/E vs sector, intrinsic value check), momentum (performance, entry point, 52-week position), analyst (target upside, buy share) and risk (red-flag colour, checklist pass rate). Missing inputs are skipped and lower the confidence figure.'));
-  const ul=el('ul'); Object.keys(W).forEach(k=>ul.appendChild(el('li',null,'Weight '+k+': '+(W[k]*100).toFixed(0)+'%'))); m.appendChild(ul);
-  m.appendChild(el('p',null,'Verdict rules, in order: Exit when overall < '+T.exitBelow+' with a red flag or risk < '+T.exitMaxRisk+'. Trim when a stock exceeds '+C.stockWeightPct+'% or a sector '+C.sectorWeightPct+'% of the portfolio, or valuation \u2264 '+T.trimValuationMax+' while in profit. Review when overall < '+T.reviewBelow+' or a red flag exists. Accumulate when overall \u2265 '+T.accumulateOverall+' and valuation \u2265 '+T.accumulateMinValuation+'. Otherwise Hold. A verdict only changes from the previous run if the score moves by at least '+T.hysteresis+' points.'));
-  m.appendChild(el('p',null,'Red and green flags are best-effort signals read from Tickertape checklist items. Tax notes appear only when a buy date is configured.'));
-})();
-
-// ---- events
-$('#search').addEventListener('input',(e)=>{state.q=e.target.value; renderAll();});
-$('#vCards').addEventListener('click',()=>{state.view='cards'; renderAll();});
-$('#vTable').addEventListener('click',()=>{state.view='table'; renderAll();});
-$('#expandAll').addEventListener('click',()=>{state.expanded=!state.expanded; renderAll();});
-$('#themeBtn').addEventListener('click',()=>{const r=document.documentElement; r.dataset.theme=r.dataset.theme==='dark'?'light':'dark';});
-document.addEventListener('keydown',(e)=>{
-  if(e.target.tagName==='INPUT') { if(e.key==='Escape') e.target.blur(); return; }
-  if(e.key==='/'){e.preventDefault(); $('#search').focus();}
-  else if(e.key==='e'){state.expanded=!state.expanded; renderAll();}
-  else if(e.key==='f'){const c=document.querySelector('.chip'); if(c) c.focus();}
-});
-renderAll();
-})();
+window.onload = init;
 </script>
 </body>
 </html>

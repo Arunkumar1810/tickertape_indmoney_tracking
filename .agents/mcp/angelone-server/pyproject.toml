@@ -1,0 +1,15 @@
+[project]
+name = "angelone-mcp-server"
+version = "0.1.0"
+description = "Read-only Angel One SmartAPI MCP server (holdings, funds, positions, books, market data)"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.2.0,<2",
+    "smartapi-python>=1.4.8",
+    "pyotp>=2.9.0",
+    "python-dotenv>=1.0.0",
+    # smartapi-python imports these without declaring them
+    "logzero>=1.7.0",
+    "websocket-client>=1.6.0",
+    "openpyxl>=3.1.5",
+]

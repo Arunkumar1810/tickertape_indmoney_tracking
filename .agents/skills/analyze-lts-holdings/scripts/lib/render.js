@@ -96,18 +96,21 @@ function writeReport(report, outDir, { templatePath, secrets = [], date } = {}) 
   const leaks = findLeaks(html, secrets).concat(findLeaks(json, secrets));
   if (leaks.length) throw new Error('Refusing to write report: credential values were found in the output.');
   fs.mkdirSync(outDir, { recursive: true });
-  const htmlPath = path.join(outDir, `fetch-lts-${stamp}.html`);
-  const jsonPath = path.join(outDir, `fetch-lts-${stamp}.json`);
+  const htmlPath = path.join(outDir, 'analyze-lts-holdings.html');
+  const jsonPath = path.join(outDir, 'analyze-lts-holdings.json');
   fs.writeFileSync(htmlPath, html);
   fs.writeFileSync(jsonPath, json);
+  // Also write dated copy for history/hysteresis
+  fs.writeFileSync(path.join(outDir, `analyze-lts-holdings-${stamp}.html`), html);
+  fs.writeFileSync(path.join(outDir, `analyze-lts-holdings-${stamp}.json`), json);
   return { htmlPath, jsonPath };
 }
 
 /** Load verdict/overall from the most recent earlier report JSON in outDir (for hysteresis). */
 function loadPrevious(outDir, beforeStamp) {
   try {
-    const files = fs.readdirSync(outDir).filter((f) => /^fetch-lts-\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort();
-    const prior = files.filter((f) => f.slice(10, 20) < beforeStamp).pop() || files.filter((f) => f.slice(10, 20) !== beforeStamp).pop();
+    const files = fs.readdirSync(outDir).filter((f) => /^(analyze-lts-holdings|fetch-lts)-\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort();
+    const prior = files.filter((f) => f.replace(/\.json$/, '').slice(-10) < beforeStamp).pop() || files.filter((f) => f.replace(/\.json$/, '').slice(-10) !== beforeStamp).pop();
     if (!prior) return {};
     const data = JSON.parse(fs.readFileSync(path.join(outDir, prior), 'utf8'));
     const map = {};

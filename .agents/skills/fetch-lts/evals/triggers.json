@@ -1,0 +1,66 @@
+[
+  {
+    "query": "fetch my demat holdings",
+    "should_trigger": true
+  },
+  {
+    "query": "fetch LTS",
+    "should_trigger": true
+  },
+  {
+    "query": "view my Angel One stock holdings",
+    "should_trigger": true
+  },
+  {
+    "query": "list demat positions from Angel One",
+    "should_trigger": true
+  },
+  {
+    "query": "fetch live holdings and available cash margin",
+    "should_trigger": true
+  },
+  {
+    "query": "refresh my LTS positions from broker",
+    "should_trigger": true
+  },
+  {
+    "query": "show current equity holdings and invested cost",
+    "should_trigger": true
+  },
+  {
+    "query": "get demat holdings without scoring",
+    "should_trigger": true
+  },
+  {
+    "query": "analyze the valuation and health of my LTS holdings",
+    "should_trigger": false
+  },
+  {
+    "query": "calculate True Investor XIRR on my portfolio",
+    "should_trigger": false
+  },
+  {
+    "query": "show friction drag and STT hidden charges on holdings",
+    "should_trigger": false
+  },
+  {
+    "query": "audit stock ratings and scorecard metrics",
+    "should_trigger": false
+  },
+  {
+    "query": "review portfolio concentration and recommend Accumulate or Trim",
+    "should_trigger": false
+  },
+  {
+    "query": "check bank deposit ledger cashflows",
+    "should_trigger": false
+  },
+  {
+    "query": "run Tickertape screener analysis on demat positions",
+    "should_trigger": false
+  },
+  {
+    "query": "what is my annualized asset compounding return?",
+    "should_trigger": false
+  }
+]

@@ -4,9 +4,13 @@ tokens.json
 client_credentials.json
 kite_portfolio_data.json
 .env
+*.xlsx
+.agents/mcp/angelone-server/data/**/*.xlsx
+.agents/mcp/angelone-server/data/*.xlsx
 
 # Dependencies
 node_modules/
+.venv/
 
 # Logs and scratch
 *.log

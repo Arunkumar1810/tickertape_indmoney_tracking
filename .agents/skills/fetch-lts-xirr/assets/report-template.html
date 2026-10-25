@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fetch-lts-xirr — Portfolio & Investor XIRR Report</title>
+<style>
+:root {
+  --bg: #090e1a;
+  --surface: #111827;
+  --surface-alt: #1a2236;
+  --border: #1f293d;
+  --text: #f3f4f6;
+  --text-muted: #9ca3af;
+  --emerald: #10b981;
+  --emerald-bg: rgba(16, 185, 129, 0.12);
+  --rose: #f43f5e;
+  --rose-bg: rgba(244, 63, 94, 0.12);
+  --cyan: #38bdf8;
+  --cyan-bg: rgba(56, 189, 248, 0.12);
+  --amber: #f59e0b;
+  --violet: #a855f7;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: radial-gradient(circle at 10% 10%, #171c38 0%, transparent 40%),
+              radial-gradient(circle at 90% 90%, #08283d 0%, transparent 40%),
+              var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  padding: 32px 20px 80px;
+}
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+}
+header {
+  margin-bottom: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 20px;
+}
+.brand h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--cyan) 0%, var(--violet) 50%, var(--emerald) 100%);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+.brand p {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  margin-top: 4px;
+}
+.timestamp-badge {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  color: var(--cyan);
+}
+
+/* Hero KPI Grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.kpi-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.kpi-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+.kpi-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.rate-emerald { color: var(--emerald); }
+.rate-rose { color: var(--rose); }
+
+/* Friction Banner */
+.friction-box {
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(26, 34, 54, 0.8));
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--violet);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.friction-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #c084fc;
+}
+.friction-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.friction-chip {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+/* Controls */
+.controls-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.search-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: var(--text);
+  font-size: 0.88rem;
+  width: 280px;
+  max-width: 100%;
+}
+.search-input:focus {
+  outline: none;
+  border-color: var(--cyan);
+}
+.btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn:hover, .btn.active {
+  background: var(--surface-alt);
+  color: var(--text);
+  border-color: var(--cyan);
+}
+
+/* Holdings Table */
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow-x: auto;
+  margin-bottom: 40px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+th {
+  padding: 12px 16px;
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  cursor: pointer;
+}
+th:hover { color: var(--text); }
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+}
+tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+.symbol-cell b {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+.symbol-cell span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.badge-subannual {
+  display: inline-block;
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--amber);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-left: 6px;
+}
+
+/* Drawer / Modal */
+.drawer-backdrop {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+}
+.drawer {
+  position: fixed;
+  top: 0; right: -550px; bottom: 0;
+  width: 520px;
+  max-width: 90vw;
+  background: #0f1628;
+  border-left: 1px solid var(--border);
+  z-index: 1001;
+  padding: 28px;
+  overflow-y: auto;
+  transition: right 0.25s ease;
+}
+.drawer.open {
+  right: 0;
+}
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 14px;
+  margin-bottom: 20px;
+}
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+.cashflow-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.85rem;
+}
+.flow-in { color: var(--emerald); font-weight: 600; }
+.flow-out { color: var(--rose); font-weight: 600; }
+
+footer {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="brand">
+      <h1>fetch-lts-xirr</h1>
+      <p>True Investor XIRR & Asset Compounding · Angel One Account Ledger</p>
+    </div>
+    <div class="timestamp-badge" id="reportDate">Data as of: Today</div>
+  </header>
+
+  <!-- Hero KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">True Investor XIRR</div>
+      <div class="kpi-value rate-emerald" id="kpiInvestorXirr">--%</div>
+      <div class="kpi-sub">Net of all taxes, fees & cash drag</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-label">Current Account Equity</div>
+      <div class="kpi-value" id="kpiTotalEquity">₹--</div>
+      <div class="kpi-sub" id="kpiEquityBreakdown">Holdings + Free Margin</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-label">Net Profit Realized</div>
+      <div class="kpi-value" id="kpiNetProfit">₹--</div>
+      <div class="kpi-sub" id="kpiAbsReturn">--% Absolute Return</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-label">Net Capital Added</div>
+      <div class="kpi-value" id="kpiNetDeposited">₹--</div>
+      <div class="kpi-sub" id="kpiDepositBreakdown">Bank Pay-ins vs Payouts</div>
+    </div>
+  </div>
+
+  <!-- Friction Drag Banner -->
+  <div class="friction-box">
+    <div>
+      <div class="friction-title">Friction Drag & Hidden Charge Analysis</div>
+      <div class="friction-desc" id="frictionNote">
+        Reflects STT, DP charges (₹13.5 + GST per debit), exchange fees, stamp duty, AMC, and idle cash drag.
+      </div>
+    </div>
+    <div class="friction-chip" id="kpiFrictionDrag">Friction Drag: --%</div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls-bar">
+    <input type="text" class="search-input" id="searchFilter" placeholder="Search ticker or ISIN..." onkeyup="filterTable()">
+    <div>
+      <button class="btn" onclick="openDrawer('account')">View Bank Deposit Ledger</button>
+    </div>
+  </div>
+
+  <!-- Holdings Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">Instrument</th>
+          <th onclick="sortTable(1)">Qty</th>
+          <th onclick="sortTable(2)">Avg Price</th>
+          <th onclick="sortTable(3)">CMP</th>
+          <th onclick="sortTable(4)">Invested</th>
+          <th onclick="sortTable(5)">Current Value</th>
+          <th onclick="sortTable(6)">P&L (₹)</th>
+          <th onclick="sortTable(7)">Dividends</th>
+          <th onclick="sortTable(8)">Abs Return</th>
+          <th onclick="sortTable(9)">Asset XIRR</th>
+          <th>Cashflows</th>
+        </tr>
+      </thead>
+      <tbody id="holdingsTbody">
+        <!-- Rendered dynamically -->
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    Generated by <b>fetch-lts-xirr</b> · Offline Portable Report · Angel One MCP (pyalgobot/angelone-mcp) + Account Ledger Cashflows
+  </footer>
+
+</div>
+
+<!-- Slide-out Drawer -->
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
+<div class="drawer" id="sideDrawer">
+  <div class="drawer-header">
+    <h3 id="drawerTitle" style="font-size: 1.15rem; color: var(--cyan);">Cashflow Ledger</h3>
+    <button class="close-btn" onclick="closeDrawer()">&times;</button>
+  </div>
+  <div id="drawerContent">
+    <!-- Populated dynamically -->
+  </div>
+</div>
+
+<script>
+// Embedded Report Data Placeholder
+const DATA = /*__REPORT_DATA__*/ {
+  summary: {},
+  holdings: [],
+  investorCashflows: []
+};
+
+function formatInr(val) {
+  if (val === null || val === undefined || isNaN(val)) return '₹0';
+  const isNeg = val < 0;
+  const abs = Math.abs(val);
+  const formatted = abs.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  return (isNeg ? '-' : '') + '₹' + formatted;
+}
+
+function formatPct(val) {
+  if (val === null || val === undefined || isNaN(val)) return '--%';
+  const pct = (val * 100).toFixed(2);
+  return (val >= 0 ? '+' : '') + pct + '%';
+}
+
+function initDashboard() {
+  if (!DATA || !DATA.summary) return;
+
+  const s = DATA.summary;
+  document.getElementById('reportDate').textContent = 'Data as of: ' + (DATA.evalDate || new Date().toISOString().split('T')[0]);
+
+  // KPIs
+  const elXirr = document.getElementById('kpiInvestorXirr');
+  if (s.isInvestorSubAnnual) {
+    elXirr.textContent = formatPct(s.investorAbsoluteReturn) + ' (Abs)';
+    elXirr.className = 'kpi-value ' + (s.investorAbsoluteReturn >= 0 ? 'rate-emerald' : 'rate-rose');
+  } else {
+    elXirr.textContent = formatPct(s.investorXirr);
+    elXirr.className = 'kpi-value ' + ((s.investorXirr || 0) >= 0 ? 'rate-emerald' : 'rate-rose');
+  }
+
+  document.getElementById('kpiTotalEquity').textContent = formatInr(s.totalAccountEquity);
+  document.getElementById('kpiEquityBreakdown').textContent = `Stocks: ${formatInr(s.totalHoldingsMarketValue)} + Margin: ${formatInr(s.availableCash)}`;
+
+  const elProfit = document.getElementById('kpiNetProfit');
+  elProfit.textContent = formatInr(s.netProfit);
+  elProfit.className = 'kpi-value ' + (s.netProfit >= 0 ? 'rate-emerald' : 'rate-rose');
+  const divNote = (s.totalDividendsEarned || 0) > 0 ? ` (incl. ${formatInr(s.totalDividendsEarned)} dividends)` : '';
+  document.getElementById('kpiAbsReturn').textContent = `${formatPct(s.investorAbsoluteReturn)} Absolute Gain${divNote}`;
+
+  document.getElementById('kpiNetDeposited').textContent = formatInr(s.netInvestedCapital);
+  document.getElementById('kpiDepositBreakdown').textContent = `Deposited: ${formatInr(s.totalDeposited)} | Payout: ${formatInr(s.totalWithdrawn)}`;
+
+  // Friction Drag
+  const elFriction = document.getElementById('kpiFrictionDrag');
+  if (s.frictionDragPct !== null) {
+    elFriction.textContent = `Friction Drag: ${s.frictionDragPct.toFixed(2)}% pts`;
+  } else {
+    elFriction.textContent = 'Friction: Fully Absorbed';
+  }
+
+  renderHoldingsTable(DATA.holdings || []);
+}
+
+function renderHoldingsTable(holdings) {
+  const tbody = document.getElementById('holdingsTbody');
+  tbody.innerHTML = '';
+
+  for (const h of holdings) {
+    const tr = document.createElement('tr');
+
+    const pnlClass = (h.pnl || 0) >= 0 ? 'flow-in' : 'flow-out';
+    const absClass = (h.absoluteReturn || 0) >= 0 ? 'flow-in' : 'flow-out';
+    const xirrVal = h.isSubAnnual ? h.absoluteReturn : h.xirr;
+    const xirrClass = (xirrVal || 0) >= 0 ? 'flow-in' : 'flow-out';
+    const xirrDisplay = h.isSubAnnual
+      ? `<span class="${xirrClass}">${formatPct(h.absoluteReturn)}</span><span class="badge-subannual" title="${h.daysHeld} days held">Sub-90d</span>`
+      : `<span class="${xirrClass}">${formatPct(h.xirr)}</span>`;
+
+    tr.innerHTML = `
+      <td class="symbol-cell">
+        <b>${h.symbol}</b>
+        <span>${h.isin || ''}</span>
+      </td>
+      <td>${h.quantity}</td>
+      <td>${formatInr(h.averagePrice)}</td>
+      <td>${formatInr(h.lastPrice)}</td>
+      <td>${formatInr(h.invested)}</td>
+      <td>${formatInr(h.currentValue)}</td>
+      <td class="${pnlClass}">${formatInr(h.pnl)}</td>
+      <td style="color:${(h.dividendsEarned || 0) > 0 ? 'var(--emerald)' : 'var(--text-muted)'}; font-weight:600;">
+        ${(h.dividendsEarned || 0) > 0 ? formatInr(h.dividendsEarned) : '—'}
+      </td>
+      <td class="${absClass}">${formatPct(h.absoluteReturn)}</td>
+      <td style="font-weight:700;">${xirrDisplay}</td>
+      <td>
+        <button class="btn" style="padding:4px 8px; font-size:0.75rem;" onclick="openDrawer('${h.symbol}')">Audit</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+let currentSortCol = -1;
+let sortAsc = false;
+
+function getSortValue(h, col) {
+  switch (col) {
+    case 0: return (h.symbol || '').toUpperCase();
+    case 1: return Number(h.quantity || 0);
+    case 2: return Number(h.averagePrice || 0);
+    case 3: return Number(h.lastPrice || 0);
+    case 4: return Number(h.invested || 0);
+    case 5: return Number(h.currentValue || 0);
+    case 6: return Number(h.pnl || 0);
+    case 7: return Number(h.dividendsEarned || 0);
+    case 8: return Number(h.absoluteReturn || 0);
+    case 9: {
+      const val = h.isSubAnnual ? h.absoluteReturn : h.xirr;
+      return (val === null || val === undefined || isNaN(val)) ? -999999 : Number(val);
+    }
+    default: return 0;
+  }
+}
+
+function sortTable(col) {
+  if (currentSortCol === col) {
+    sortAsc = !sortAsc;
+  } else {
+    currentSortCol = col;
+    sortAsc = (col === 0);
+  }
+
+  const ths = document.querySelectorAll('thead th');
+  ths.forEach((th, idx) => {
+    th.innerHTML = th.innerHTML.replace(/\s*[▲▼]$/, '');
+    if (idx === col) {
+      th.innerHTML += sortAsc ? ' ▲' : ' ▼';
+    }
+  });
+
+  if (!DATA || !DATA.holdings) return;
+  DATA.holdings.sort((a, b) => {
+    const valA = getSortValue(a, col);
+    const valB = getSortValue(b, col);
+    if (typeof valA === 'string' && typeof valB === 'string') {
+      return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+    }
+    return sortAsc ? (valA - valB) : (valB - valA);
+  });
+
+  renderHoldingsTable(DATA.holdings);
+  filterTable();
+}
+
+function filterTable() {
+  const query = document.getElementById('searchFilter').value.toUpperCase();
+  const rows = document.querySelectorAll('#holdingsTbody tr');
+  rows.forEach(r => {
+    const text = r.innerText.toUpperCase();
+    r.style.display = text.includes(query) ? '' : 'none';
+  });
+}
+
+function openDrawer(target) {
+  const backdrop = document.getElementById('drawerBackdrop');
+  const drawer = document.getElementById('sideDrawer');
+  const title = document.getElementById('drawerTitle');
+  const content = document.getElementById('drawerContent');
+
+  backdrop.style.display = 'block';
+  drawer.classList.add('open');
+
+  if (target === 'account') {
+    title.textContent = 'Account Bank Deposit & Withdrawal Cashflows';
+    let html = `<p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:14px;">Every bank-to-Angel-One transfer, payout, and dividend that anchors your True Investor XIRR.</p>`;
+    for (const cf of (DATA.investorCashflows || [])) {
+      const isOut = cf.amount < 0;
+      const amtClass = isOut ? 'flow-out' : 'flow-in';
+      html += `
+        <div class="cashflow-item">
+          <div>
+            <div style="font-weight:600;">${cf.description || cf.category}</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">${cf.date} · ${cf.category}</div>
+          </div>
+          <div class="${amtClass}">${formatInr(cf.amount)}</div>
+        </div>
+      `;
+    }
+    content.innerHTML = html;
+  } else {
+    const h = (DATA.holdings || []).find(item => item.symbol === target);
+    title.textContent = `${target} Cashflow Audit Trail`;
+    let html = `<p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:14px;">Dated trade tranches and current terminal value used to compute ${target} compounding.</p>`;
+    if (h && h.cashflows) {
+      for (const cf of h.cashflows) {
+        const isOut = cf.amount < 0;
+        const amtClass = isOut ? 'flow-out' : 'flow-in';
+        html += `
+          <div class="cashflow-item">
+            <div>
+              <div style="font-weight:600;">${cf.type || 'TRADE'}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">${cf.date}</div>
+            </div>
+            <div class="${amtClass}">${formatInr(cf.amount)}</div>
+          </div>
+        `;
+      }
+    } else {
+      html += '<p>No individual trade history found for this scrip.</p>';
+    }
+    content.innerHTML = html;
+  }
+}
+
+function closeDrawer() {
+  document.getElementById('drawerBackdrop').style.display = 'none';
+  document.getElementById('sideDrawer').classList.remove('open');
+}
+
+// Initialize on DOM load
+window.addEventListener('DOMContentLoaded', initDashboard);
+</script>
+</body>
+</html>

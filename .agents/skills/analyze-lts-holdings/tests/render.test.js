@@ -7,7 +7,7 @@ const path = require('path');
 const { loadConfig, SKILL_ROOT } = require('../scripts/lib/config');
 const { scorePortfolio } = require('../scripts/lib/score');
 const { buildReport, renderHtml, writeReport, findLeaks, loadPrevious } = require('../scripts/lib/render');
-const { parseArgs } = require('../scripts/fetch_lts');
+const { parseArgs } = require('../scripts/analyze_lts_holdings');
 
 const cfg = loadConfig(path.join(SKILL_ROOT, 'config', 'lts.config.json'));
 const TOKEN = 'tok_SuperSecretAccessToken123';
@@ -57,8 +57,8 @@ test('writeReport writes html and json side by side and refuses to leak credenti
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lts-out-'));
   const r = buildReport(sample(), cfg);
   const { htmlPath, jsonPath } = writeReport(r, dir, { secrets: [TOKEN], date: '2026-10-20' });
-  assert.ok(path.basename(htmlPath) === 'fetch-lts-2026-10-20.html');
-  assert.ok(path.basename(jsonPath) === 'fetch-lts-2026-10-20.json');
+  assert.ok(path.basename(htmlPath) === 'analyze-lts-holdings.html');
+  assert.ok(path.basename(jsonPath) === 'analyze-lts-holdings.json');
   assert.ok(fs.existsSync(htmlPath) && fs.existsSync(jsonPath));
   assert.ok(findLeaks(fs.readFileSync(htmlPath, 'utf8') + fs.readFileSync(jsonPath, 'utf8'), [TOKEN, 'AABY455797']).length === 0);
   // a leak is detected
