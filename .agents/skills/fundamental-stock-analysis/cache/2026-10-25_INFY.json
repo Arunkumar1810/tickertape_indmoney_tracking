@@ -1,0 +1,354 @@
+{
+  "ticker": "INFY",
+  "sid": "INFY",
+  "timestamp": "2026-10-25T14:09:03.179Z",
+  "profile": {
+    "sid": "INFY",
+    "isin": "INE009A01021",
+    "slug": "https://www.tickertape.in/stocks/infosys-INFY?accessed_from=ai",
+    "type": "stock",
+    "tradable": true,
+    "info": {
+      "name": "Infosys Limited",
+      "ticker": "INFY",
+      "exchange": "NSE",
+      "sector": "IT Services & Consulting"
+    },
+    "gic": {
+      "sector": "Information Technology",
+      "industrygroup": "Software & Services",
+      "industry": "Software",
+      "subindustry": "IT Consulting & Other Services",
+      "short": "IT"
+    }
+  },
+  "quote": {
+    "price": 1153.8,
+    "close": 1153.35,
+    "change": 0.45,
+    "date": "2026-10-23T10:28:44.000Z",
+    "high52": 1728,
+    "low52": 980.4
+  },
+  "scorecard": [
+    {
+      "name": "Performance",
+      "tag": "Low",
+      "score": 1.8,
+      "description": "Hasn't fared well - amongst the low performers",
+      "colour": "red",
+      "elements": [
+        {
+          "title": "Absolute return",
+          "value": -24.51,
+          "flag": null,
+          "description": null
+        },
+        {
+          "title": "Annualised return",
+          "value": -7.67,
+          "flag": null,
+          "description": null
+        },
+        {
+          "title": "Expected return",
+          "value": 0.97,
+          "flag": null,
+          "description": null
+        }
+      ]
+    },
+    {
+      "name": "Valuation",
+      "tag": "High",
+      "score": 2.1,
+      "description": "Seems to be overvalued vs the market average",
+      "colour": "red",
+      "elements": [
+        {
+          "title": "Price to earnings",
+          "value": 15.3,
+          "flag": null,
+          "description": null
+        },
+        {
+          "title": "Price to book value",
+          "value": 5.04,
+          "flag": null,
+          "description": null
+        },
+        {
+          "title": "Price to cash flow",
+          "value": 13.84,
+          "flag": null,
+          "description": null
+        }
+      ]
+    },
+    {
+      "name": "Growth",
+      "tag": "Low",
+      "score": 3,
+      "description": "Lagging behind the market in financials growth",
+      "colour": "red",
+      "elements": [
+        {
+          "title": "Revenue",
+          "value": 6.97,
+          "flag": null,
+          "description": null
+        },
+        {
+          "title": "Cash flow",
+          "value": 14.79,
+          "flag": null,
+          "description": null
+        },
+        {
+          "title": "Earnings per share",
+          "value": 7.51,
+          "flag": null,
+          "description": null
+        }
+      ]
+    },
+    {
+      "name": "Profitability",
+      "tag": "High",
+      "score": 7.9,
+      "description": "Showing good signs of profitability & efficiency",
+      "colour": "green",
+      "elements": [
+        {
+          "title": "Return on equity",
+          "value": 31.07,
+          "flag": null,
+          "description": null
+        },
+        {
+          "title": "Profit",
+          "value": 16.09,
+          "flag": null,
+          "description": null
+        },
+        {
+          "title": "Cash flow",
+          "value": 18.57,
+          "flag": null,
+          "description": null
+        }
+      ]
+    },
+    {
+      "name": "Entry point",
+      "tag": "Bad",
+      "score": null,
+      "description": "The stock is overpriced and in the overbought zone",
+      "colour": "red",
+      "elements": [
+        {
+          "title": "Fundamentals",
+          "value": null,
+          "flag": "Low",
+          "description": "Current price is more than the intrinsic value"
+        },
+        {
+          "title": "Technicals",
+          "value": null,
+          "flag": "Low",
+          "description": "Not a good time to consider, stock is in the overbought zone"
+        }
+      ]
+    },
+    {
+      "name": "Red flags",
+      "tag": "Low",
+      "score": null,
+      "description": "No red flag found",
+      "colour": "green",
+      "elements": [
+        {
+          "title": "ASM",
+          "value": null,
+          "flag": "High",
+          "description": "Stock is not in ASM list"
+        },
+        {
+          "title": "GSM",
+          "value": null,
+          "flag": "High",
+          "description": "Stock is not in GSM list"
+        },
+        {
+          "title": "Promoter pledged holding",
+          "value": null,
+          "flag": "High",
+          "description": "Not a lot of promoter holding is pledged"
+        },
+        {
+          "title": "Unsolicited messages",
+          "value": null,
+          "flag": "High",
+          "description": "No Unsolicited messages being circulated to manipulate the stock"
+        },
+        {
+          "title": "Default probability",
+          "value": null,
+          "flag": "High",
+          "description": "Low probability of default in next 12 months"
+        }
+      ]
+    }
+  ],
+  "checklists": [
+    {
+      "title": "Intrinsic value",
+      "icid": "IC001",
+      "state": "unchecked",
+      "type": "basic",
+      "description": "Current price is more than the intrinsic value",
+      "explanation": "Intrinsic value is the calculated value of the company and may differ from current stock price. If intrinsic value > current price, price increase is expected in the future to reduce the gap and vice-versa"
+    },
+    {
+      "title": "ROE vs FD rates",
+      "icid": "IC002",
+      "state": "checked",
+      "type": "basic",
+      "description": "Stock has been generating better return on equity than bank FD",
+      "explanation": "Fixed Deposit rate is a virtually risk-free rate where the investor assumes almost no risk on their investment. If stock's long term average ROE is lower than this rate, investors are better off investing the amount in a FD"
+    },
+    {
+      "title": "Dividend Returns",
+      "icid": "IC003",
+      "state": "checked",
+      "type": "basic",
+      "description": "Stock offers good dividend returns",
+      "explanation": "A dividend is the distribution of reward from a portion of company's earnings and is paid to its shareholders. Good dividend returns indicate good health and outlook for the company"
+    },
+    {
+      "title": "Entry point",
+      "icid": "IC004",
+      "state": "unchecked",
+      "type": "basic",
+      "description": "Not a good time to invest, stock is in overbought zone",
+      "explanation": "High demand for a stock increases its price. If the price is pushed up to a level which is not justified, then it's considered to be in the overbought zone, which is not a good time to buy the stock"
+    },
+    {
+      "title": "No Red Flags",
+      "icid": "IC005",
+      "state": "checked",
+      "type": "basic",
+      "description": "Stock not in ASM/GSM lists and not a lot of promoter holding is pledged",
+      "explanation": "ASM and GSM lists are measures to safeguard investors against volatility and unjustified stock prices. Pledging holdings means taking loans against held promoter shares. Stocks in ASM/GSM list or with high pledged promoter holding should be handled with caution. Unsolicited tips are sometimes circulated to manipulate the market. Beware of these stocks"
+    }
+  ],
+  "proChecklists": {},
+  "analystRatings": {
+    "totalAnalysts": 40,
+    "buyRecommendationPct": 57.5,
+    "numberOfBuyReco": 23,
+    "holdRecommendationPct": null,
+    "sellRecommendationPct": 100,
+    "upsidePct": 97.07,
+    "forwardEpsGrowthPct": 7.01,
+    "estimatedRevenueGrowthPct": null
+  },
+  "metrics": {
+    "12mEpsg": 7.008456858170256,
+    "estrvng": null,
+    "upside": 0.9707054948864661,
+    "breco": 57.5,
+    "erqr": 94,
+    "fundamental": 5.68461538461538,
+    "indpe": 22.297944261411534,
+    "ptir": 6.53,
+    "sreco": 1,
+    "roe": 31.071240105540898,
+    "apef": 15.97574368447962,
+    "divDps": 4.130182101915969,
+    "marketCap": 4703258.9407108,
+    "pbr": 5.041168462770292,
+    "nBreco": 23,
+    "totalAnalysts": 40,
+    "ttmPe": 15.296643382153706
+  },
+  "peerMultiples": [
+    {
+      "name": "Infosys Limited",
+      "ticker": "INFY",
+      "sid": "INFY",
+      "sector": "IT Services & Consulting",
+      "ttmPe": 15.296643382153706,
+      "pbr": 5.041168462770292,
+      "divYield": 4.130182101915969,
+      "forwardPe": 15.97574368447962
+    },
+    {
+      "name": "Tata Consultancy Services Ltd",
+      "ticker": "TCS",
+      "sid": "TCS",
+      "sector": "IT Services & Consulting",
+      "ttmPe": 17.281401588649047,
+      "pbr": 8.2215617285256,
+      "divYield": 4.462474645030425,
+      "forwardPe": 18.12352312918106
+    },
+    {
+      "name": "HCL Technologies Ltd",
+      "ticker": "HCLTECH",
+      "sid": "HCLT",
+      "sector": "IT Services & Consulting",
+      "ttmPe": 20.382427876637554,
+      "pbr": 4.9657044656036815,
+      "divYield": 3.9243580526103514,
+      "forwardPe": 22.43757232904699
+    },
+    {
+      "name": "Wipro Limited",
+      "ticker": "WIPRO",
+      "sid": "WIPR",
+      "sector": "IT Services & Consulting",
+      "ttmPe": 13.848863067077582,
+      "pbr": 2.066820733934826,
+      "divYield": 6.323979343450836,
+      "forwardPe": 13.823678355421524
+    },
+    {
+      "name": "Tech Mahindra Limited",
+      "ticker": "TECHM",
+      "sid": "TEML",
+      "sector": "IT Services & Consulting",
+      "ttmPe": 31.748249734913585,
+      "pbr": 5.833583873391627,
+      "divYield": 2.574189883713474,
+      "forwardPe": 36.47066082437794
+    }
+  ],
+  "warnings": [],
+  "tickertapeSpecial": {
+    "valueMomentumRank": null,
+    "priceMomentumRank": null,
+    "earningsQualityRank": 94,
+    "priceToIntrinsicValueRank": 6.53,
+    "fundamentalScore": 5.68461538461538
+  },
+  "businessSentiment": {
+    "analystConsensus": {
+      "totalAnalysts": 40,
+      "buyRecommendationPct": 57.5,
+      "numberOfBuyReco": 23,
+      "holdRecommendationPct": null,
+      "sellRecommendationPct": 100,
+      "upsidePct": 97.07,
+      "stance": "Moderate Bullish"
+    },
+    "creditSolvencySentiment": {
+      "defaultRisk": "Low probability of default in next 12 months",
+      "state": "checked"
+    },
+    "retailTipsterSentiment": {
+      "flag": "Clean",
+      "description": "No Unsolicited messages being circulated to manipulate the stock"
+    }
+  }
+}

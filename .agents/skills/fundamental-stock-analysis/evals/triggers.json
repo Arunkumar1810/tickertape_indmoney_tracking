@@ -1,0 +1,82 @@
+[
+  {
+    "query": "run fundamental analysis on INFY",
+    "should_trigger": true
+  },
+  {
+    "query": "analyze stock TCS from a value investing perspective",
+    "should_trigger": true
+  },
+  {
+    "query": "generate a value valuation report for ITC using Tickertape Pro",
+    "should_trigger": true
+  },
+  {
+    "query": "run investment committee on HDFCBANK",
+    "should_trigger": true
+  },
+  {
+    "query": "research stock ZYDUSLIFE using Graham and Buffett principles",
+    "should_trigger": true
+  },
+  {
+    "query": "do forensic accounting audit on RELIANCE",
+    "should_trigger": true
+  },
+  {
+    "query": "check Tickertape pro analyst readings and quality score for LT",
+    "should_trigger": true
+  },
+  {
+    "query": "audit governance and intrinsic valuation for COALINDIA",
+    "should_trigger": true
+  },
+  {
+    "query": "give me a value investing breakdown on TITAN",
+    "should_trigger": true
+  },
+  {
+    "query": "run Graham and Lynch margin of safety analysis on TATASTEEL",
+    "should_trigger": true
+  },
+  {
+    "query": "analyze LTS holdings and review portfolio risk",
+    "should_trigger": false
+  },
+  {
+    "query": "fetch my demat holdings from Angel One",
+    "should_trigger": false
+  },
+  {
+    "query": "calculate True Investor XIRR for my portfolio",
+    "should_trigger": false
+  },
+  {
+    "query": "analyze technical candlestick chart patterns for NIFTY",
+    "should_trigger": false
+  },
+  {
+    "query": "audit my long-term portfolio rationale and sector allocation",
+    "should_trigger": false
+  },
+  {
+    "query": "show my Angel One account cash margin balance",
+    "should_trigger": false
+  },
+  {
+    "query": "how much did bank friction and STT drag down my portfolio return",
+    "should_trigger": false
+  },
+  {
+    "query": "run intraday momentum and breakout scanner on BANKNIFTY",
+    "should_trigger": false
+  },
+  {
+    "query": "enrich my LTS holdings with Tickertape screener metrics",
+    "should_trigger": false
+  },
+  {
+    "query": "calculate portfolio friction drag and bank deposit compounding",
+    "should_trigger": false
+  }
+]

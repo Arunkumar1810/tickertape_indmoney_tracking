@@ -1,0 +1,18 @@
+# customize.toml for fundamental-stock-analysis
+# Override these thresholds using the bmad-customize skill
+
+[workflow]
+# Maximum acceptable promoter pledge percentage before triggering a critical governance red flag
+promoter_pledge_max_pct = 20.0
+
+# Minimum 5-year average ROCE and ROIC hurdle rate (%) for compounding quality
+roce_min_pct = 15.0
+
+# Solvency ceiling: maximum Net Debt to EBITDA multiple
+net_debt_ebitda_max = 2.5
+
+# Solvency floor: minimum Interest Coverage multiple (EBIT / Interest Expense)
+interest_coverage_min = 4.0
+
+# Target output path for generated fundamental valuation reports
+report_output_path = "{output_folder}/fundamental-reports/{ticker}-valuation-report.md"

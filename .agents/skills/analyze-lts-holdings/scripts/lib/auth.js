@@ -13,7 +13,10 @@ const path = require('path');
 const { exec } = require('child_process');
 
 const SKILL_ROOT = path.resolve(__dirname, '..', '..');
-const STATE_DIR = process.env.LTS_STATE_DIR ? path.resolve(process.env.LTS_STATE_DIR) : path.join(SKILL_ROOT, 'state');
+const SHARED_DIR = path.resolve(SKILL_ROOT, '..', '..', 'shared', 'tickertape');
+const STATE_DIR = process.env.LTS_STATE_DIR
+  ? path.resolve(process.env.LTS_STATE_DIR)
+  : (fs.existsSync(SHARED_DIR) ? SHARED_DIR : path.join(SKILL_ROOT, 'state'));
 const CREDENTIALS_FILE = path.join(STATE_DIR, 'client_credentials.json');
 const TOKENS_FILE = path.join(STATE_DIR, 'tokens.json');
 const LEGACY_DIR = path.resolve(SKILL_ROOT, '..', '..', '..');
@@ -103,7 +106,6 @@ function performOAuthLogin(creds) {
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('client_id', creds.client_id);
     authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
-    authUrl.searchParams.set('scope', 'market_data portfolio');
     authUrl.searchParams.set('code_challenge', challenge);
     authUrl.searchParams.set('code_challenge_method', 'S256');
     authUrl.searchParams.set('state', state);
@@ -137,8 +139,10 @@ function performOAuthLogin(creds) {
       }
     });
     server.listen(PORT, () => {
-      console.error(`\nTICKERTAPE LOGIN REQUIRED. Open:\n${authUrl}\n`);
-      exec(`start "" "${authUrl.toString()}"`, () => {});
+      const urlStr = authUrl.toString();
+      console.error(`\nTICKERTAPE LOGIN REQUIRED. Open:\n${urlStr}\n`);
+      const cmd = process.platform === 'win32' ? `start "" "${urlStr.replace(/&/g, '^&')}"` : `open "${urlStr}"`;
+      exec(cmd, () => {});
     });
     server.on('error', reject);
   });

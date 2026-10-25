@@ -5,16 +5,33 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 
+const SHARED_DIR = __dirname;
 const PROJECT_ROOT = path.resolve(__dirname, '..', '..', '..');
-const CREDENTIALS_FILE = path.join(PROJECT_ROOT, 'client_credentials.json');
-const TOKENS_FILE = path.join(PROJECT_ROOT, 'tokens.json');
+const CREDENTIALS_FILE = path.join(SHARED_DIR, 'client_credentials.json');
+const TOKENS_FILE = path.join(SHARED_DIR, 'tokens.json');
 const PORT = 8080;
 const REDIRECT_URI = `http://localhost:${PORT}/callback`;
 
 const b64url = (buf) => buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
+function basicHeaders(creds) {
+  const h = { 'Content-Type': 'application/x-www-form-urlencoded' };
+  if (creds.client_secret) {
+    h.Authorization = 'Basic ' + Buffer.from(`${creds.client_id}:${creds.client_secret}`).toString('base64');
+  }
+  return h;
+}
+
 async function getClientCredentials() {
-  if (fs.existsSync(CREDENTIALS_FILE)) return JSON.parse(fs.readFileSync(CREDENTIALS_FILE, 'utf8'));
+  if (fs.existsSync(CREDENTIALS_FILE)) {
+    return JSON.parse(fs.readFileSync(CREDENTIALS_FILE, 'utf8'));
+  }
+  const rootCreds = path.join(PROJECT_ROOT, 'client_credentials.json');
+  if (fs.existsSync(rootCreds)) {
+    const creds = JSON.parse(fs.readFileSync(rootCreds, 'utf8'));
+    fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify(creds, null, 2));
+    return creds;
+  }
   console.error('Registering client with Tickertape...');
   const res = await fetch('https://auth.api.tickertape.in/oauth/register', {
     method: 'POST',
@@ -35,17 +52,21 @@ async function getClientCredentials() {
 }
 
 function loadTokens() {
-  try {
-    const data = JSON.parse(fs.readFileSync(TOKENS_FILE, 'utf8'));
-    if (data.access_token) return data;
-  } catch (e) {
-    /* empty */
+  for (const f of [TOKENS_FILE, path.join(PROJECT_ROOT, 'tokens.json')]) {
+    try {
+      if (fs.existsSync(f)) {
+        const data = JSON.parse(fs.readFileSync(f, 'utf8'));
+        if (data.access_token) return data;
+      }
+    } catch (e) {
+      /* empty */
+    }
   }
   return null;
 }
 
 function saveTokens(t) {
-  fs.writeFileSync(TOKENS_FILE, JSON.stringify(t, null, 2));
+  fs.writeFileSync(TOKENS_FILE, JSON.stringify({ ...t, saved_at: Date.now() }, null, 2));
 }
 
 async function refreshToken(creds, tokens) {
@@ -53,11 +74,10 @@ async function refreshToken(creds, tokens) {
   try {
     const res = await fetch(creds.token_endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: basicHeaders(creds),
       body: new URLSearchParams({
         grant_type: 'refresh_token',
         client_id: creds.client_id,
-        client_secret: creds.client_secret,
         refresh_token: tokens.refresh_token
       })
     });
@@ -72,7 +92,7 @@ async function refreshToken(creds, tokens) {
 
 function openBrowser(url) {
   const p = process.platform;
-  const cmd = p === 'win32' ? `start "" "${url}"` : p === 'darwin' ? `open "${url}"` : `xdg-open "${url}"`;
+  const cmd = p === 'win32' ? `start "" "${url.replace(/&/g, '^&')}"` : p === 'darwin' ? `open "${url}"` : `xdg-open "${url}"`;
   exec(cmd, () => {});
 }
 
@@ -129,11 +149,10 @@ async function performOAuthLogin(creds) {
 
   const res = await fetch(creds.token_endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: basicHeaders(creds),
     body: new URLSearchParams({
       grant_type: 'authorization_code',
       client_id: creds.client_id,
-      client_secret: creds.client_secret,
       code,
       redirect_uri: REDIRECT_URI,
       code_verifier: verifier
@@ -149,6 +168,8 @@ async function getValidToken() {
   const creds = await getClientCredentials();
   const existing = loadTokens();
   if (existing) {
+    const expired = existing.saved_at && existing.expires_in && Date.now() - existing.saved_at > (existing.expires_in - 60) * 1000;
+    if (!expired) return { creds, token: existing.access_token };
     const refreshed = await refreshToken(creds, existing);
     if (refreshed) return { creds, token: refreshed.access_token };
   }
@@ -166,5 +187,6 @@ module.exports = {
   PORT,
   REDIRECT_URI,
   CREDENTIALS_FILE,
-  TOKENS_FILE
+  TOKENS_FILE,
+  SHARED_DIR
 };

@@ -1,0 +1,33 @@
+{
+  "eps": 142.64,
+  "bvps": 299.82,
+  "cash": 46678,
+  "receivables": 67714,
+  "inventory": 29,
+  "totalLiabilities": 72689,
+  "operatingCashFlow": 52094,
+  "maintenanceCapEx": 4146,
+  "dupont": {
+    "netIncome": 49210,
+    "ebt": 65487,
+    "ebit": 66714,
+    "revenue": 271423,
+    "totalAssets": 181167,
+    "totalEquity": 108478
+  },
+  "lynch": {
+    "pe": 17.28,
+    "epsGrowthRate": 13.3,
+    "revenueGrowthRate": 8.17,
+    "inventoryGrowthRate": 5.0
+  },
+  "klarman": {
+    "totalDebt": 11283,
+    "cash": 46678,
+    "ebitda": 72274,
+    "ebit": 66714,
+    "interestExpense": 1227,
+    "netIncome": 49210,
+    "operatingCashFlow": 52094
+  }
+}
