@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INDmoney US Stocks Portfolio & Allocation Charts</title>
+<meta name="description" content="Live US stock holdings, sector breakdown, and portfolio valuation via INDmoney MCP.">
+<style>
+:root {
+  --bg: #0b0f19;
+  --surface: #121826;
+  --surface-alt: #182234;
+  --surface-hover: #1f2d45;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #38bdf8;
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+  --emerald: #10b981;
+  --emerald-bg: rgba(16, 185, 129, 0.12);
+  --rose: #f43f5e;
+  --rose-bg: rgba(244, 63, 94, 0.12);
+  --cyan: #38bdf8;
+  --cyan-bg: rgba(56, 189, 248, 0.12);
+  --indigo: #6366f1;
+  --indigo-bg: rgba(99, 102, 241, 0.12);
+  --amber: #f59e0b;
+  --purple: #a855f7;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: radial-gradient(circle at 50% 0%, #151f33 0%, var(--bg) 70%);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  padding: 32px 20px 80px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+.container { max-width: 1280px; margin: 0 auto; }
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.brand h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.brand p { font-size: 0.88rem; color: var(--text-muted); margin-top: 4px; }
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.badge {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  color: var(--cyan);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.badge::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--emerald);
+  box-shadow: 0 0 8px var(--emerald);
+}
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  transition: transform 0.2s, border-color 0.2s;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.kpi-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.kpi-value {
+  font-size: 1.65rem;
+  font-weight: 800;
+  margin-top: 6px;
+  letter-spacing: -0.02em;
+}
+.kpi-sub {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pos { color: var(--emerald); }
+.neg { color: var(--rose); }
+
+/* Charts Grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
+  gap: 20px;
+  margin-bottom: 28px;
+}
+@media (max-width: 600px) {
+  .charts-grid { grid-template-columns: 1fr; }
+}
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+}
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.chart-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chart-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: normal;
+}
+.chart-content {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.donut-container {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  flex-shrink: 0;
+  margin: 0 auto;
+}
+.donut-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  border-radius: 50%;
+}
+.donut-slice {
+  fill: none;
+  stroke-width: 28;
+  transition: stroke-width 0.2s, opacity 0.2s;
+  cursor: pointer;
+}
+.donut-slice:hover {
+  stroke-width: 33;
+  opacity: 0.9;
+}
+.donut-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  width: 130px;
+}
+.donut-center-title {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.donut-center-val {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-top: 2px;
+}
+.donut-center-sub {
+  font-size: 0.72rem;
+  color: var(--cyan);
+  margin-top: 2px;
+}
+
+/* Chart Legend / Ranked List */
+.chart-breakdown {
+  flex: 1;
+  min-width: 240px;
+  max-height: 230px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+.chart-breakdown::-webkit-scrollbar {
+  width: 4px;
+}
+.chart-breakdown::-webkit-scrollbar-thumb {
+  background: var(--surface-hover);
+  border-radius: 4px;
+}
+.breakdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  font-size: 0.84rem;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.breakdown-row:hover {
+  background: var(--surface-hover);
+}
+.breakdown-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.breakdown-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.breakdown-name {
+  font-weight: 600;
+  color: var(--text);
+}
+.breakdown-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+.breakdown-val {
+  font-weight: 700;
+}
+.breakdown-pct {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.search-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  width: 300px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--border-focus); }
+.counter { font-size: 0.86rem; color: var(--text-muted); }
+
+/* Table */
+.table-wrapper {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow-x: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+th {
+  background: var(--surface-alt);
+  padding: 14px 16px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+}
+th.num, td.num { text-align: right; }
+td {
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface-hover); }
+.ticker-badge {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--cyan);
+}
+.company-name {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.sector-chip {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.pill {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  display: inline-block;
+}
+.pill.pos { background: var(--emerald-bg); color: var(--emerald); }
+.pill.neg { background: var(--rose-bg); color: var(--rose); }
+.inr-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: block;
+}
+footer {
+  margin-top: 36px;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="brand">
+      <h1>INDmoney US Stocks Portfolio</h1>
+      <p id="sub-header">Live US equities, sector allocation, and portfolio valuation via INDmoney MCP</p>
+    </div>
+    <div class="header-actions">
+      <span class="badge" id="mcp-status">INDmoney MCP Live</span>
+      <span class="badge" id="fx-badge" style="color: var(--amber);">FX: ₹94.95 / $</span>
+    </div>
+  </header>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Total Portfolio Value</div>
+      <div class="kpi-value" id="kpi-total-usd">$0.00</div>
+      <div class="kpi-sub" id="kpi-total-inr">₹0</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total Invested Cost</div>
+      <div class="kpi-value" id="kpi-invested-usd">$0.00</div>
+      <div class="kpi-sub" id="kpi-invested-inr">₹0</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total Unrealized Return</div>
+      <div class="kpi-value" id="kpi-pnl-usd">$0.00</div>
+      <div class="kpi-sub" id="kpi-pnl-pct">+0.00%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Available US Cash</div>
+      <div class="kpi-value" id="kpi-cash-usd">$0.00</div>
+      <div class="kpi-sub" id="kpi-account-equity">Total Equity: $0.00</div>
+    </div>
+  </div>
+
+  <!-- Portfolio Charts Grid -->
+  <div class="charts-grid">
+    <!-- Stock-wise Allocation Chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">📈 Stock-Wise Portfolio Allocation</div>
+          <div class="chart-subtitle" id="stock-chart-sub">Weight distribution across 15 equities</div>
+        </div>
+      </div>
+      <div class="chart-content">
+        <div class="donut-container">
+          <svg class="donut-svg" viewBox="0 0 100 100" id="stock-donut-svg"></svg>
+          <div class="donut-center">
+            <div class="donut-center-title" id="stock-donut-title">Top Asset</div>
+            <div class="donut-center-val" id="stock-donut-val">$0.00</div>
+            <div class="donut-center-sub" id="stock-donut-sub">0.00%</div>
+          </div>
+        </div>
+        <div class="chart-breakdown" id="stock-breakdown-list"></div>
+      </div>
+    </div>
+
+    <!-- Sector-wise Allocation Chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">🏢 Sector-Wise Portfolio Allocation</div>
+          <div class="chart-subtitle" id="sector-chart-sub">Exposure across market sectors</div>
+        </div>
+      </div>
+      <div class="chart-content">
+        <div class="donut-container">
+          <svg class="donut-svg" viewBox="0 0 100 100" id="sector-donut-svg"></svg>
+          <div class="donut-center">
+            <div class="donut-center-title" id="sector-donut-title">Top Sector</div>
+            <div class="donut-center-val" id="sector-donut-val">$0.00</div>
+            <div class="donut-center-sub" id="sector-donut-sub">0.00%</div>
+          </div>
+        </div>
+        <div class="chart-breakdown" id="sector-breakdown-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" class="search-input" id="search-input" placeholder="Search ticker, company name, or sector...">
+    <div class="counter" id="item-counter">Showing 0 holdings</div>
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Holding</th>
+          <th>Sector</th>
+          <th class="num">Shares</th>
+          <th class="num">Avg Price</th>
+          <th class="num">Current Price</th>
+          <th class="num">Invested Value</th>
+          <th class="num">Current Value</th>
+          <th class="num">Unrealized P&L</th>
+          <th class="num">Weight</th>
+        </tr>
+      </thead>
+      <tbody id="holdings-tbody">
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <p>Generated by <strong>fetch-indmoney-us-stocks</strong> &bull; Source of truth for portfolio tracking and fundamental audit.</p>
+  </footer>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+const STOCK_PALETTE = [
+  '#38bdf8', '#818cf8', '#34d399', '#fbbf24', '#f472b6', 
+  '#a78bfa', '#fb923c', '#4ade80', '#2dd4bf', '#f87171',
+  '#60a5fa', '#c084fc', '#e879f9', '#a3e635', '#94a3b8'
+];
+
+const SECTOR_PALETTE = {
+  'Technology': '#38bdf8',
+  'Communication Services': '#818cf8',
+  'Consumer Discretionary': '#fb923c',
+  'Consumer Staples': '#34d399',
+  'Healthcare': '#f472b6',
+  'Financial Services': '#fbbf24',
+  'Index ETF': '#a78bfa',
+  'Other': '#94a3b8'
+};
+
+function fmtUsd(num) {
+  return '$' + Number(num || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtInr(num) {
+  return '₹' + Math.round(num || 0).toLocaleString('en-IN');
+}
+
+function fmtPct(num) {
+  return Number(num || 0).toFixed(2);
+}
+
+function render() {
+  if (!DATA) {
+    document.getElementById('holdings-tbody').innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:var(--text-muted)">No portfolio data loaded.</td></tr>';
+    return;
+  }
+
+  const s = DATA.summary || {};
+  const fx = DATA.fxRate || 94.95;
+  const holdings = DATA.holdings || [];
+
+  // Header & Badges
+  document.getElementById('fx-badge').textContent = `FX: ₹${Number(fx).toFixed(2)} / $`;
+  if (DATA.timestamp) {
+    const d = new Date(DATA.timestamp);
+    document.getElementById('sub-header').textContent = `Snapshot as of ${d.toLocaleDateString()} ${d.toLocaleTimeString()} via INDmoney MCP`;
+  }
+
+  // KPIs
+  document.getElementById('kpi-total-usd').textContent = fmtUsd(s.totalCurrentUsd);
+  document.getElementById('kpi-total-inr').textContent = fmtInr(s.totalCurrentInr || s.totalCurrentUsd * fx);
+
+  document.getElementById('kpi-invested-usd').textContent = fmtUsd(s.totalInvestedUsd);
+  document.getElementById('kpi-invested-inr').textContent = fmtInr(s.totalInvestedInr || s.totalInvestedUsd * fx);
+
+  const pnlUsd = s.totalPnlUsd || 0;
+  const pnlPct = s.totalReturnPct || 0;
+  const pnlEl = document.getElementById('kpi-pnl-usd');
+  const pnlPctEl = document.getElementById('kpi-pnl-pct');
+
+  pnlEl.textContent = `${pnlUsd >= 0 ? '+' : ''}${fmtUsd(pnlUsd)}`;
+  pnlEl.className = `kpi-value ${pnlUsd >= 0 ? 'pos' : 'neg'}`;
+  pnlPctEl.textContent = `${pnlPct >= 0 ? '+' : ''}${fmtPct(pnlPct)}% (${fmtInr(s.totalPnlInr || pnlUsd * fx)})`;
+  pnlPctEl.className = `kpi-sub ${pnlUsd >= 0 ? 'pos' : 'neg'}`;
+
+  document.getElementById('kpi-cash-usd').textContent = fmtUsd(s.availableCashUsd);
+  document.getElementById('kpi-account-equity').textContent = `Total Equity: ${fmtUsd(s.totalAccountValueUsd || s.totalCurrentUsd)}`;
+
+  // Render Charts
+  renderStockChart(holdings, s.totalCurrentUsd);
+  renderSectorChart(s.sectorBreakdown || [], s.totalCurrentUsd);
+
+  // Render Table
+  renderTable(holdings);
+
+  // Search filter
+  document.getElementById('search-input').addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase().trim();
+    const filtered = holdings.filter(h => 
+      h.ticker.toLowerCase().includes(q) ||
+      h.companyName.toLowerCase().includes(q) ||
+      (h.sector && h.sector.toLowerCase().includes(q))
+    );
+    renderTable(filtered);
+  });
+}
+
+/**
+ * Render Stock-wise Donut Chart and Ranked List
+ */
+function renderStockChart(holdings, totalValue) {
+  const svg = document.getElementById('stock-donut-svg');
+  const list = document.getElementById('stock-breakdown-list');
+  svg.innerHTML = '';
+  list.innerHTML = '';
+
+  document.getElementById('stock-chart-sub').textContent = `Weight distribution across ${holdings.length} equities`;
+
+  if (!holdings.length) return;
+
+  const circumference = 2 * Math.PI * 35; // r=35
+  let offset = 0;
+
+  // Set default center display to highest holding
+  const topStock = holdings[0];
+  document.getElementById('stock-donut-title').textContent = topStock.ticker;
+  document.getElementById('stock-donut-val').textContent = fmtUsd(topStock.currentValueUsd);
+  document.getElementById('stock-donut-sub').textContent = `${fmtPct(topStock.portfolioPct)}% allocation`;
+
+  holdings.forEach((h, idx) => {
+    const color = STOCK_PALETTE[idx % STOCK_PALETTE.length];
+    const pct = h.portfolioPct / 100;
+    const strokeDash = pct * circumference;
+    const strokeGap = circumference - strokeDash;
+
+    // SVG Slice
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', '50');
+    circle.setAttribute('cy', '50');
+    circle.setAttribute('r', '35');
+    circle.setAttribute('class', 'donut-slice');
+    circle.setAttribute('stroke', color);
+    circle.setAttribute('stroke-dasharray', `${strokeDash} ${strokeGap}`);
+    circle.setAttribute('stroke-dashoffset', `-${offset}`);
+    offset += strokeDash;
+
+    const setCenter = () => {
+      document.getElementById('stock-donut-title').textContent = h.ticker;
+      document.getElementById('stock-donut-val').textContent = fmtUsd(h.currentValueUsd);
+      document.getElementById('stock-donut-sub').textContent = `${fmtPct(h.portfolioPct)}% · ${h.companyName}`;
+    };
+
+    circle.addEventListener('mouseenter', setCenter);
+    svg.appendChild(circle);
+
+    // List item
+    const row = document.createElement('div');
+    row.className = 'breakdown-row';
+    row.innerHTML = `
+      <div class="breakdown-left">
+        <span class="breakdown-dot" style="background:${color}"></span>
+        <span class="breakdown-name">${h.ticker}</span>
+        <span style="font-size:0.75rem; color:var(--text-muted);">${h.shares} sh</span>
+      </div>
+      <div class="breakdown-right">
+        <div class="breakdown-val">${fmtUsd(h.currentValueUsd)}</div>
+        <div class="breakdown-pct">${fmtPct(h.portfolioPct)}%</div>
+      </div>
+    `;
+    row.addEventListener('mouseenter', setCenter);
+    list.appendChild(row);
+  });
+}
+
+/**
+ * Render Sector-wise Donut Chart and Distribution List
+ */
+function renderSectorChart(sectors, totalValue) {
+  const svg = document.getElementById('sector-donut-svg');
+  const list = document.getElementById('sector-breakdown-list');
+  svg.innerHTML = '';
+  list.innerHTML = '';
+
+  document.getElementById('sector-chart-sub').textContent = `Exposure across ${sectors.length} sectors`;
+
+  if (!sectors.length) return;
+
+  const circumference = 2 * Math.PI * 35;
+  let offset = 0;
+
+  // Set default center display to highest sector
+  const topSector = sectors[0];
+  document.getElementById('sector-donut-title').textContent = topSector.sector;
+  document.getElementById('sector-donut-val').textContent = fmtUsd(topSector.valueUsd);
+  document.getElementById('sector-donut-sub').textContent = `${fmtPct(topSector.pct)}% allocation`;
+
+  sectors.forEach((s, idx) => {
+    const color = SECTOR_PALETTE[s.sector] || STOCK_PALETTE[(idx + 4) % STOCK_PALETTE.length];
+    const pct = s.pct / 100;
+    const strokeDash = pct * circumference;
+    const strokeGap = circumference - strokeDash;
+
+    // SVG Slice
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', '50');
+    circle.setAttribute('cy', '50');
+    circle.setAttribute('r', '35');
+    circle.setAttribute('class', 'donut-slice');
+    circle.setAttribute('stroke', color);
+    circle.setAttribute('stroke-dasharray', `${strokeDash} ${strokeGap}`);
+    circle.setAttribute('stroke-dashoffset', `-${offset}`);
+    offset += strokeDash;
+
+    const setCenter = () => {
+      document.getElementById('sector-donut-title').textContent = s.sector;
+      document.getElementById('sector-donut-val').textContent = fmtUsd(s.valueUsd);
+      document.getElementById('sector-donut-sub').textContent = `${fmtPct(s.pct)}% · ${s.count} stocks`;
+    };
+
+    circle.addEventListener('mouseenter', setCenter);
+    svg.appendChild(circle);
+
+    // List item
+    const row = document.createElement('div');
+    row.className = 'breakdown-row';
+    row.innerHTML = `
+      <div class="breakdown-left">
+        <span class="breakdown-dot" style="background:${color}"></span>
+        <div>
+          <span class="breakdown-name">${s.sector}</span>
+          <span style="font-size:0.75rem; color:var(--text-muted); display:block;">${s.count} ${s.count === 1 ? 'asset' : 'assets'}</span>
+        </div>
+      </div>
+      <div class="breakdown-right">
+        <div class="breakdown-val">${fmtUsd(s.valueUsd)}</div>
+        <div class="breakdown-pct">${fmtPct(s.pct)}% (${fmtInr(s.valueInr)})</div>
+      </div>
+    `;
+    row.addEventListener('mouseenter', setCenter);
+    list.appendChild(row);
+  });
+}
+
+function renderTable(list) {
+  const tbody = document.getElementById('holdings-tbody');
+  document.getElementById('item-counter').textContent = `Showing ${list.length} holdings`;
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:var(--text-muted)">No matching positions.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(h => {
+    const isPos = h.unrealizedPnlUsd >= 0;
+    return `
+      <tr>
+        <td>
+          <span class="ticker-badge">${h.ticker}</span>
+          <div class="company-name">${h.companyName}</div>
+        </td>
+        <td>
+          <span class="sector-chip">${h.sector || 'Other'}</span>
+        </td>
+        <td class="num font-mono">${h.shares}</td>
+        <td class="num font-mono">${fmtUsd(h.avgPriceUsd)}</td>
+        <td class="num font-mono"><strong>${fmtUsd(h.currentPriceUsd)}</strong></td>
+        <td class="num font-mono">
+          ${fmtUsd(h.investedValueUsd)}
+          <span class="inr-sub">${fmtInr(h.investedValueInr)}</span>
+        </td>
+        <td class="num font-mono">
+          <strong>${fmtUsd(h.currentValueUsd)}</strong>
+          <span class="inr-sub">${fmtInr(h.currentValueInr)}</span>
+        </td>
+        <td class="num">
+          <span class="pill ${isPos ? 'pos' : 'neg'}">
+            ${isPos ? '+' : ''}${fmtUsd(h.unrealizedPnlUsd)} (${isPos ? '+' : ''}${fmtPct(h.unrealizedPnlPct)}%)
+          </span>
+          <span class="inr-sub">${isPos ? '+' : ''}${fmtInr(h.unrealizedPnlInr)}</span>
+        </td>
+        <td class="num font-mono"><strong>${fmtPct(h.portfolioPct)}%</strong></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+
+window.addEventListener('DOMContentLoaded', render);
+</script>
+</body>
+</html>
