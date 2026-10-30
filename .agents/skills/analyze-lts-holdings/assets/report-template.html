@@ -267,6 +267,35 @@ function bars(h){
 function drawer(h){
   const d=el('details','drawer'); if(state.expanded) d.open=true;
   d.appendChild(el('summary',null,'Why this verdict, metrics and scores'));
+  if(h.fundamentalReport && h.fundamentalReport.relativeHtmlPath){
+    const fb=el('div','fund-box glass');
+    fb.style.cssText='margin:10px 0;padding:12px;border-radius:10px;border:1px solid rgba(124,156,255,.35);background:rgba(124,156,255,.08);';
+    const fTop=el('div','row');
+    fTop.appendChild(el('b',null,'📊 Fundamental Valuation Audit'));
+    const aLink=el('a','btn','Open Report ↗');
+    aLink.href=h.fundamentalReport.relativeHtmlPath;
+    aLink.target='_blank';
+    aLink.style.cssText='padding:4px 10px;font-size:12px;text-decoration:none;';
+    fTop.appendChild(aLink);
+    fb.appendChild(fTop);
+    if(h.fundamentalReport.valuation){
+      const v=h.fundamentalReport.valuation;
+      const kr=el('div','nums');
+      kr.style.cssText='margin-top:8px;font-size:12px;gap:14px;';
+      const items=[
+        ['Owner Earnings', v.ownerEarnings!=null?'₹'+Math.round(v.ownerEarnings).toLocaleString('en-IN')+' Cr':'n/a'],
+        ['DuPont ROE', v.roe!=null?v.roe+'%':'n/a'],
+        ['Graham Floor', v.grahamNumber!=null?'₹'+v.grahamNumber.toFixed(1):'n/a'],
+        ['Net Debt/EBITDA', v.netDebtToEbitda!=null?v.netDebtToEbitda+'x':'0x'],
+        ['Earnings Quality', v.erqr!=null?v.erqr+'th Pct':'n/a']
+      ];
+      items.forEach(([l,val])=>{
+        const box=el('div'); box.appendChild(document.createTextNode(l)); box.appendChild(el('b',null,val)); kr.appendChild(box);
+      });
+      fb.appendChild(kr);
+    }
+    d.appendChild(fb);
+  }
   d.appendChild(bars(h));
   d.appendChild(el('div','sub','Triggers: confidence '+h.confidence+'% of expected metrics available'));
   const ul=el('ul','trig'); h.triggers.forEach(t=>ul.appendChild(el('li',null,t.label+': '+t.value))); d.appendChild(ul);
@@ -282,7 +311,15 @@ function drawer(h){
 function card(h){
   const c=el('article','glass card'+(h.concentration.length?' amber':''));
   const top=el('div','row'); const l=el('div'); l.appendChild(el('h3',null,h.ticker)); l.appendChild(el('div','meta',h.name+' \u00B7 '+(h.sector||''))); top.appendChild(l);
-  const r=el('div'); r.appendChild(el('span','verdict v-'+h.verdict,h.verdict)); top.appendChild(r); c.appendChild(top);
+  const r=el('div','row');
+  if(h.fundamentalReport && h.fundamentalReport.relativeHtmlPath){
+    const repA=el('a','badge b-gold','Audit ↗');
+    repA.href=h.fundamentalReport.relativeHtmlPath;
+    repA.target='_blank';
+    repA.style.cssText='text-decoration:none;margin-right:6px;cursor:pointer;';
+    r.appendChild(repA);
+  }
+  r.appendChild(el('span','verdict v-'+h.verdict,h.verdict)); top.appendChild(r); c.appendChild(top);
   c.appendChild(el('div','reason',h.reason));
   const n=el('div','nums');
   [['Weight',h.weight==null?'n/a':h.weight.toFixed(1)+'%',''],['Return',pct(h.returnPct),cls(h.returnPct)],['P&L',inr(h.pnl),cls(h.pnl)],['Grade',h.grade,'']].forEach(([a,b,k])=>{const d=el('div'); d.appendChild(document.createTextNode(a)); d.appendChild(el('b',k,b)); n.appendChild(d);});
@@ -294,11 +331,11 @@ function card(h){
   c.appendChild(bw); c.appendChild(drawer(h)); return c;
 }
 
-const COLS=[['ticker','Ticker'],['verdict','Verdict'],['weight','Weight %'],['returnPct','Return %'],['pnl','P&L'],['currentValue','Value'],['overall','Score'],['confidence','Conf %']];
+const COLS=[['ticker','Ticker'],['verdict','Verdict'],['weight','Weight %'],['returnPct','Return %'],['pnl','P&L'],['currentValue','Value'],['overall','Score'],['audit','Audit Report'],['confidence','Conf %']];
 function table(list){
   const t=$('#tbl'); t.textContent='';
   const thead=el('thead'), tr=el('tr'); COLS.forEach(([k,l])=>{const th=el('th',null,l+(state.sortKey===k?(state.sortDir>0?' \u25B2':' \u25BC'):'')); th.addEventListener('click',()=>{ if(state.sortKey===k) state.sortDir*=-1; else {state.sortKey=k; state.sortDir=1;} renderAll();}); tr.appendChild(th);}); thead.appendChild(tr); t.appendChild(thead);
-  const tb=el('tbody'); list.forEach(h=>{const r=el('tr'); COLS.forEach(([k])=>{let v=h[k]; let txt=v==null?'n/a':v; if(k==='weight'||k==='overall') txt=v==null?'n/a':v.toFixed(1); if(k==='returnPct') txt=pct(v); if(k==='pnl'||k==='currentValue') txt=inr(v); const td=el('td',(k==='returnPct'||k==='pnl')?cls(v):'',String(txt)); if(k==='verdict'){td.textContent=''; td.appendChild(el('span','verdict v-'+h.verdict,h.verdict));} r.appendChild(td);}); tb.appendChild(r);}); t.appendChild(tb);
+  const tb=el('tbody'); list.forEach(h=>{const r=el('tr'); COLS.forEach(([k])=>{let v=h[k]; let txt=v==null?'n/a':v; if(k==='weight'||k==='overall') txt=v==null?'n/a':v.toFixed(1); if(k==='returnPct') txt=pct(v); if(k==='pnl'||k==='currentValue') txt=inr(v); const td=el('td',(k==='returnPct'||k==='pnl')?cls(v):'',String(txt)); if(k==='verdict'){td.textContent=''; td.appendChild(el('span','verdict v-'+h.verdict,h.verdict));} if(k==='audit'){td.textContent=''; if(h.fundamentalReport&&h.fundamentalReport.relativeHtmlPath){const a=el('a','btn','Audit ↗'); a.href=h.fundamentalReport.relativeHtmlPath; a.target='_blank'; a.style.cssText='padding:2px 8px;font-size:11px;text-decoration:none;'; td.appendChild(a);} else {td.textContent='—';}} r.appendChild(td);}); tb.appendChild(r);}); t.appendChild(tb);
 }
 
 function renderAll(){

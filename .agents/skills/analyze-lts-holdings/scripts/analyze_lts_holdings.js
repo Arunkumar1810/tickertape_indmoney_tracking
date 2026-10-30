@@ -22,8 +22,19 @@ try {
   // Fallback to reading fetch-lts reports
 }
 
+// Import generateValuationReport from fundamental-stock-analysis skill
+let generateValuationReport = null;
+try {
+  const fundPath = path.resolve(__dirname, '../../fundamental-stock-analysis/scripts/generate_valuation_report.js');
+  if (fs.existsSync(fundPath)) {
+    generateValuationReport = require(fundPath).generateValuationReport;
+  }
+} catch {
+  // Fallback if not installed
+}
+
 function parseArgs(argv) {
-  const a = { broker: 'angelone', out: null, refresh: false, only: null, config: null, help: false };
+  const a = { broker: 'angelone', out: null, refresh: false, only: null, config: null, skipReports: false, help: false };
   for (let i = 0; i < argv.length; i++) {
     const k = argv[i];
     const next = () => {
@@ -35,13 +46,14 @@ function parseArgs(argv) {
     else if (k === '--only') a.only = next().toUpperCase();
     else if (k === '--config') a.config = next();
     else if (k === '--refresh') a.refresh = true;
+    else if (k === '--skip-reports') a.skipReports = true;
     else if (k === '-h' || k === '--help') a.help = true;
     else throw new Error(`Unknown option: ${k}`);
   }
   return a;
 }
 
-const USAGE = `Usage: node scripts/analyze_lts_holdings.js [--out DIR] [--refresh] [--only TICKER] [--config FILE]`;
+const USAGE = `Usage: node scripts/analyze_lts_holdings.js [--out DIR] [--refresh] [--only TICKER] [--config FILE] [--skip-reports]`;
 
 /** Credential values that must never appear in outputs. */
 function collectSecrets() {
@@ -153,6 +165,32 @@ async function main() {
     onProgress: (t, fromCache, warns) => console.log(`  ${t.padEnd(12)} ${fromCache ? '(cache)' : '(live) '} ${warns.length ? 'WARN: ' + warns.join(', ') : 'ok'}`)
   });
 
+  // Generate fundamental stock analysis report for each holding
+  const fundamentalsDir = path.join(outDir, 'fundamentals');
+  if (!args.skipReports && generateValuationReport) {
+    console.log(`\n📑 Invoking fundamental-stock-analysis for ${enriched.length} holding(s)...`);
+    for (const h of enriched) {
+      try {
+        process.stdout.write(`   • ${h.ticker.padEnd(12)} `);
+        const rep = await generateValuationReport(h.ticker, {
+          outDir: fundamentalsDir,
+          refresh: args.refresh
+        });
+        h.fundamentalReport = {
+          markdownPath: rep.markdownPath,
+          htmlPath: rep.htmlPath,
+          relativeHtmlPath: `fundamentals/${h.ticker}.html`,
+          relativeMdPath: `fundamentals/${h.ticker}.md`,
+          valuation: rep.valuation
+        };
+        const oeStr = rep.valuation.ownerEarnings != null ? `₹${Math.round(rep.valuation.ownerEarnings).toLocaleString('en-IN')} Cr` : 'N/A';
+        console.log(`✓ Audit report generated (Owner Earnings: ${oeStr} | ROE: ${rep.valuation.roe}%)`);
+      } catch (err) {
+        console.log(`⚠️ (Audit skipped: ${err.message})`);
+      }
+    }
+  }
+
   const stamp = todayStr();
   const scored = scorePortfolio(enriched, cfg, { previous: loadPrevious(outDir, stamp), universe: all });
   const report = buildReport(scored, cfg, { summary: args.only ? null : summary, broker: 'angelone' });
@@ -160,7 +198,12 @@ async function main() {
   const { htmlPath, jsonPath } = writeReport(report, outDir, { secrets: collectSecrets(), date: stamp });
   console.log(`\n✅ Analysis Complete:`);
   console.log(`   • HTML Report: ${htmlPath}`);
-  console.log(`   • JSON Sidecar: ${jsonPath}\n`);
+  console.log(`   • JSON Sidecar: ${jsonPath}`);
+  if (!args.skipReports && generateValuationReport) {
+    console.log(`   • Stock Audits: ${fundamentalsDir}\n`);
+  } else {
+    console.log('');
+  }
 
   return { htmlPath, jsonPath, report };
 }

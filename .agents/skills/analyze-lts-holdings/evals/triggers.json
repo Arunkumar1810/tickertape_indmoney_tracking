@@ -1,0 +1,22 @@
+{
+  "should_fire": [
+    "analyze my LTS holdings and audit each stock",
+    "run fundamental analysis on my long term portfolio stocks",
+    "generate the portfolio rationale report with stock audits",
+    "audit portfolio stocks from Angel One and review metrics",
+    "review my long term equity holdings and give me valuation reports",
+    "can you analyze LTS holdings and calculate Graham numbers for my stocks",
+    "fetch my LTS holdings and generate fundamental valuation audits for each position",
+    "audit true business quality and owner earnings across my portfolio"
+  ],
+  "near_misses": [
+    "fetch my live Angel One equity holdings without analysis",
+    "calculate portfolio XIRR and ledger cash friction drag",
+    "what is the current market price of INFY on Tickertape",
+    "analyze stock INFY in isolation",
+    "how do I buy stocks on Angel One",
+    "show me the nifty 50 chart for today",
+    "explain what a Graham number is in finance",
+    "list my demat positions only"
+  ]
+}

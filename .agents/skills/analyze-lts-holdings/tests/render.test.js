@@ -75,8 +75,24 @@ test('loadPrevious reads the latest earlier report for hysteresis', () => {
 });
 
 test('CLI argument parsing and unsupported broker flags', () => {
-  const a = parseArgs(['--broker', 'angelone', '--out', 'reports/', '--refresh', '--only', 'infy']);
-  assert.deepStrictEqual([a.broker, a.out, a.refresh, a.only], ['angelone', 'reports/', true, 'INFY']);
+  const a = parseArgs(['--broker', 'angelone', '--out', 'reports/', '--refresh', '--only', 'infy', '--skip-reports']);
+  assert.deepStrictEqual([a.broker, a.out, a.refresh, a.only, a.skipReports], ['angelone', 'reports/', true, 'INFY', true]);
   assert.strictEqual(parseArgs(['--broker', 'kite']).broker, 'kite');
   assert.throws(() => parseArgs(['--nope']));
 });
+
+test('fundamentalReport field is preserved in report and rendered in html', () => {
+  const hList = sample();
+  hList[0].fundamentalReport = {
+    relativeHtmlPath: 'fundamentals/A.html',
+    relativeMdPath: 'fundamentals/A.md',
+    valuation: { ownerEarnings: 1500, roe: 28.5, grahamNumber: 350.2, netDebtToEbitda: -0.5 }
+  };
+  const rep = buildReport(hList, cfg);
+  assert.ok(rep.holdings[0].fundamentalReport);
+  assert.strictEqual(rep.holdings[0].fundamentalReport.relativeHtmlPath, 'fundamentals/A.html');
+  const html = renderHtml(rep);
+  assert.ok(html.includes('fundamentals/A.html'));
+  assert.ok(html.includes('Fundamental Valuation Audit'));
+});
+

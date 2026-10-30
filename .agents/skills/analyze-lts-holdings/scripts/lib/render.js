@@ -9,15 +9,22 @@ const HOLDING_FIELDS = [
   'ticker', 'name', 'sector', 'subSector', 'marketCap', 'quantity', 'averagePrice', 'investedValue', 'currentValue',
   'pnl', 'returnPct', 'weight', 'price', 'high52', 'low52', 'dayChange', 'dayChangePct', 'dataAsOf', 'partial',
   'warnings', 'scores', 'overall', 'verdict', 'reason', 'triggers', 'confidence', 'flags', 'concentration',
-  'taxNote', 'grade', 'wouldBuyToday'
+  'taxNote', 'grade', 'wouldBuyToday', 'fundamentalReport'
 ];
 
 function pickHolding(h) {
   const out = {};
   for (const k of HOLDING_FIELDS) out[k] = h[k] === undefined ? null : h[k];
   out.metrics = {};
-  for (const k of ['ttmPe', 'indpe', 'peerMeanPe', 'erqr', 'upside', 'breco', 'nBreco', 'totalAnalysts', 'fundamental']) {
+  for (const k of ['ttmPe', 'indpe', 'peerMeanPe', 'erqr', 'upside', 'breco', 'nBreco', 'totalAnalysts', 'fundamental', 'grahamNumber', 'ownerEarnings', 'roe']) {
     if (isNum((h.metrics || {})[k])) out.metrics[k] = h.metrics[k];
+  }
+  if (h.fundamentalReport) {
+    out.fundamentalReport = {
+      relativeHtmlPath: h.fundamentalReport.relativeHtmlPath || null,
+      relativeMdPath: h.fundamentalReport.relativeMdPath || null,
+      valuation: h.fundamentalReport.valuation || null
+    };
   }
   out.scorecard = (h.scorecard || []).map((s) => ({ name: s.name, tag: s.tag, value: s.value, colour: s.colour }));
   out.flags = (h.flags || []).map((f) => ({ type: f.type, label: f.label }));
