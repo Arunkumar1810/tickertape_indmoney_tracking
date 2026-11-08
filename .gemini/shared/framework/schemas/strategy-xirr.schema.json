@@ -1,0 +1,252 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://modular-stock-framework.local/schemas/strategy-xirr.schema.json",
+  "title": "StrategyXirrReport",
+  "description": "Standardized Tier 4 Consolidated Strategy True XIRR & Friction Audit Report across multi-account domestic and foreign brokerage ledgers.",
+  "type": "object",
+  "required": [
+    "strategy_id",
+    "timestamp",
+    "base_currency",
+    "eval_date",
+    "xirr",
+    "xirr_annualized",
+    "absolute_return",
+    "total_deposited",
+    "total_withdrawn",
+    "net_invested",
+    "terminal_equity",
+    "days_held",
+    "is_sub_annual",
+    "friction_breakdown",
+    "account_cashflows_summary",
+    "cashflows"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "strategy_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifier of the Investment Way matching config/investment_ways.yaml (e.g. fundamental_lts)."
+    },
+    "timestamp": {
+      "type": "string",
+      "minLength": 1,
+      "description": "ISO 8601 timestamp when this XIRR performance report was generated."
+    },
+    "base_currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "Strategy base currency code (e.g. INR, USD) in which all cashflows and returns are evaluated."
+    },
+    "eval_date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "Valuation cutoff date (YYYY-MM-DD) for terminal equity injection."
+    },
+    "xirr": {
+      "type": ["number", "null"],
+      "description": "Annualized internal rate of return as a decimal (e.g. 0.185 for 18.5%), or null if sub-annual guardrail triggered or unsolvable."
+    },
+    "xirr_annualized": {
+      "type": ["number", "null"],
+      "description": "Annualized internal rate of return expressed as a percentage (e.g. 18.5 for 18.5%), or null if sub-annual guardrail triggered."
+    },
+    "absolute_return": {
+      "type": "number",
+      "description": "Total absolute percentage return on net invested capital."
+    },
+    "total_deposited": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Total external cash deposited across all assigned accounts in strategy base currency."
+    },
+    "total_withdrawn": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Total external cash withdrawn/paid out to bank accounts in strategy base currency."
+    },
+    "net_invested": {
+      "type": "number",
+      "description": "Net capital committed (total_deposited - total_withdrawn) in strategy base currency."
+    },
+    "terminal_equity": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Terminal strategy portfolio equity (blended equity market value + pooled cash) on eval_date in base currency."
+    },
+    "days_held": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Elapsed calendar days between first external cash deposit and eval_date."
+    },
+    "is_sub_annual": {
+      "type": "boolean",
+      "description": "True if duration is under 90 days, activating guardrail suppression of annualized XIRR."
+    },
+    "friction_breakdown": {
+      "type": "object",
+      "required": [
+        "brokerage",
+        "stt",
+        "fx_drag",
+        "taxes_and_charges",
+        "total_friction",
+        "friction_drag_pct"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "brokerage": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Total brokerage commissions paid across all assigned accounts in base currency."
+        },
+        "stt": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Securities Transaction Tax (STT) and exchange transaction levies in base currency."
+        },
+        "fx_drag": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Cross-border currency conversion fees and spread drag in base currency."
+        },
+        "taxes_and_charges": {
+          "type": "number",
+          "minimum": 0,
+          "description": "GST, SEBI turnover fees, and stamp duty charges in base currency."
+        },
+        "total_friction": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Sum of all friction costs in strategy base currency."
+        },
+        "friction_drag_pct": {
+          "type": "number",
+          "description": "Impact of friction costs in percentage points (Gross Return % - Net Return %)."
+        }
+      }
+    },
+    "account_cashflows_summary": {
+      "type": "array",
+      "description": "Summary of external inflows, withdrawals, netted transfers, and friction per assigned account.",
+      "items": {
+        "type": "object",
+        "required": [
+          "account_id",
+          "broker",
+          "original_currency",
+          "fx_rate",
+          "total_deposited_base",
+          "total_withdrawn_base",
+          "internal_transfers_netted_base",
+          "friction_base"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Account identifier matching investment_ways.yaml."
+          },
+          "broker": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Broker name (e.g. Angel One, INDmoney / DriveWealth)."
+          },
+          "original_currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "Native currency of this account."
+          },
+          "fx_rate": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Exchange rate applied to convert native account currency to strategy base currency."
+          },
+          "total_deposited_base": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Total external cash deposited into this account in base currency."
+          },
+          "total_withdrawn_base": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Total external cash withdrawn from this account in base currency."
+          },
+          "internal_transfers_netted_base": {
+            "type": "number",
+            "description": "Amount of inter-account transfers netted out for this account in base currency."
+          },
+          "friction_base": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Total friction fees generated by this account in base currency."
+          }
+        }
+      }
+    },
+    "cashflows": {
+      "type": "array",
+      "description": "Full chronological ledger of cashflows submitted to the Newton-Raphson XIRR solver.",
+      "items": {
+        "type": "object",
+        "required": [
+          "date",
+          "amount",
+          "category",
+          "account_id",
+          "description"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "Cashflow transaction date in YYYY-MM-DD format."
+          },
+          "amount": {
+            "type": "number",
+            "description": "Cashflow amount in strategy base currency (negative for external deposits, positive for withdrawals and terminal equity)."
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "DEPOSIT",
+              "WITHDRAWAL",
+              "DIVIDEND",
+              "TERMINAL_EQUITY",
+              "INTERNAL_TRANSFER_NETTED",
+              "FEE"
+            ],
+            "description": "Classification of the cashflow event."
+          },
+          "account_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Originating broker account ID, or strategy identifier for terminal equity."
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable memo explaining the cashflow."
+          },
+          "original_amount": {
+            "type": "number",
+            "description": "Unconverted transaction amount in original currency."
+          },
+          "original_currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "Currency code before FX conversion."
+          },
+          "fx_rate": {
+            "type": "number",
+            "minimum": 0,
+            "description": "FX multiplier used to convert to strategy base currency."
+          }
+        }
+      }
+    }
+  }
+}
+
