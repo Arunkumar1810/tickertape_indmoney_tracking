@@ -227,6 +227,13 @@ class IndmoneyMcpClient {
   }
 
   /**
+   * Fetch all US stock holdings and summaries.
+   */
+  async fetchAll(options = {}) {
+    return this.getUsStocks(options);
+  }
+
+  /**
    * Fetch US stocks from INDmoney MCP with auto-discovery and normalization.
    */
   async getUsStocks(options = {}) {
