@@ -1,0 +1,49 @@
+{
+  "holdings": [
+    {
+      "ticker": "AAPL",
+      "name": "Apple Inc.",
+      "isin": "US0378331005",
+      "exchange": "NASDAQ",
+      "quantity": 12.5,
+      "average_price": 182.40,
+      "cmp": 235.10,
+      "invested_value": 2280.00,
+      "current_value": 2938.75,
+      "unrealized_pnl": 658.75,
+      "fractional_shares": true,
+      "buy_date": "2026-03-15"
+    },
+    {
+      "ticker": "MSFT",
+      "name": "Microsoft Corp.",
+      "isin": "US5949181045",
+      "exchange": "NASDAQ",
+      "quantity": 8.0,
+      "average_price": 340.20,
+      "cmp": 428.60,
+      "invested_value": 2721.60,
+      "current_value": 3428.80,
+      "unrealized_pnl": 707.20,
+      "fractional_shares": false,
+      "buy_date": "2026-04-10"
+    },
+    {
+      "ticker": "VOO",
+      "name": "Vanguard S&P 500 ETF",
+      "isin": "US9229083632",
+      "exchange": "NYSE",
+      "quantity": 5.0,
+      "average_price": 480.00,
+      "cmp": 530.00,
+      "invested_value": 2400.00,
+      "current_value": 2650.00,
+      "unrealized_pnl": 250.00,
+      "fractional_shares": false,
+      "buy_date": "2026-05-20"
+    }
+  ],
+  "cash_balance": 320.50,
+  "usd_to_inr": 87.20
+}
+

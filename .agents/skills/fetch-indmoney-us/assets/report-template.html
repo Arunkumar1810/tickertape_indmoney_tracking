@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INDmoney US Holdings · fetch-indmoney-us</title>
+<meta name="description" content="Live INDmoney / DriveWealth US Equities holdings and USD cash ledger valuation.">
+<style>
+:root {
+  --bg: #090d16;
+  --surface: #111726;
+  --surface-alt: #172033;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #38bdf8;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --emerald: #10b981;
+  --rose: #f43f5e;
+  --amber: #f59e0b;
+  --cyan: #38bdf8;
+  --indigo: #6366f1;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  padding: 32px 20px 80px;
+  line-height: 1.5;
+}
+.container { max-width: 1240px; margin: 0 auto; }
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.brand h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.brand p { font-size: 0.88rem; color: var(--text-muted); margin-top: 4px; }
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.badge {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  color: var(--cyan);
+  font-weight: 500;
+}
+.currency-toggle {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  padding: 3px;
+  display: flex;
+  gap: 4px;
+}
+.currency-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.currency-btn.active {
+  background: var(--cyan);
+  color: #090d16;
+}
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  transition: transform 0.15s, border-color 0.15s;
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+.kpi-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.kpi-value {
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.kpi-sub {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.pos { color: var(--emerald); }
+.neg { color: var(--rose); }
+
+.controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.search-input {
+  flex: 1;
+  min-width: 240px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+.search-input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+.table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.table-responsive {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+thead {
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
+}
+th {
+  padding: 12px 16px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+th:hover { color: var(--cyan); }
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+.ticker-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ticker-sym {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+.ticker-name {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+}
+.tag-nasdaq {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+.tag-nyse {
+  background: rgba(129, 140, 248, 0.15);
+  color: #818cf8;
+}
+.num-cell { text-align: right; }
+.weight-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.progress-bg {
+  width: 50px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--cyan);
+  border-radius: 3px;
+}
+footer {
+  margin-top: 36px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <!--__CACHE_BANNER__-->
+  <header>
+    <div class="brand">
+      <h1>INDmoney US Portfolio</h1>
+      <p>DriveWealth US Equities & USD Cash Ledger · Tier 1 Canonical Snapshot</p>
+    </div>
+    <div class="header-meta">
+      <div class="currency-toggle">
+        <button id="btn-usd" class="currency-btn active" onclick="setCurrency('USD')">USD ($)</button>
+        <button id="btn-inr" class="currency-btn" onclick="setCurrency('INR')">INR (₹)</button>
+      </div>
+      <div class="badge" id="account-badge">Account: indmoney_us</div>
+      <div class="badge" id="fx-badge">1 USD = ₹--.--</div>
+    </div>
+  </header>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Market Value</div>
+      <div class="kpi-value" id="kpi-current">--</div>
+      <div class="kpi-sub" id="kpi-current-sub">Total US equity value</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Invested Cost</div>
+      <div class="kpi-value" id="kpi-invested">--</div>
+      <div class="kpi-sub" id="kpi-invested-sub">Cost basis in USD</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Unrealized P&L</div>
+      <div class="kpi-value" id="kpi-pnl">--</div>
+      <div class="kpi-sub" id="kpi-pnl-pct">--</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">USD Cash Ledger</div>
+      <div class="kpi-value" id="kpi-cash">--</div>
+      <div class="kpi-sub" id="kpi-cash-sub">Settled purchasing power</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total Equity</div>
+      <div class="kpi-value" id="kpi-equity">--</div>
+      <div class="kpi-sub" id="kpi-equity-sub">Holdings + Cash</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Holdings Count</div>
+      <div class="kpi-value" id="kpi-count">--</div>
+      <div class="kpi-sub">Distinct US equities</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <input type="text" id="search" class="search-input" placeholder="Search by ticker or company name..." oninput="filterTable()">
+  </div>
+
+  <div class="table-card">
+    <div class="table-responsive">
+      <table id="holdings-table">
+        <thead>
+          <tr>
+            <th onclick="sortTable('ticker')">Holding</th>
+            <th onclick="sortTable('exchange')">Exchange</th>
+            <th class="num-cell" onclick="sortTable('quantity')">Shares</th>
+            <th class="num-cell" onclick="sortTable('average_price')">Avg Price</th>
+            <th class="num-cell" onclick="sortTable('cmp')">CMP</th>
+            <th class="num-cell" onclick="sortTable('invested_value')">Invested</th>
+            <th class="num-cell" onclick="sortTable('current_value')">Current Value</th>
+            <th class="num-cell" onclick="sortTable('unrealized_pnl')">Unrealized P&L</th>
+            <th class="num-cell" onclick="sortTable('weight_pct')">Weight</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    Generated by <strong>fetch-indmoney-us</strong> · Tier 1 Broker Ingestion · Verified Canonical Snapshot Contract
+  </footer>
+</div>
+
+<script id="snapshot-data" type="application/json">/*__DATA__*/null</script>
+
+<script>
+let snapshot = null;
+let currentCurrency = 'USD';
+let sortField = 'current_value';
+let sortAsc = false;
+
+function init() {
+  const dataEl = document.getElementById('snapshot-data');
+  if (dataEl && dataEl.textContent.trim() && dataEl.textContent.trim() !== '/*__DATA__*/null') {
+    try {
+      snapshot = JSON.parse(dataEl.textContent);
+    } catch (e) {
+      console.error('Failed to parse snapshot JSON', e);
+    }
+  }
+  if (!snapshot) return;
+
+  const fx = snapshot.usd_to_inr || snapshot.fx_rate || 87.20;
+  document.getElementById('fx-badge').textContent = `1 USD = ₹${fx.toFixed(2)}`;
+  document.getElementById('account-badge').textContent = `Account: ${snapshot.account_id || 'indmoney_us'}`;
+
+  renderKPIs();
+  renderTable();
+}
+
+function getFx() {
+  return snapshot.usd_to_inr || snapshot.fx_rate || 87.20;
+}
+
+function fmtMoney(amount, currency = currentCurrency) {
+  if (amount === null || amount === undefined || isNaN(amount)) return '--';
+  const fx = getFx();
+  const val = currency === 'INR' ? amount * fx : amount;
+  const sym = currency === 'INR' ? '₹' : '$';
+  return sym + val.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function setCurrency(cur) {
+  currentCurrency = cur;
+  document.getElementById('btn-usd').classList.toggle('active', cur === 'USD');
+  document.getElementById('btn-inr').classList.toggle('active', cur === 'INR');
+  renderKPIs();
+  renderTable();
+}
+
+function renderKPIs() {
+  if (!snapshot || !snapshot.summary) return;
+  const s = snapshot.summary;
+  const fx = getFx();
+
+  document.getElementById('kpi-current').textContent = fmtMoney(s.total_current_value);
+  document.getElementById('kpi-current-sub').textContent = currentCurrency === 'USD'
+    ? `≈ ₹${(s.total_current_value * fx).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+    : `≈ $${s.total_current_value.toFixed(2)}`;
+
+  document.getElementById('kpi-invested').textContent = fmtMoney(s.total_invested);
+  document.getElementById('kpi-invested-sub').textContent = currentCurrency === 'USD'
+    ? `≈ ₹${(s.total_invested * fx).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+    : `≈ $${s.total_invested.toFixed(2)}`;
+
+  const pnlEl = document.getElementById('kpi-pnl');
+  pnlEl.textContent = (s.unrealized_pnl >= 0 ? '+' : '') + fmtMoney(s.unrealized_pnl);
+  pnlEl.className = 'kpi-value ' + (s.unrealized_pnl >= 0 ? 'pos' : 'neg');
+
+  const pnlPctEl = document.getElementById('kpi-pnl-pct');
+  pnlPctEl.textContent = `${s.unrealized_pnl >= 0 ? '+' : ''}${s.unrealized_pnl_pct.toFixed(2)}% overall`;
+  pnlPctEl.className = 'kpi-sub ' + (s.unrealized_pnl >= 0 ? 'pos' : 'neg');
+
+  document.getElementById('kpi-cash').textContent = fmtMoney(s.available_cash);
+  document.getElementById('kpi-cash-sub').textContent = currentCurrency === 'USD'
+    ? `≈ ₹${(s.available_cash * fx).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+    : `≈ $${s.available_cash.toFixed(2)}`;
+
+  document.getElementById('kpi-equity').textContent = fmtMoney(s.total_account_equity);
+  document.getElementById('kpi-count').textContent = s.holdings_count;
+}
+
+function renderTable() {
+  if (!snapshot || !Array.isArray(snapshot.holdings)) return;
+  const tbody = document.getElementById('table-body');
+  const query = (document.getElementById('search').value || '').trim().toLowerCase();
+
+  let list = [...snapshot.holdings];
+  if (query) {
+    list = list.filter(h =>
+      (h.ticker && h.ticker.toLowerCase().includes(query)) ||
+      (h.name && h.name.toLowerCase().includes(query))
+    );
+  }
+
+  list.sort((a, b) => {
+    let va = a[sortField];
+    let vb = b[sortField];
+    if (typeof va === 'string') {
+      va = va.toLowerCase();
+      vb = (vb || '').toLowerCase();
+    }
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  tbody.innerHTML = list.map(h => {
+    const pnlClass = h.unrealized_pnl >= 0 ? 'pos' : 'neg';
+    const tagClass = (h.exchange === 'NASDAQ') ? 'tag-nasdaq' : 'tag-nyse';
+    const qtyStr = Number(h.quantity).toLocaleString('en-US', {
+      minimumFractionDigits: h.fractional_shares ? 2 : 0,
+      maximumFractionDigits: 4
+    });
+
+    return `<tr>
+      <td>
+        <div class="ticker-cell">
+          <div>
+            <div class="ticker-sym">${h.ticker}</div>
+            <div class="ticker-name">${h.name || h.ticker}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="tag ${tagClass}">${h.exchange || 'US'}</span></td>
+      <td class="num-cell">${qtyStr}</td>
+      <td class="num-cell">${fmtMoney(h.average_price)}</td>
+      <td class="num-cell" style="font-weight:600">${fmtMoney(h.cmp)}</td>
+      <td class="num-cell">${fmtMoney(h.invested_value)}</td>
+      <td class="num-cell" style="font-weight:700">${fmtMoney(h.current_value)}</td>
+      <td class="num-cell ${pnlClass}">
+        ${h.unrealized_pnl >= 0 ? '+' : ''}${fmtMoney(h.unrealized_pnl)}
+        <div style="font-size:0.75rem">${h.unrealized_pnl >= 0 ? '+' : ''}${h.unrealized_pnl_pct.toFixed(2)}%</div>
+      </td>
+      <td class="num-cell">
+        <div class="weight-bar">
+          <div class="progress-bg">
+            <div class="progress-fill" style="width: ${Math.min(100, Math.max(0, h.weight_pct))}%"></div>
+          </div>
+          <span>${h.weight_pct.toFixed(2)}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function sortTable(field) {
+  if (sortField === field) {
+    sortAsc = !sortAsc;
+  } else {
+    sortField = field;
+    sortAsc = (field === 'ticker' || field === 'exchange');
+  }
+  renderTable();
+}
+
+function filterTable() {
+  renderTable();
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
+

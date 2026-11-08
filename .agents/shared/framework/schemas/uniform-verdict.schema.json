@@ -1,0 +1,167 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://modular-stock-framework.local/schemas/uniform-verdict.schema.json",
+  "title": "UniformVerdictContract",
+  "description": "Canonical output contract emitted by Tier 3 Analysis Principles and Gatekeepers, supporting both single-ticker verdicts and Option C consolidated portfolio batch envelopes.",
+  "oneOf": [
+    { "$ref": "#/definitions/SingleVerdict" },
+    { "$ref": "#/definitions/VerdictBatch" }
+  ],
+  "definitions": {
+    "PrincipleEnum": {
+      "type": "string",
+      "enum": [
+        "forensic_governance",
+        "graham",
+        "lynch",
+        "buffett_munger",
+        "klarman_solvency"
+      ]
+    },
+    "GatekeeperStanceEnum": {
+      "type": "string",
+      "enum": ["PASS", "FLAG", "VETO_DISQUALIFIED"]
+    },
+    "ValuationStanceEnum": {
+      "type": "string",
+      "enum": ["STRONG_BUY", "BUY", "HOLD", "REDUCE", "STRONG_SELL"]
+    },
+    "SingleVerdict": {
+      "type": "object",
+      "required": [
+        "principle",
+        "ticker",
+        "timestamp",
+        "score",
+        "stance",
+        "is_veto",
+        "metrics",
+        "red_flags",
+        "summary"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "principle": {
+          "$ref": "#/definitions/PrincipleEnum",
+          "description": "Identifier of the Tier 3 gatekeeper or valuation principle."
+        },
+        "ticker": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Canonical exchange ticker symbol."
+        },
+        "timestamp": {
+          "type": "string",
+          "minLength": 1,
+          "description": "ISO 8601 timestamp when the verdict was computed."
+        },
+        "score": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 100.0,
+          "description": "Normalized score in [0.0, 100.0]."
+        },
+        "stance": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "FLAG",
+            "VETO_DISQUALIFIED",
+            "STRONG_BUY",
+            "BUY",
+            "HOLD",
+            "REDUCE",
+            "STRONG_SELL"
+          ],
+          "description": "Actionable stance (PASS/FLAG/VETO_DISQUALIFIED for forensic_governance; STRONG_BUY..STRONG_SELL for valuation pillars)."
+        },
+        "is_veto": {
+          "type": "boolean",
+          "description": "True if and only if principle is forensic_governance and stance is VETO_DISQUALIFIED."
+        },
+        "metrics": {
+          "type": "object",
+          "description": "Principle-specific calculated numeric metrics (e.g., graham_number, peg_ratio, owner_earnings, altman_z_score).",
+          "additionalProperties": {
+            "type": ["number", "null"]
+          }
+        },
+        "red_flags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "List of forensic or valuation warning strings."
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable narrative explanation of the verdict."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "principle": { "const": "forensic_governance" }
+            }
+          },
+          "then": {
+            "properties": {
+              "stance": { "$ref": "#/definitions/GatekeeperStanceEnum" }
+            }
+          },
+          "else": {
+            "properties": {
+              "stance": { "$ref": "#/definitions/ValuationStanceEnum" },
+              "is_veto": { "const": false }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "stance": { "const": "VETO_DISQUALIFIED" }
+            }
+          },
+          "then": {
+            "properties": {
+              "is_veto": { "const": true }
+            }
+          },
+          "else": {
+            "properties": {
+              "is_veto": { "const": false }
+            }
+          }
+        }
+      ]
+    },
+    "VerdictBatch": {
+      "type": "object",
+      "required": ["principle", "timestamp", "verdicts"],
+      "additionalProperties": false,
+      "properties": {
+        "principle": {
+          "$ref": "#/definitions/PrincipleEnum",
+          "description": "Principle that produced this consolidated portfolio batch."
+        },
+        "timestamp": {
+          "type": "string",
+          "minLength": 1,
+          "description": "ISO 8601 batch generation timestamp."
+        },
+        "verdicts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/SingleVerdict"
+          },
+          "description": "Array of UniformVerdictContract objects with unique tickers matching the batch principle."
+        }
+      }
+    }
+  }
+}
+

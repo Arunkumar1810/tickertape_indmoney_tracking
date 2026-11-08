@@ -1,0 +1,38 @@
+{
+  "account_id": "indmoney_us",
+  "broker": "INDmoney / DriveWealth",
+  "currency": "USD",
+  "transactions": [
+    {
+      "date": "2025-02-10",
+      "amount": -573.3945,
+      "category": "INTERNAL_TRANSFER",
+      "transfer_id": "TRF-2025-001",
+      "counterparty_account": "angelone_demat",
+      "description": "Inflow from Angel One transfer",
+      "fx_rate": 87.2
+    },
+    {
+      "date": "2025-03-01",
+      "amount": -1000.0,
+      "category": "DEPOSIT",
+      "description": "Direct bank deposit to US account",
+      "fx_rate": 87.2
+    },
+    {
+      "date": "2025-08-15",
+      "amount": 45.0,
+      "category": "DIVIDEND",
+      "description": "AAPL Q3 Dividend",
+      "fx_rate": 87.2
+    }
+  ],
+  "friction_summary": {
+    "brokerage": 15.0,
+    "stt": 0.0,
+    "fx_drag": 25.0,
+    "taxes_and_charges": 5.0,
+    "total_friction": 45.0
+  }
+}
+

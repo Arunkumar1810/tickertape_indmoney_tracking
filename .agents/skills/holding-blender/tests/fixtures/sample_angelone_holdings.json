@@ -1,0 +1,52 @@
+{
+  "account_id": "angelone",
+  "broker": "angelone",
+  "currency": "INR",
+  "timestamp": "2026-11-08T10:00:00.000Z",
+  "summary": {
+    "total_invested": 220000.0,
+    "total_current_value": 260000.0,
+    "unrealized_pnl": 40000.0,
+    "unrealized_pnl_pct": 18.18,
+    "available_cash": 25000.0,
+    "total_account_equity": 285000.0,
+    "holdings_count": 2
+  },
+  "margin": {
+    "available_cash": 25000.0,
+    "collateral": 0.0,
+    "utilised": 0.0,
+    "net_margin": 25000.0
+  },
+  "holdings": [
+    {
+      "ticker": "INFY",
+      "name": "Infosys Limited",
+      "isin": "INE009A01021",
+      "exchange": "NSE",
+      "quantity": 100,
+      "average_price": 1500.0,
+      "cmp": 1800.0,
+      "invested_value": 150000.0,
+      "current_value": 180000.0,
+      "unrealized_pnl": 30000.0,
+      "unrealized_pnl_pct": 20.0,
+      "weight_pct": 69.23
+    },
+    {
+      "ticker": "TCS",
+      "name": "Tata Consultancy Services Ltd",
+      "isin": "INE467B01029",
+      "exchange": "NSE",
+      "quantity": 20,
+      "average_price": 3500.0,
+      "cmp": 4000.0,
+      "invested_value": 70000.0,
+      "current_value": 80000.0,
+      "unrealized_pnl": 10000.0,
+      "unrealized_pnl_pct": 14.29,
+      "weight_pct": 30.77
+    }
+  ]
+}
+

@@ -1,0 +1,147 @@
+{
+  "INFY": {
+    "ticker": "INFY",
+    "name": "Infosys Limited",
+    "market": "IN",
+    "synthesized_stance": "STRONG_BUY",
+    "synthesized_score": 86.5,
+    "gatekeeper_verdict": {
+      "principle": "forensic_governance",
+      "stance": "PASS",
+      "is_veto": false,
+      "score": 92.0,
+      "metrics": {
+        "promoter_pledge_pct": 0.0,
+        "beneish_m_score": -2.6
+      },
+      "red_flags": [],
+      "summary": "Pristine governance audit and zero promoter pledge."
+    },
+    "pillar_verdicts": {
+      "graham": {
+        "score": 75.0,
+        "stance": "BUY",
+        "weight": 0.25,
+        "weighted_score": 18.75,
+        "metrics": { "graham_number_ratio": 1.15 },
+        "red_flags": [],
+        "summary": "Reasonable Graham valuation floor."
+      },
+      "lynch": {
+        "score": 80.0,
+        "stance": "BUY",
+        "weight": 0.25,
+        "weighted_score": 20.0,
+        "metrics": { "peg_ratio": 1.25 },
+        "red_flags": [],
+        "summary": "Solid stalwart profile with fair PEG ratio."
+      },
+      "buffett_munger": {
+        "score": 88.0,
+        "stance": "STRONG_BUY",
+        "weight": 0.30,
+        "weighted_score": 26.4,
+        "metrics": { "roic_pct": 28.5 },
+        "red_flags": [],
+        "summary": "High un-leveraged ROIC and wide moat."
+      },
+      "klarman_solvency": {
+        "score": 90.0,
+        "stance": "STRONG_BUY",
+        "weight": 0.20,
+        "weighted_score": 18.0,
+        "metrics": { "altman_z_score": 8.5 },
+        "red_flags": [],
+        "summary": "Fortress balance sheet with ample liquidity."
+      }
+    },
+    "notes": ["Clean forensic pass", "Solid compounding fundamentals"]
+  },
+  "AAPL": {
+    "ticker": "AAPL",
+    "name": "Apple Inc.",
+    "market": "US",
+    "synthesized_stance": "BUY",
+    "synthesized_score": 78.0,
+    "gatekeeper_verdict": {
+      "principle": "forensic_governance",
+      "stance": "PASS",
+      "is_veto": false,
+      "score": 95.0,
+      "metrics": { "beneish_m_score": -3.1 },
+      "red_flags": [],
+      "summary": "Excellent accounting integrity."
+    },
+    "pillar_verdicts": {
+      "graham": {
+        "score": 65.0,
+        "stance": "HOLD",
+        "weight": 0.20,
+        "weighted_score": 13.0,
+        "metrics": { "graham_number_ratio": 1.45 },
+        "red_flags": [],
+        "summary": "Trades at a premium to Graham liquidation value."
+      },
+      "lynch": {
+        "score": 75.0,
+        "stance": "BUY",
+        "weight": 0.25,
+        "weighted_score": 18.75,
+        "metrics": { "peg_ratio": 1.4 },
+        "red_flags": [],
+        "summary": "High growth stalwart."
+      },
+      "buffett_munger": {
+        "score": 92.0,
+        "stance": "STRONG_BUY",
+        "weight": 0.35,
+        "weighted_score": 32.2,
+        "metrics": { "roic_pct": 35.0 },
+        "red_flags": [],
+        "summary": "Immense economic moat and brand pricing power."
+      },
+      "klarman_solvency": {
+        "score": 80.0,
+        "stance": "BUY",
+        "weight": 0.20,
+        "weighted_score": 16.0,
+        "metrics": { "altman_z_score": 6.2 },
+        "red_flags": [],
+        "summary": "High free cash flow provides debt buffer."
+      }
+    },
+    "notes": ["World-class brand moat", "Share buyback capital allocation"]
+  },
+  "BADCORP": {
+    "ticker": "BADCORP",
+    "name": "Bad Governance Corp",
+    "market": "IN",
+    "synthesized_stance": "DISQUALIFIED",
+    "synthesized_score": 0.0,
+    "gatekeeper_verdict": {
+      "principle": "forensic_governance",
+      "stance": "VETO_DISQUALIFIED",
+      "is_veto": true,
+      "score": 15.0,
+      "metrics": { "promoter_pledge_pct": 58.5 },
+      "red_flags": ["Promoter pledge at 58.5% exceeds 50% hard veto threshold"],
+      "summary": "Acute promoter pledging and auditor irregularity."
+    },
+    "pillar_verdicts": {
+      "graham": {
+        "score": 82.0,
+        "stance": "BUY",
+        "weight": 0.25,
+        "weighted_score": 20.5,
+        "metrics": {},
+        "red_flags": [],
+        "summary": "Deep value discount."
+      }
+    },
+    "notes": [
+      "GATEKEEPER VETO: Forensic governance audit triggered a hard veto. Automated capital allocation disqualified (0.0%).",
+      "[Gatekeeper Red Flag] Promoter pledge at 58.5% exceeds 50% hard veto threshold"
+    ]
+  }
+}
+

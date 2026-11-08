@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buffett-Munger Compounding Engine Audit · Economic Moat & DuPont ROE</title>
+<meta name="description" content="Tier 3 Buffett-Munger Compounding Engine Audit: Owner Earnings, 5-Step DuPont ROE Decomposition, and ROIC Moat.">
+<style>
+:root {
+  --bg: #090d16;
+  --surface: #111726;
+  --surface-alt: #172033;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #38bdf8;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --emerald: #10b981;
+  --emerald-bg: rgba(16, 185, 129, 0.12);
+  --emerald-border: rgba(16, 185, 129, 0.3);
+  --rose: #ef4444;
+  --rose-bg: rgba(239, 68, 68, 0.14);
+  --rose-border: rgba(239, 68, 68, 0.4);
+  --amber: #f59e0b;
+  --amber-bg: rgba(245, 158, 11, 0.12);
+  --amber-border: rgba(245, 158, 11, 0.3);
+  --cyan: #38bdf8;
+  --purple: #a855f7;
+  --purple-bg: rgba(168, 85, 247, 0.12);
+  --purple-border: rgba(168, 85, 247, 0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  padding: 32px 20px 80px;
+  line-height: 1.5;
+}
+.container { max-width: 1200px; margin: 0 auto; }
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.brand-header h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #a855f7, #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.brand-header p { font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
+.header-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.badge {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.badge-pillar { color: #a855f7; border-color: var(--purple-border); background: var(--purple-bg); }
+.badge-moat { color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.1); }
+.badge-buy { color: var(--emerald); border-color: var(--emerald-border); background: var(--emerald-bg); }
+.badge-hold { color: var(--amber); border-color: var(--amber-border); background: var(--amber-bg); }
+.badge-sell { color: var(--rose); border-color: var(--rose-border); background: var(--rose-bg); }
+
+.scorecard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 28px;
+  align-items: center;
+}
+@media (max-width: 768px) {
+  .scorecard { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+}
+.gauge-wrapper {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+.gauge-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.gauge-bg { fill: none; stroke: var(--surface-alt); stroke-width: 10; }
+.gauge-val {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease;
+}
+.gauge-val-buy { stroke: var(--emerald); }
+.gauge-val-hold { stroke: var(--amber); }
+.gauge-val-sell { stroke: var(--rose); }
+.gauge-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.scorecard-meta h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
+.scorecard-meta p.summary-text { font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; }
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.kpi-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.kpi-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.kpi-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+
+.dupont-waterfall {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+.dupont-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+@media (max-width: 900px) {
+  .dupont-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .dupont-grid { grid-template-columns: 1fr; }
+}
+.dupont-step {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  position: relative;
+}
+.dupont-step-num {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--purple);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.dupont-step-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.dupont-step-val {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #38bdf8;
+}
+.dupont-step-formula {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.observations-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+.observations-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.observation-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+.obs-flag { background: var(--rose-bg); border: 1px solid var(--rose-border); color: #fca5a5; }
+.obs-note { background: var(--surface-alt); border: 1px solid var(--border); color: var(--text); }
+
+.batch-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.filter-btn.active {
+  background: var(--purple-bg);
+  border-color: var(--purple-border);
+  color: var(--purple);
+}
+.batch-table-wrapper {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow-x: auto;
+}
+table.batch-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+table.batch-table th, table.batch-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+table.batch-table th {
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+table.batch-table tr:hover { background: rgba(255, 255, 255, 0.02); }
+.status-pill {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.pill-buy { background: var(--emerald-bg); color: var(--emerald); border: 1px solid var(--emerald-border); }
+.pill-hold { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.pill-sell { background: var(--rose-bg); color: var(--rose); border: 1px solid var(--rose-border); }
+
+footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="brand-header">
+      <h1 id="view-title">Buffett-Munger Compounding Engine</h1>
+      <p id="view-subtitle">Economic Moats, True Owner Earnings, and 5-Step DuPont ROE Decomposition</p>
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-pillar">Tier 3 Valuation Pillar</span>
+      <span class="badge badge-moat" id="moat-badge">Economic Moat</span>
+      <span class="badge" id="ticker-badge">TICKER</span>
+      <span class="badge" id="stance-badge">STANCE</span>
+    </div>
+  </header>
+
+  <!-- Single Stock View -->
+  <div id="single-view" style="display: none;">
+    <div class="scorecard">
+      <div class="gauge-wrapper">
+        <svg class="gauge-svg" viewBox="0 0 100 100">
+          <circle class="gauge-bg" cx="50" cy="50" r="42" />
+          <circle class="gauge-val" id="gauge-circle" cx="50" cy="50" r="42" stroke-dasharray="263.89" stroke-dashoffset="263.89" />
+        </svg>
+        <div class="gauge-text" id="gauge-score">0</div>
+      </div>
+      <div class="scorecard-meta">
+        <h2>Compounding Quality Score: <span id="compounding-score-text">0/100</span></h2>
+        <p class="summary-text" id="verdict-summary">Evaluating business quality...</p>
+      </div>
+    </div>
+
+    <div class="section-title">5-Step DuPont ROE Decomposition</div>
+    <div class="dupont-waterfall">
+      <div style="font-size: 0.85rem; color: var(--text-muted);">
+        Decomposes reported ROE into operating efficiency, capital productivity, and financial leverage:
+      </div>
+      <div class="dupont-grid">
+        <div class="dupont-step">
+          <div class="dupont-step-num">Step 1</div>
+          <div class="dupont-step-title">Tax Burden</div>
+          <div class="dupont-step-val" id="dupont-tax-burden">-</div>
+          <div class="dupont-step-formula">Net Income / EBT</div>
+        </div>
+        <div class="dupont-step">
+          <div class="dupont-step-num">Step 2</div>
+          <div class="dupont-step-title">Interest Burden</div>
+          <div class="dupont-step-val" id="dupont-interest-burden">-</div>
+          <div class="dupont-step-formula">EBT / EBIT</div>
+        </div>
+        <div class="dupont-step">
+          <div class="dupont-step-num">Step 3</div>
+          <div class="dupont-step-title">Operating Margin</div>
+          <div class="dupont-step-val" id="dupont-operating-margin">-</div>
+          <div class="dupont-step-formula">EBIT / Revenue</div>
+        </div>
+        <div class="dupont-step">
+          <div class="dupont-step-num">Step 4</div>
+          <div class="dupont-step-title">Asset Turnover</div>
+          <div class="dupont-step-val" id="dupont-asset-turnover">-</div>
+          <div class="dupont-step-formula">Revenue / Assets</div>
+        </div>
+        <div class="dupont-step">
+          <div class="dupont-step-num">Step 5</div>
+          <div class="dupont-step-title">Financial Leverage</div>
+          <div class="dupont-step-val" id="dupont-financial-leverage">-</div>
+          <div class="dupont-step-formula">Assets / Equity</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Owner Earnings & Capital Allocation KPIs</div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">True Owner Earnings</div>
+        <div class="kpi-value" id="kpi-owner-earnings">-</div>
+        <div class="kpi-sub">CFO - CapEx - SBC</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Owner Earnings Yield</div>
+        <div class="kpi-value" id="kpi-owner-earnings-yield">-</div>
+        <div class="kpi-sub">OE / Market Cap</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">SBC Dilution %</div>
+        <div class="kpi-value" id="kpi-sbc-dilution">-</div>
+        <div class="kpi-sub">SBC / Operating Cash Flow</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Return on Invested Capital (ROIC)</div>
+        <div class="kpi-value" id="kpi-roic">-</div>
+        <div class="kpi-sub">NOPAT / Invested Capital</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">DuPont Calculated ROE</div>
+        <div class="kpi-value" id="kpi-roe">-</div>
+        <div class="kpi-sub">5-Step Product</div>
+      </div>
+    </div>
+
+    <div class="section-title">Audit Observations & Red Flags</div>
+    <div class="observations-card">
+      <ul class="observations-list" id="observations-list">
+        <!-- Rendered dynamically -->
+      </ul>
+    </div>
+  </div>
+
+  <!-- Portfolio Batch View -->
+  <div id="batch-view" style="display: none;">
+    <div class="batch-controls">
+      <button class="filter-btn active" onclick="filterBatch('ALL', this)">All Securities (<span id="count-all">0</span>)</button>
+      <button class="filter-btn" onclick="filterBatch('BUY', this)">Strong Buy / Buy (<span id="count-buy">0</span>)</button>
+      <button class="filter-btn" onclick="filterBatch('HOLD', this)">Hold (<span id="count-hold">0</span>)</button>
+      <button class="filter-btn" onclick="filterBatch('SELL', this)">Reduce / Sell (<span id="count-sell">0</span>)</button>
+    </div>
+    <div class="batch-table-wrapper">
+      <table class="batch-table">
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Stance</th>
+            <th>Score</th>
+            <th>ROIC %</th>
+            <th>Owner Earnings</th>
+            <th>OE Yield %</th>
+            <th>SBC Dilution %</th>
+            <th>DuPont ROE %</th>
+            <th>Summary</th>
+          </tr>
+        </thead>
+        <tbody id="batch-table-body">
+          <!-- Rendered dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <p>Tier 3 Buffett-Munger Compounding Engine · AID-BMAD-MODULAR-STOCK-V1 · Offline Self-Contained Verification</p>
+  </footer>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+function fmtNum(val, dec = 2) {
+  if (val === null || val === undefined || isNaN(val)) return 'N/A';
+  return Number(val).toFixed(dec);
+}
+
+function init() {
+  if (!DATA) {
+    document.getElementById('view-title').textContent = 'No Data Provided';
+    return;
+  }
+
+  if (DATA.verdicts && Array.isArray(DATA.verdicts)) {
+    renderBatchView(DATA);
+  } else {
+    renderSingleView(DATA);
+  }
+}
+
+function renderSingleView(v) {
+  document.getElementById('single-view').style.display = 'block';
+  document.getElementById('batch-view').style.display = 'none';
+
+  const ticker = v.ticker || 'UNKNOWN';
+  document.getElementById('ticker-badge').textContent = ticker;
+  document.getElementById('view-title').textContent = `${ticker} · Buffett-Munger Compounding Audit`;
+  document.getElementById('view-subtitle').textContent = `Evaluated: ${v.timestamp || 'N/A'}`;
+
+  const stanceBadge = document.getElementById('stance-badge');
+  stanceBadge.textContent = v.stance;
+  if (v.stance === 'STRONG_BUY' || v.stance === 'BUY') {
+    stanceBadge.className = 'badge badge-buy';
+  } else if (v.stance === 'HOLD') {
+    stanceBadge.className = 'badge badge-hold';
+  } else {
+    stanceBadge.className = 'badge badge-sell';
+  }
+
+  const m = v.metrics || {};
+
+  // Moat badge
+  const roic = m.roic_pct;
+  let moatText = 'Narrow Moat';
+  if (roic !== null && roic >= 20.0) moatText = 'Wide Economic Moat';
+  else if (roic !== null && roic >= 15.0) moatText = 'Strong Moat';
+  else if (roic !== null && roic < 8.0) moatText = 'No Moat / Destructive';
+  document.getElementById('moat-badge').textContent = moatText;
+
+  // Score & Gauge
+  const score = Math.round(Number(v.score || 0));
+  document.getElementById('gauge-score').textContent = score;
+  document.getElementById('compounding-score-text').textContent = `${score}/100.0`;
+  const circle = document.getElementById('gauge-circle');
+  const circumference = 263.89; // 2 * pi * 42
+  const offset = circumference - (score / 100) * circumference;
+  circle.style.strokeDashoffset = offset;
+
+  if (v.stance === 'STRONG_BUY' || v.stance === 'BUY') {
+    circle.className = 'gauge-val gauge-val-buy';
+  } else if (v.stance === 'HOLD') {
+    circle.className = 'gauge-val gauge-val-hold';
+  } else {
+    circle.className = 'gauge-val gauge-val-sell';
+  }
+
+  document.getElementById('verdict-summary').textContent = v.summary || 'No summary available.';
+
+  // DuPont 5-Step
+  document.getElementById('dupont-tax-burden').textContent = m.tax_burden !== null ? fmtNum(m.tax_burden, 4) : 'N/A';
+  document.getElementById('dupont-interest-burden').textContent = m.interest_burden !== null ? fmtNum(m.interest_burden, 4) : 'N/A';
+  document.getElementById('dupont-operating-margin').textContent = m.operating_margin_pct !== null ? fmtNum(m.operating_margin_pct) + '%' : 'N/A';
+  document.getElementById('dupont-asset-turnover').textContent = m.asset_turnover !== null ? fmtNum(m.asset_turnover, 3) : 'N/A';
+  document.getElementById('dupont-financial-leverage').textContent = m.financial_leverage !== null ? fmtNum(m.financial_leverage) + 'x' : 'N/A';
+
+  // KPIs
+  document.getElementById('kpi-owner-earnings').textContent = m.owner_earnings !== null ? fmtNum(m.owner_earnings) : 'N/A';
+  document.getElementById('kpi-owner-earnings-yield').textContent = m.owner_earnings_yield_pct !== null ? fmtNum(m.owner_earnings_yield_pct) + '%' : 'N/A';
+  document.getElementById('kpi-sbc-dilution').textContent = m.sbc_dilution_pct !== null ? fmtNum(m.sbc_dilution_pct) + '%' : 'N/A';
+  document.getElementById('kpi-roic').textContent = m.roic_pct !== null ? fmtNum(m.roic_pct) + '%' : 'N/A';
+  document.getElementById('kpi-roe').textContent = m.roe_pct !== null ? fmtNum(m.roe_pct) + '%' : 'N/A';
+
+  // Observations
+  const obsList = document.getElementById('observations-list');
+  obsList.innerHTML = '';
+  const redFlags = Array.isArray(v.red_flags) ? v.red_flags : [];
+  if (redFlags.length === 0) {
+    const li = document.createElement('li');
+    li.className = 'observation-item obs-note';
+    li.innerHTML = '<span>✅ No capital allocation warnings or severe dilution flags detected.</span>';
+    obsList.appendChild(li);
+  } else {
+    redFlags.forEach(f => {
+      const li = document.createElement('li');
+      li.className = 'observation-item obs-flag';
+      li.innerHTML = `<span>⚠️ ${f}</span>`;
+      obsList.appendChild(li);
+    });
+  }
+}
+
+let batchVerdicts = [];
+
+function renderBatchView(batch) {
+  document.getElementById('single-view').style.display = 'none';
+  document.getElementById('batch-view').style.display = 'block';
+
+  document.getElementById('view-title').textContent = 'Portfolio Compounding & Moat Matrix';
+  document.getElementById('view-subtitle').textContent = `Batch Audit · Timestamp: ${batch.timestamp || 'N/A'}`;
+  document.getElementById('ticker-badge').textContent = `Count: ${batch.verdicts.length}`;
+  document.getElementById('stance-badge').textContent = 'Portfolio Batch';
+
+  batchVerdicts = batch.verdicts || [];
+
+  const countAll = batchVerdicts.length;
+  const countBuy = batchVerdicts.filter(v => v.stance === 'STRONG_BUY' || v.stance === 'BUY').length;
+  const countHold = batchVerdicts.filter(v => v.stance === 'HOLD').length;
+  const countSell = batchVerdicts.filter(v => v.stance === 'REDUCE' || v.stance === 'STRONG_SELL').length;
+
+  document.getElementById('count-all').textContent = countAll;
+  document.getElementById('count-buy').textContent = countBuy;
+  document.getElementById('count-hold').textContent = countHold;
+  document.getElementById('count-sell').textContent = countSell;
+
+  renderBatchRows(batchVerdicts);
+}
+
+function renderBatchRows(verdicts) {
+  const tbody = document.getElementById('batch-table-body');
+  tbody.innerHTML = '';
+
+  if (verdicts.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 24px;">No securities match the selected filter.</td></tr>';
+    return;
+  }
+
+  verdicts.forEach(v => {
+    const tr = document.createElement('tr');
+    const m = v.metrics || {};
+
+    let stancePillClass = 'pill-buy';
+    if (v.stance === 'HOLD') stancePillClass = 'pill-hold';
+    else if (v.stance === 'REDUCE' || v.stance === 'STRONG_SELL') stancePillClass = 'pill-sell';
+
+    tr.innerHTML = `
+      <td style="font-weight: 700;">${v.ticker}</td>
+      <td><span class="status-pill ${stancePillClass}">${v.stance}</span></td>
+      <td style="color: ${v.stance === 'STRONG_BUY' || v.stance === 'BUY' ? 'var(--emerald)' : (v.stance === 'HOLD' ? 'var(--amber)' : 'var(--rose)')}; font-weight: 800;">${fmtNum(v.score, 1)}</td>
+      <td>${m.roic_pct !== null ? fmtNum(m.roic_pct) + '%' : '-'}</td>
+      <td>${m.owner_earnings !== null ? fmtNum(m.owner_earnings) : '-'}</td>
+      <td>${m.owner_earnings_yield_pct !== null ? fmtNum(m.owner_earnings_yield_pct) + '%' : '-'}</td>
+      <td>${m.sbc_dilution_pct !== null ? fmtNum(m.sbc_dilution_pct) + '%' : '-'}</td>
+      <td>${m.roe_pct !== null ? fmtNum(m.roe_pct) + '%' : '-'}</td>
+      <td style="max-width: 300px; font-size: 0.82rem; color: var(--text-muted);">${v.summary}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterBatch(filterType, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  if (filterType === 'ALL') {
+    renderBatchRows(batchVerdicts);
+  } else if (filterType === 'BUY') {
+    const filtered = batchVerdicts.filter(v => v.stance === 'STRONG_BUY' || v.stance === 'BUY');
+    renderBatchRows(filtered);
+  } else if (filterType === 'HOLD') {
+    const filtered = batchVerdicts.filter(v => v.stance === 'HOLD');
+    renderBatchRows(filtered);
+  } else {
+    const filtered = batchVerdicts.filter(v => v.stance === 'REDUCE' || v.stance === 'STRONG_SELL');
+    renderBatchRows(filtered);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

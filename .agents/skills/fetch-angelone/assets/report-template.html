@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Angel One Holdings · fetch-angelone</title>
+<meta name="description" content="Live Angel One Demat holdings and portfolio valuation.">
+<style>
+:root {
+  --bg: #090d16;
+  --surface: #111726;
+  --surface-alt: #172033;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #38bdf8;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --emerald: #10b981;
+  --rose: #f43f5e;
+  --amber: #f59e0b;
+  --cyan: #38bdf8;
+  --indigo: #6366f1;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  padding: 32px 20px 80px;
+  line-height: 1.5;
+}
+.container { max-width: 1200px; margin: 0 auto; }
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.brand h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.brand p { font-size: 0.88rem; color: var(--text-muted); margin-top: 4px; }
+.badge {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  color: var(--cyan);
+  font-weight: 500;
+}
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  transition: transform 0.15s, border-color 0.15s;
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+.kpi-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.kpi-value {
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.kpi-sub {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.pos { color: var(--emerald); }
+.neg { color: var(--rose); }
+
+.controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.search-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  flex: 1;
+  min-width: 240px;
+}
+.search-input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  text-align: left;
+}
+th {
+  background: var(--surface-alt);
+  padding: 14px 16px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+th:hover { color: var(--cyan); }
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+.ticker-cell { font-weight: 700; color: var(--text); }
+.name-cell { font-size: 0.82rem; color: var(--text-muted); }
+.num-cell { text-align: right; font-variant-numeric: tabular-nums; }
+.weight-bar {
+  height: 4px;
+  background: var(--cyan);
+  border-radius: 2px;
+  margin-top: 4px;
+}
+footer {
+  margin-top: 36px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <!--__CACHE_BANNER__-->
+  <header>
+    <div class="brand">
+      <h1>Angel One Portfolio</h1>
+      <p>Tier 1 Canonical Demat Snapshot · <span id="asOfDate">-</span></p>
+    </div>
+    <div class="badge" id="accountBadge">Account: angelone (INR)</div>
+  </header>
+
+  <section class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Current Value</div>
+      <div class="kpi-value" id="kpiCurrent">-</div>
+      <div class="kpi-sub">Total market valuation</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Invested Cost</div>
+      <div class="kpi-value" id="kpiInvested">-</div>
+      <div class="kpi-sub">Cost basis</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Unrealized P&amp;L</div>
+      <div class="kpi-value" id="kpiPnl">-</div>
+      <div class="kpi-sub" id="kpiPnlPct">-</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Free Cash Margin</div>
+      <div class="kpi-value" id="kpiCash">-</div>
+      <div class="kpi-sub">Available ledger cash</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total Account Equity</div>
+      <div class="kpi-value" id="kpiEquity">-</div>
+      <div class="kpi-sub" id="kpiCount">- positions</div>
+    </div>
+  </section>
+
+  <div class="controls">
+    <input type="text" id="searchBox" class="search-input" placeholder="Search by ticker, name, or ISIN...">
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="sortTable('ticker')">Stock</th>
+          <th class="num-cell" onclick="sortTable('quantity')">Qty</th>
+          <th class="num-cell" onclick="sortTable('average_price')">Avg Buy</th>
+          <th class="num-cell" onclick="sortTable('cmp')">CMP</th>
+          <th class="num-cell" onclick="sortTable('invested_value')">Invested</th>
+          <th class="num-cell" onclick="sortTable('current_value')">Value</th>
+          <th class="num-cell" onclick="sortTable('unrealized_pnl')">P&amp;L</th>
+          <th class="num-cell" onclick="sortTable('unrealized_pnl_pct')">Return</th>
+          <th class="num-cell" onclick="sortTable('weight_pct')">Weight</th>
+        </tr>
+      </thead>
+      <tbody id="holdingsTableBody">
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <p>Generated by <strong>fetch-angelone</strong> · Tier 1 Broker Fetcher · Offline Self-Contained Report</p>
+  </footer>
+</div>
+
+<script>
+const RAW_DATA = /*__DATA__*/null;
+
+let holdings = [];
+let sortKey = 'current_value';
+let sortAsc = false;
+
+function fmtINR(val) {
+  if (val === null || val === undefined || isNaN(val)) return '₹0.00';
+  return '₹' + Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function initDashboard() {
+  if (!RAW_DATA) return;
+  const s = RAW_DATA.summary || {};
+  const m = RAW_DATA.margin || {};
+  holdings = RAW_DATA.holdings || [];
+
+  document.getElementById('asOfDate').textContent = RAW_DATA.timestamp ? new Date(RAW_DATA.timestamp).toLocaleDateString() : 'Today';
+  document.getElementById('accountBadge').textContent = 'Account: ' + (RAW_DATA.account_id || 'angelone') + ' (' + (RAW_DATA.currency || 'INR') + ')';
+
+  document.getElementById('kpiCurrent').textContent = fmtINR(s.total_current_value);
+  document.getElementById('kpiInvested').textContent = fmtINR(s.total_invested);
+
+  const pnlEl = document.getElementById('kpiPnl');
+  const pnlPctEl = document.getElementById('kpiPnlPct');
+  const pnlVal = s.unrealized_pnl || 0;
+  pnlEl.textContent = (pnlVal >= 0 ? '+' : '') + fmtINR(pnlVal);
+  pnlEl.className = 'kpi-value ' + (pnlVal >= 0 ? 'pos' : 'neg');
+
+  const pnlPct = s.unrealized_pnl_pct || 0;
+  pnlPctEl.textContent = (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(2) + '% return';
+  pnlPctEl.className = 'kpi-sub ' + (pnlPct >= 0 ? 'pos' : 'neg');
+
+  document.getElementById('kpiCash').textContent = fmtINR(m.available_cash || s.available_cash || 0);
+  document.getElementById('kpiEquity').textContent = fmtINR(s.total_account_equity || (s.total_current_value + (s.available_cash || 0)));
+  document.getElementById('kpiCount').textContent = (s.holdings_count || holdings.length) + ' holding positions';
+
+  renderTable();
+
+  document.getElementById('searchBox').addEventListener('input', (e) => {
+    renderTable(e.target.value.toLowerCase());
+  });
+}
+
+function sortTable(key) {
+  if (sortKey === key) {
+    sortAsc = !sortAsc;
+  } else {
+    sortKey = key;
+    sortAsc = (key === 'ticker' || key === 'name');
+  }
+  renderTable(document.getElementById('searchBox').value.toLowerCase());
+}
+
+function renderTable(filterText = '') {
+  const tbody = document.getElementById('holdingsTableBody');
+  tbody.innerHTML = '';
+
+  let filtered = holdings.filter(h => {
+    if (!filterText) return true;
+    return (h.ticker && h.ticker.toLowerCase().includes(filterText)) ||
+           (h.name && h.name.toLowerCase().includes(filterText)) ||
+           (h.isin && h.isin.toLowerCase().includes(filterText));
+  });
+
+  filtered.sort((a, b) => {
+    let va = a[sortKey];
+    let vb = b[sortKey];
+    if (typeof va === 'string') va = va.toLowerCase();
+    if (typeof vb === 'string') vb = vb.toLowerCase();
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  for (const h of filtered) {
+    const tr = document.createElement('tr');
+    const pnlCls = (h.unrealized_pnl >= 0) ? 'pos' : 'neg';
+
+    tr.innerHTML = `
+      <td>
+        <div class="ticker-cell">\${h.ticker}</div>
+        <div class="name-cell">\${h.name} · \${h.exchange || 'NSE'}</div>
+      </td>
+      <td class="num-cell">\${h.quantity}</td>
+      <td class="num-cell">\${fmtINR(h.average_price)}</td>
+      <td class="num-cell">\${fmtINR(h.cmp)}</td>
+      <td class="num-cell">\${fmtINR(h.invested_value)}</td>
+      <td class="num-cell" style="font-weight:600;">\${fmtINR(h.current_value)}</td>
+      <td class="num-cell \${pnlCls}">\${(h.unrealized_pnl >= 0 ? '+' : '')}\${fmtINR(h.unrealized_pnl)}</td>
+      <td class="num-cell \${pnlCls}">\${(h.unrealized_pnl_pct >= 0 ? '+' : '')}\${h.unrealized_pnl_pct.toFixed(2)}%</td>
+      <td class="num-cell">
+        <div>\${(h.weight_pct || 0).toFixed(1)}%</div>
+        <div class="weight-bar" style="width: \${Math.min(100, (h.weight_pct || 0) * 2.5)}%;"></div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', initDashboard);
+</script>
+</body>
+</html>
+

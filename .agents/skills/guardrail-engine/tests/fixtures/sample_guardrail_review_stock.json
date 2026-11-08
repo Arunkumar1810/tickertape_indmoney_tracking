@@ -1,0 +1,67 @@
+{
+  "ticker": "RISKYTECH",
+  "name": "Risky Growth Technologies",
+  "market": "US",
+  "verdicts": [
+    {
+      "principle": "forensic_governance",
+      "ticker": "RISKYTECH",
+      "timestamp": "2026-11-08T10:00:00.000Z",
+      "score": 90.0,
+      "stance": "PASS",
+      "is_veto": false,
+      "metrics": {
+        "promoter_pledge_pct": 0.0,
+        "beneish_m_score": -2.8
+      },
+      "red_flags": [],
+      "summary": "Clean governance pass."
+    },
+    {
+      "principle": "buffett_munger",
+      "ticker": "RISKYTECH",
+      "timestamp": "2026-11-08T10:00:00.000Z",
+      "score": 88.0,
+      "stance": "STRONG_BUY",
+      "is_veto": false,
+      "metrics": {
+        "owner_earnings_yield_pct": 8.5,
+        "roic_pct": 24.0
+      },
+      "red_flags": [],
+      "summary": "High returns on invested capital and durable moat."
+    },
+    {
+      "principle": "klarman_solvency",
+      "ticker": "RISKYTECH",
+      "timestamp": "2026-11-08T10:00:00.000Z",
+      "score": 82.0,
+      "stance": "BUY",
+      "is_veto": false,
+      "metrics": {
+        "altman_z_score": 4.5,
+        "net_debt_ebitda": 0.2
+      },
+      "red_flags": [],
+      "summary": "Solid balance sheet cushion."
+    },
+    {
+      "principle": "lynch",
+      "ticker": "RISKYTECH",
+      "timestamp": "2026-11-08T10:00:00.000Z",
+      "score": 22.0,
+      "stance": "STRONG_SELL",
+      "is_veto": false,
+      "metrics": {
+        "peg_ratio": 4.2,
+        "inventory_sales_divergence_pct": 38.0
+      },
+      "red_flags": [
+        "Inventory-to-sales velocity divergence +38%",
+        "PEG ratio 4.2 indicates extreme valuation bubble"
+      ],
+      "summary": "Severe inventory accumulation and speculative valuation multiple."
+    }
+  ]
+}
+

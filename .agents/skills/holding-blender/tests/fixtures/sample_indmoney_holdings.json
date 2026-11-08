@@ -1,0 +1,51 @@
+{
+  "account_id": "indmoney_us",
+  "broker": "indmoney",
+  "currency": "USD",
+  "timestamp": "2026-11-08T10:00:00.000Z",
+  "summary": {
+    "total_invested": 2340.0,
+    "total_current_value": 2772.0,
+    "unrealized_pnl": 432.0,
+    "unrealized_pnl_pct": 18.46,
+    "available_cash": 400.0,
+    "total_account_equity": 3172.0,
+    "holdings_count": 2
+  },
+  "margin": {
+    "available_cash": 400.0,
+    "collateral": 0.0,
+    "utilised": 0.0,
+    "net_margin": 400.0
+  },
+  "holdings": [
+    {
+      "ticker": "INFY",
+      "name": "Infosys Ltd (ADR)",
+      "isin": "US4567881085",
+      "exchange": "NYSE",
+      "quantity": 25,
+      "average_price": 18.0,
+      "cmp": 21.0,
+      "invested_value": 450.0,
+      "current_value": 525.0,
+      "unrealized_pnl": 75.0,
+      "unrealized_pnl_pct": 16.67,
+      "weight_pct": 18.94
+    },
+    {
+      "ticker": "AAPL",
+      "name": "Apple Inc",
+      "isin": "US0378331005",
+      "exchange": "NASDAQ",
+      "quantity": 10.5,
+      "average_price": 180.0,
+      "cmp": 214.0,
+      "invested_value": 1890.0,
+      "current_value": 2247.0,
+      "unrealized_pnl": 357.0,
+      "unrealized_pnl_pct": 18.89,
+      "weight_pct": 81.06
+    }
+  ]
+}

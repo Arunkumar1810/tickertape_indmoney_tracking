@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Financial Statements · provider-tickertape</title>
+<meta name="description" content="Normalized financial statements and valuation multiples.">
+<style>
+:root {
+  --bg: #090d16;
+  --surface: #111726;
+  --surface-alt: #172033;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #38bdf8;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --emerald: #10b981;
+  --rose: #f43f5e;
+  --amber: #f59e0b;
+  --cyan: #38bdf8;
+  --indigo: #6366f1;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  padding: 32px 20px 80px;
+  line-height: 1.5;
+}
+.container { max-width: 1200px; margin: 0 auto; }
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.company-header h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.company-header p { font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
+.header-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.badge {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cyan);
+}
+.badge-in { color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); }
+.badge-us { color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); }
+.badge-etf { color: #a855f7; border-color: rgba(168, 85, 247, 0.3); }
+
+.etf-banner {
+  display: none;
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  color: #d8b4fe;
+  padding: 14px 18px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  font-size: 0.9rem;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+.kpi-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.kpi-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.kpi-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.tabs-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.tab-nav {
+  display: flex;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 14px 20px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.tab-btn.active {
+  color: var(--cyan);
+  border-bottom-color: var(--cyan);
+  background: rgba(56, 189, 248, 0.04);
+}
+.tab-pane {
+  display: none;
+  padding: 20px;
+}
+.tab-pane.active {
+  display: block;
+}
+
+.statement-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+.statement-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+.statement-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.statement-table tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+.metric-name {
+  font-weight: 500;
+}
+.metric-val {
+  text-align: right;
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+footer {
+  margin-top: 40px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <!--__CACHE_BANNER__-->
+  <header>
+    <div class="company-header">
+      <h1 id="hdr-name">Loading...</h1>
+      <p id="hdr-sub">-- · --</p>
+    </div>
+    <div class="header-badges">
+      <span class="badge" id="badge-market">MARKET: --</span>
+      <span class="badge" id="badge-currency">CURRENCY: --</span>
+      <span class="badge" id="badge-scale">SCALE: --</span>
+      <span class="badge" id="badge-source">SOURCE: --</span>
+    </div>
+  </header>
+
+  <div id="etf-banner" class="etf-banner">
+    <strong>Index ETF Security:</strong> Single-company GAAP statement line items (Income Statement, Balance Sheet, Cash Flow) do not apply to diversified broad market index ETF baskets. Market data, price multiples, and passive index benchmarks are displayed below.
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Current Market Price</div>
+      <div class="kpi-value" id="kpi-cmp">--</div>
+      <div class="kpi-sub" id="kpi-cmp-sub">CMP</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Market Capitalization</div>
+      <div class="kpi-value" id="kpi-mcap">--</div>
+      <div class="kpi-sub">Total Market Cap</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">P/E Ratio (TTM)</div>
+      <div class="kpi-value" id="kpi-pe">--</div>
+      <div class="kpi-sub" id="kpi-pe-sub">Price to Earnings</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">P/B Ratio (TTM)</div>
+      <div class="kpi-value" id="kpi-pb">--</div>
+      <div class="kpi-sub">Price to Book</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">EV / EBITDA</div>
+      <div class="kpi-value" id="kpi-ev-ebitda">--</div>
+      <div class="kpi-sub">Enterprise Multiple</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Dividend Yield</div>
+      <div class="kpi-value" id="kpi-div-yield">--</div>
+      <div class="kpi-sub">Yield Percentage</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Beta (5Y Volatility)</div>
+      <div class="kpi-value" id="kpi-beta">--</div>
+      <div class="kpi-sub">Market Risk Factor</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">5Y Historical Median P/E</div>
+      <div class="kpi-value" id="kpi-pe-5y">--</div>
+      <div class="kpi-sub">Historical Valuation</div>
+    </div>
+  </div>
+
+  <div class="tabs-container">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="showTab('tab-income', this)">Income Statement</button>
+      <button class="tab-btn" onclick="showTab('tab-balance', this)">Balance Sheet</button>
+      <button class="tab-btn" onclick="showTab('tab-cashflow', this)">Cash Flow</button>
+      <button class="tab-btn" onclick="showTab('tab-forensics', this)">Forensics & Ownership</button>
+    </div>
+
+    <div id="tab-income" class="tab-pane active">
+      <table class="statement-table">
+        <thead>
+          <tr>
+            <th>Line Item</th>
+            <th style="text-align:right;">Reported Amount</th>
+          </tr>
+        </thead>
+        <tbody id="body-income">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-balance" class="tab-pane">
+      <table class="statement-table">
+        <thead>
+          <tr>
+            <th>Line Item</th>
+            <th style="text-align:right;">Reported Amount</th>
+          </tr>
+        </thead>
+        <tbody id="body-balance">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-cashflow" class="tab-pane">
+      <table class="statement-table">
+        <thead>
+          <tr>
+            <th>Line Item</th>
+            <th style="text-align:right;">Reported Amount</th>
+          </tr>
+        </thead>
+        <tbody id="body-cashflow">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-forensics" class="tab-pane">
+      <table class="statement-table">
+        <thead>
+          <tr>
+            <th>Indicator</th>
+            <th style="text-align:right;">Reading / Value</th>
+          </tr>
+        </thead>
+        <tbody id="body-forensics">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    Normalized by <strong>provider-tickertape</strong> · Tier 2 Market Data Provider · Canonical NormalizedCompanyFinancials Contract
+  </footer>
+</div>
+
+<script id="financials-data" type="application/json">/*__DATA__*/null</script>
+
+<script>
+let data = null;
+
+function init() {
+  const dataEl = document.getElementById('financials-data');
+  if (dataEl && dataEl.textContent.trim() && dataEl.textContent.trim() !== '/*__DATA__*/null') {
+    try {
+      data = JSON.parse(dataEl.textContent);
+    } catch (e) {
+      console.error('Failed to parse financials JSON', e);
+    }
+  }
+  if (!data) return;
+
+  renderHeader();
+  renderKPIs();
+  renderStatements();
+}
+
+function fmtVal(v, prefix = '', suffix = '') {
+  if (v === null || v === undefined || isNaN(v)) return '--';
+  return prefix + Number(v).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }) + suffix;
+}
+
+function renderHeader() {
+  const sym = data.currency === 'INR' ? '₹' : '$';
+  document.getElementById('hdr-name').textContent = `${data.name} (${data.ticker})`;
+  document.getElementById('hdr-sub').textContent = `${data.exchange || '--'} · ${data.sector || 'General'} · ${data.industry || 'Equities'}`;
+
+  const mktBadge = document.getElementById('badge-market');
+  mktBadge.textContent = `MARKET: ${data.market || '--'}`;
+  mktBadge.className = `badge badge-${(data.market || '').toLowerCase()}`;
+
+  document.getElementById('badge-currency').textContent = `CURRENCY: ${data.currency || '--'}`;
+  document.getElementById('badge-scale').textContent = `SCALE: ${data.unit_scale || 'ABSOLUTE'}`;
+  document.getElementById('badge-source').textContent = `SOURCE: ${data.source_provider || 'tickertape'}`;
+
+  if (data.is_index_etf) {
+    document.getElementById('etf-banner').style.display = 'block';
+  }
+}
+
+function renderKPIs() {
+  const m = data.market_data || {};
+  const sym = data.currency === 'INR' ? '₹' : '$';
+
+  document.getElementById('kpi-cmp').textContent = fmtVal(m.cmp, sym);
+  document.getElementById('kpi-mcap').textContent = fmtVal(m.market_cap, sym);
+  document.getElementById('kpi-pe').textContent = fmtVal(m.pe_ttm);
+  document.getElementById('kpi-pb').textContent = fmtVal(m.pb_ttm);
+  document.getElementById('kpi-ev-ebitda').textContent = fmtVal(m.ev_ebitda);
+  document.getElementById('kpi-div-yield').textContent = fmtVal(m.dividend_yield_pct, '', '%');
+  document.getElementById('kpi-beta').textContent = fmtVal(m.beta);
+  document.getElementById('kpi-pe-5y').textContent = fmtVal(m.historical_pe_5y_median);
+}
+
+function renderStatements() {
+  const sym = data.currency === 'INR' ? '₹' : '$';
+  const scale = data.unit_scale || '';
+
+  // Income Statement
+  const is = data.income_statement || {};
+  const isRows = [
+    ['Total Revenue', is.revenue],
+    ['EBITDA', is.ebitda],
+    ['Operating Profit (EBIT)', is.ebit],
+    ['Interest Expense', is.interest_expense],
+    ['Earnings Before Tax (EBT)', is.ebt],
+    ['Tax Expense', is.tax_expense],
+    ['Net Income', is.net_income],
+    ['Earnings Per Share (EPS)', is.eps]
+  ];
+  document.getElementById('body-income').innerHTML = isRows.map(([lbl, val]) => `
+    <tr>
+      <td class="metric-name">${lbl}</td>
+      <td class="metric-val">${fmtVal(val, sym)}</td>
+    </tr>
+  `).join('');
+
+  // Balance Sheet
+  const bs = data.balance_sheet || {};
+  const bsRows = [
+    ['Cash & Cash Equivalents', bs.cash_and_equivalents],
+    ['Accounts Receivable', bs.accounts_receivable],
+    ['Inventory', bs.inventory],
+    ['Total Current Assets', bs.total_current_assets],
+    ['Goodwill', bs.goodwill],
+    ['Intangible Assets', bs.intangible_assets],
+    ['Total Assets', bs.total_assets],
+    ['Short Term Debt', bs.short_term_debt],
+    ['Long Term Debt', bs.long_term_debt],
+    ['Total Debt', bs.total_debt],
+    ['Debt Maturing within 24 Months', bs.debt_maturing_24m],
+    ['Total Current Liabilities', bs.total_current_liabilities],
+    ['Total Liabilities', bs.total_liabilities],
+    ['Retained Earnings', bs.retained_earnings],
+    ['Total Shareholder Equity', bs.total_equity]
+  ];
+  document.getElementById('body-balance').innerHTML = bsRows.map(([lbl, val]) => `
+    <tr>
+      <td class="metric-name">${lbl}</td>
+      <td class="metric-val">${fmtVal(val, sym)}</td>
+    </tr>
+  `).join('');
+
+  // Cash Flow
+  const cf = data.cash_flow || {};
+  const cfRows = [
+    ['Operating Cash Flow (OCF)', cf.operating_cash_flow],
+    ['Capital Expenditure (CapEx)', cf.capital_expenditure],
+    ['Maintenance CapEx Proxy', cf.maintenance_capex],
+    ['Free Cash Flow (FCF)', cf.free_cash_flow],
+    ['Stock-Based Compensation', cf.stock_based_compensation],
+    ['Dividends Paid', cf.dividends_paid],
+    ['Share Repurchases', cf.share_repurchases]
+  ];
+  document.getElementById('body-cashflow').innerHTML = cfRows.map(([lbl, val]) => `
+    <tr>
+      <td class="metric-name">${lbl}</td>
+      <td class="metric-val">${fmtVal(val, sym)}</td>
+    </tr>
+  `).join('');
+
+  // Forensics
+  const fn = data.forensics || {};
+  const fnRows = [
+    ['Promoter Holding Percentage', fmtVal(fn.promoter_holding_pct, '', '%')],
+    ['Promoter Pledged Percentage', fmtVal(fn.promoter_pledge_pct, '', '%')],
+    ['Promoter Holding QoQ Change', fmtVal(fn.promoter_holding_qoq_delta_pct, '', '%')],
+    ['Related Party Transactions', fmtVal(fn.related_party_transactions_pct, '', '%')],
+    ['Auditor Resignation Flag', fn.auditor_resignation_flag ? 'FLAGGED' : 'NORMAL'],
+    ['Qualified Audit Opinion Flag', fn.qualified_opinion_flag ? 'FLAGGED' : 'NORMAL'],
+    ['Beneish M-Score', fmtVal(fn.beneish_m_score)],
+    ['Sloan Accrual Ratio', fmtVal(fn.sloan_accrual_ratio)],
+    ['Surveillance Stage', fn.surveillance_stage || 'NONE']
+  ];
+  document.getElementById('body-forensics').innerHTML = fnRows.map(([lbl, val]) => `
+    <tr>
+      <td class="metric-name">${lbl}</td>
+      <td class="metric-val">${val}</td>
+    </tr>
+  `).join('');
+}
+
+function showTab(tabId, btn) {
+  document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  const target = document.getElementById(tabId);
+  if (target) target.classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

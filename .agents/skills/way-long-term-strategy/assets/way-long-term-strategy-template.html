@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tier 4 Master Portfolio Executive Dashboard - {{STRATEGY_ID}}</title>
+  <style>
+    :root {
+      --bg-primary: #0b1120;
+      --bg-secondary: #1e293b;
+      --bg-tertiary: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-blue: #38bdf8;
+      --accent-emerald: #10b981;
+      --accent-green: #22c55e;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-purple: #a855f7;
+      --border-color: #334155;
+      --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1360px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    h1 {
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .meta-tag {
+      font-family: monospace;
+      font-size: 0.8rem;
+      background: var(--bg-secondary);
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      color: var(--accent-blue);
+    }
+
+    /* Executive Hero KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    .kpi-subtext {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .val-equity { color: var(--accent-blue); }
+    .val-positive { color: var(--accent-emerald); }
+    .val-negative { color: var(--accent-red); }
+    .val-disqualified { color: var(--accent-red); }
+    .val-review { color: var(--accent-amber); }
+    .val-risk { color: #f87171; }
+
+    /* Alert Banners */
+    .alert-banner {
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      border-left: 4px solid;
+    }
+
+    .alert-banner-danger {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: var(--accent-red);
+      color: #fca5a5;
+    }
+
+    .alert-banner-warning {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: var(--accent-amber);
+      color: #fde68a;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 22px;
+      margin-bottom: 24px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .card-header {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-strong-buy { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #059669; }
+    .badge-buy { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #16a34a; }
+    .badge-hold { background: rgba(56, 189, 248, 0.2); color: #7dd3fc; border: 1px solid #0284c7; }
+    .badge-reduce { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #d97706; }
+    .badge-strong-sell { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #dc2626; }
+    .badge-disqualified { background: rgba(220, 38, 38, 0.3); color: #fca5a5; border: 1px solid #b91c1c; }
+    .badge-review { background: rgba(168, 85, 247, 0.25); color: #d8b4fe; border: 1px solid #9333ea; }
+    .badge-pass { background: rgba(34, 197, 94, 0.15); color: #86efac; border: 1px solid #16a34a; }
+    .badge-flag { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid #b45309; }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.875rem;
+    }
+
+    th {
+      background-color: var(--bg-tertiary);
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 10px 14px;
+      border-bottom: 2px solid var(--border-color);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: top;
+    }
+
+    tr:hover {
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+
+    .ticker-symbol {
+      font-family: monospace;
+      font-weight: 700;
+      color: var(--accent-blue);
+      font-size: 1rem;
+    }
+
+    /* Drawers and Accordions */
+    details {
+      margin-top: 8px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent-blue);
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    summary:hover {
+      text-decoration: underline;
+    }
+
+    .drawer-content {
+      margin-top: 10px;
+      padding: 12px 16px;
+      background: var(--bg-primary);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Option C Audits Grid */
+    .audits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .audit-pillar-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 12px;
+    }
+
+    .audit-pillar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .metric-val {
+      font-family: monospace;
+      color: var(--text-main);
+    }
+
+    footer {
+      margin-top: 36px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 18px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>
+          <span>🏛️ Master Portfolio Executive Dashboard</span>
+        </h1>
+        <div class="subtitle">
+          Reference Tier 4 Investment Way Orchestrator &bull; Option C Consolidated Embedding
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <span class="meta-tag">Strategy: {{STRATEGY_ID}}</span>
+        <span class="meta-tag">Base Currency: {{BASE_CURRENCY}}</span>
+        <span class="meta-tag">Eval Date: {{EVAL_DATE}}</span>
+        <span class="meta-tag">Generated: {{TIMESTAMP}}</span>
+      </div>
+    </header>
+
+    <!-- Executive Hero KPI Grid -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <span class="kpi-label">Total Strategy Equity</span>
+        <span class="kpi-value val-equity">{{TOTAL_STRATEGY_EQUITY}} {{BASE_CURRENCY}}</span>
+        <span class="kpi-subtext">Blended equities + pooled cash</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Invested Cost</span>
+        <span class="kpi-value">{{TOTAL_INVESTED_CAPITAL}} {{BASE_CURRENCY}}</span>
+        <span class="kpi-subtext">Cumulative acquisition cost</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Unrealized P&amp;L</span>
+        <span class="kpi-value {{UNREALIZED_PNL_CLASS}}">{{UNREALIZED_PNL}} {{BASE_CURRENCY}}</span>
+        <span class="kpi-subtext">{{UNREALIZED_PNL_PCT}}% on capital</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">True Strategy XIRR</span>
+        <span class="kpi-value {{XIRR_CLASS}}">{{XIRR_DISPLAY}}</span>
+        <span class="kpi-subtext">Net of brokerage, STT &amp; FX drag</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Portfolio Health Score</span>
+        <span class="kpi-value val-positive">{{PORTFOLIO_HEALTH_SCORE}} / 100</span>
+        <span class="kpi-subtext">Weighted valuation quality</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Capital at Risk</span>
+        <span class="kpi-value val-risk">{{CAPITAL_AT_RISK}} {{BASE_CURRENCY}}</span>
+        <span class="kpi-subtext">{{DISQUALIFIED_COUNT}} Disqualified &bull; {{NEEDS_REVIEW_COUNT}} In Review</span>
+      </div>
+    </div>
+
+    <!-- Warning / Disqualified Banners (if any) -->
+    {{DISQUALIFIED_SECTION}}
+
+    {{GUARDRAIL_SECTION}}
+
+    <!-- Master Portfolio Holdings Matrix with Option C Embedded Audits -->
+    <div class="card">
+      <div class="card-header">
+        <span>Master Portfolio Holdings &amp; Embedded Valuation Audits</span>
+        <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">
+          Expand any security for multi-account lot attribution and deep 5-pillar audits
+        </span>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Security</th>
+              <th class="text-center">Market</th>
+              <th class="text-right">Total Qty</th>
+              <th class="text-right">WAC</th>
+              <th class="text-right">CMP</th>
+              <th class="text-right">Market Value</th>
+              <th class="text-right">Unrealized P&amp;L</th>
+              <th class="text-center">Synthesized Stance</th>
+              <th class="text-right">Target Weight</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{HOLDINGS_ROWS}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pooled Liquid Cash Breakdown & Friction Drag -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px;">
+      <div class="card">
+        <div class="card-header">
+          <span>Multi-Account Pooled Liquid Cash</span>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Account</th>
+                <th class="text-right">Balance</th>
+                <th class="text-right">FX Rate</th>
+                <th class="text-right">Base Value ({{BASE_CURRENCY}})</th>
+                <th class="text-right">Weight</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{POOLED_CASH_ROWS}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span>Itemized Friction Drag Accounting</span>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Friction Component</th>
+                <th class="text-right">Deduction ({{BASE_CURRENCY}})</th>
+                <th class="text-right">% of Invested</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Brokerage Commissions</td>
+                <td class="text-right">{{FRICTION_BROKERAGE}}</td>
+                <td class="text-right">-</td>
+              </tr>
+              <tr>
+                <td>Securities Transaction Tax (STT)</td>
+                <td class="text-right">{{FRICTION_STT}}</td>
+                <td class="text-right">-</td>
+              </tr>
+              <tr>
+                <td>FX Markup &amp; Spread Drag</td>
+                <td class="text-right">{{FRICTION_FX_DRAG}}</td>
+                <td class="text-right">-</td>
+              </tr>
+              <tr>
+                <td>Regulatory Taxes &amp; Exchange Fees</td>
+                <td class="text-right">{{FRICTION_TAXES}}</td>
+                <td class="text-right">-</td>
+              </tr>
+              <tr style="font-weight: 700; background: rgba(255,255,255,0.03);">
+                <td>Total Friction Deduction</td>
+                <td class="text-right val-risk">{{FRICTION_TOTAL}}</td>
+                <td class="text-right val-risk">-{{FRICTION_DRAG_PCT}}% drag</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Modular Stock Portfolio &amp; Analysis Framework (AID-BMAD-MODULAR-STOCK-V1) &bull; Verified 100% Offline Master Dashboard
+    </footer>
+  </div>
+</body>
+</html>
+

@@ -1,0 +1,34 @@
+{
+  "ticker": "VOO",
+  "name": "Vanguard S&P 500 ETF",
+  "exchange": "NYSE",
+  "market": "US",
+  "currency": "USD",
+  "unit_scale": "MILLIONS",
+  "sector": "Index ETF",
+  "industry": "Broad Market Index Basket",
+  "timestamp": "2026-11-07T12:00:00.000Z",
+  "is_index_etf": true,
+  "source_provider": "tickertape",
+  "market_data": {
+    "cmp": 530.00,
+    "market_cap": 1250000.0,
+    "shares_outstanding": null,
+    "eps_ttm": null,
+    "bvps": null,
+    "pe_ttm": 27.50,
+    "pb_ttm": 4.80,
+    "ev_ebitda": null,
+    "dividend_yield_pct": 1.45,
+    "beta": 1.00,
+    "historical_pe_5y_median": 24.20,
+    "historical_pb_5y_median": 4.10,
+    "eps_growth_5y_cagr_pct": null,
+    "revenue_growth_5y_cagr_pct": null
+  },
+  "income_statement": null,
+  "balance_sheet": null,
+  "cash_flow": null,
+  "forensics": null
+}
+

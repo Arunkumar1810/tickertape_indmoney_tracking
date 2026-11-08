@@ -1,0 +1,77 @@
+{
+  "ticker": "INFY",
+  "name": "Infosys Limited",
+  "market": "IN",
+  "verdicts": [
+    {
+      "principle": "forensic_governance",
+      "ticker": "INFY",
+      "timestamp": "2026-11-08T10:00:00.000Z",
+      "score": 92.0,
+      "stance": "PASS",
+      "is_veto": false,
+      "metrics": {
+        "promoter_pledge_pct": 0.0,
+        "beneish_m_score": -2.6,
+        "sloan_accrual_ratio": -0.03
+      },
+      "red_flags": [],
+      "summary": "Forensic clean bill of health."
+    },
+    {
+      "principle": "graham",
+      "ticker": "INFY",
+      "timestamp": "2026-11-08T10:00:00.000Z",
+      "score": 75.0,
+      "stance": "BUY",
+      "is_veto": false,
+      "metrics": {
+        "graham_number_ratio": 1.15
+      },
+      "red_flags": [],
+      "summary": "Reasonable margin of safety near Graham valuation floor."
+    },
+    {
+      "principle": "lynch",
+      "ticker": "INFY",
+      "timestamp": "2026-11-08T10:00:00.000Z",
+      "score": 80.0,
+      "stance": "BUY",
+      "is_veto": false,
+      "metrics": {
+        "peg_ratio": 1.25
+      },
+      "red_flags": [],
+      "summary": "Solid stalwart profile with fair growth valuation."
+    },
+    {
+      "principle": "buffett_munger",
+      "ticker": "INFY",
+      "timestamp": "2026-11-08T10:00:00.000Z",
+      "score": 88.0,
+      "stance": "STRONG_BUY",
+      "is_veto": false,
+      "metrics": {
+        "roic_pct": 28.5,
+        "owner_earnings_cagr_5y_pct": 12.4
+      },
+      "red_flags": [],
+      "summary": "High un-leveraged ROIC and wide institutional moat."
+    },
+    {
+      "principle": "klarman_solvency",
+      "ticker": "INFY",
+      "timestamp": "2026-11-08T10:00:00.000Z",
+      "score": 90.0,
+      "stance": "STRONG_BUY",
+      "is_veto": false,
+      "metrics": {
+        "altman_z_score": 8.5,
+        "net_debt_ebitda": -0.4
+      },
+      "red_flags": [],
+      "summary": "Fortress net cash balance sheet."
+    }
+  ]
+}
+

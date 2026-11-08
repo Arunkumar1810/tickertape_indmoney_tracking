@@ -1,0 +1,85 @@
+# Declarative Manifest for Modular Stock Portfolio & Analysis Framework
+# Enforces Strict 1-to-Many Account Partitioning across Investment Ways
+
+version: "1.0"
+
+accounts:
+  angelone:
+    broker: "angelone"
+    currency: "INR"
+    skill: "fetch-angelone"
+    description: "Angel One Indian Demat & Trading Account (NSE/BSE)"
+    active: true
+  indmoney_us:
+    broker: "indmoney"
+    currency: "USD"
+    skill: "fetch-indmoney-us"
+    description: "INDmoney / DriveWealth US Equities Account (NYSE/NASDAQ)"
+    active: true
+
+data_providers:
+  provider-tickertape:
+    skill: "provider-tickertape"
+    markets: ["IN", "US"]
+    description: "Tickertape Pro Financial Statements & Valuation Metrics Provider"
+
+gatekeepers:
+  forensic-governance:
+    skill: "forensic-governance"
+    description: "Forensic Accounting & Corporate Governance Veto Filter"
+
+analysis_principles:
+  analyze-graham:
+    skill: "analyze-graham"
+    category: "deep_value"
+    description: "Benjamin Graham Net-Net Working Capital & Graham Number Floor"
+  analyze-lynch:
+    skill: "analyze-lynch"
+    category: "garp"
+    description: "Peter Lynch PEG Ratio, Stock Categorization & Inventory Velocity"
+  analyze-buffett-munger:
+    skill: "analyze-buffett-munger"
+    category: "compounding_moat"
+    description: "Buffett-Munger Owner Earnings, 5-Step DuPont ROE & ROIC Moat"
+  analyze-klarman-solvency:
+    skill: "analyze-klarman-solvency"
+    category: "solvency_stress"
+    description: "Seth Klarman Altman Z-Score, Debt Maturity Wall & Liquidation Stress"
+
+investment_ways:
+  fundamental_lts:
+    title: "Fundamental Long-Term Stocks (India)"
+    skill: "way-long-term-strategy"
+    base_currency: "INR"
+    accounts: ["angelone"]
+    data_provider: "provider-tickertape"
+    gatekeepers: ["forensic-governance"]
+    analysis_principles:
+      - "analyze-graham"
+      - "analyze-lynch"
+      - "analyze-buffett-munger"
+      - "analyze-klarman-solvency"
+    weights:
+      analyze-graham: 0.25
+      analyze-lynch: 0.25
+      analyze-buffett-munger: 0.30
+      analyze-klarman-solvency: 0.20
+
+  fundamental_foreign:
+    title: "Fundamental Foreign Stocks (US)"
+    skill: "way-foreign-strategy"
+    base_currency: "USD"
+    accounts: ["indmoney_us"]
+    data_provider: "provider-tickertape"
+    gatekeepers: ["forensic-governance"]
+    analysis_principles:
+      - "analyze-graham"
+      - "analyze-lynch"
+      - "analyze-buffett-munger"
+      - "analyze-klarman-solvency"
+    weights:
+      analyze-graham: 0.20
+      analyze-lynch: 0.25
+      analyze-buffett-munger: 0.35
+      analyze-klarman-solvency: 0.20
+

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forensic & Corporate Governance Audit · Gatekeeper Protocol</title>
+<meta name="description" content="Tier 3 Forensic Governance & Accounting Integrity Audit with Gatekeeper Veto Protocol.">
+<style>
+:root {
+  --bg: #090d16;
+  --surface: #111726;
+  --surface-alt: #172033;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #38bdf8;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --emerald: #10b981;
+  --emerald-bg: rgba(16, 185, 129, 0.12);
+  --emerald-border: rgba(16, 185, 129, 0.3);
+  --rose: #ef4444;
+  --rose-bg: rgba(239, 68, 68, 0.14);
+  --rose-border: rgba(239, 68, 68, 0.4);
+  --amber: #f59e0b;
+  --amber-bg: rgba(245, 158, 11, 0.12);
+  --amber-border: rgba(245, 158, 11, 0.3);
+  --cyan: #38bdf8;
+  --indigo: #6366f1;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  padding: 32px 20px 80px;
+  line-height: 1.5;
+}
+.container { max-width: 1200px; margin: 0 auto; }
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.brand-header h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.brand-header p { font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
+.header-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.badge {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.badge-gatekeeper { color: #a855f7; border-color: rgba(168, 85, 247, 0.3); background: rgba(168, 85, 247, 0.1); }
+.badge-pass { color: var(--emerald); border-color: var(--emerald-border); background: var(--emerald-bg); }
+.badge-flag { color: var(--amber); border-color: var(--amber-border); background: var(--amber-bg); }
+.badge-veto { color: var(--rose); border-color: var(--rose-border); background: var(--rose-bg); font-weight: 800; }
+
+.veto-banner {
+  background: var(--rose-bg);
+  border: 2px solid var(--rose);
+  color: #fca5a5;
+  padding: 18px 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 0 24px rgba(239, 68, 68, 0.2);
+}
+.veto-banner svg { width: 32px; height: 32px; flex-shrink: 0; fill: currentColor; }
+.veto-banner h3 { font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 4px; }
+.veto-banner p { font-size: 0.95rem; line-height: 1.4; color: #fee2e2; }
+
+.scorecard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 28px;
+  align-items: center;
+}
+@media (max-width: 768px) {
+  .scorecard { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+}
+.gauge-wrapper {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+.gauge-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.gauge-bg { fill: none; stroke: var(--surface-alt); stroke-width: 10; }
+.gauge-val {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease;
+}
+.gauge-val-pass { stroke: var(--emerald); }
+.gauge-val-flag { stroke: var(--amber); }
+.gauge-val-veto { stroke: var(--rose); }
+.gauge-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.scorecard-meta h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
+.scorecard-meta p.summary-text { font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; }
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.kpi-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.kpi-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.kpi-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+
+.audit-table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+th {
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255, 255, 255, 0.02); }
+.metric-name { font-weight: 600; color: var(--text); }
+.metric-val { text-align: right; font-weight: 700; }
+.status-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.pill-clean { background: var(--emerald-bg); color: var(--emerald); border: 1px solid var(--emerald-border); }
+.pill-warn { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.pill-veto { background: var(--rose-bg); color: var(--rose); border: 1px solid var(--rose-border); }
+
+.red-flags-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+}
+.flag-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.flag-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+}
+.flag-item-veto {
+  background: var(--rose-bg);
+  border-color: var(--rose-border);
+  color: #fca5a5;
+  font-weight: 600;
+}
+.flag-item-warn {
+  background: var(--amber-bg);
+  border-color: var(--amber-border);
+  color: #fde68a;
+}
+.clean-flags {
+  padding: 12px 16px;
+  background: var(--emerald-bg);
+  border: 1px solid var(--emerald-border);
+  color: var(--emerald);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Portfolio Matrix View Styles */
+.matrix-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.filter-btn:hover { color: var(--text); border-color: var(--cyan); }
+.filter-btn.active { background: var(--cyan); color: #090d16; border-color: var(--cyan); }
+
+footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="brand-header">
+      <h1 id="view-title">Forensic & Corporate Governance Audit</h1>
+      <p id="view-subtitle">Tier 3 Gatekeeper Veto Protocol & Accounting Integrity Engine</p>
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-gatekeeper">Gatekeeper Protocol</span>
+      <span class="badge" id="ticker-badge">TICKER</span>
+      <span class="badge" id="stance-badge">STANCE</span>
+    </div>
+  </header>
+
+  <!-- Hard Veto Banner (visible when vetoed) -->
+  <div id="veto-banner-el" class="veto-banner" style="display: none;">
+    <svg viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.5L20 19H4L12 5.5zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/></svg>
+    <div>
+      <h3>HARD VETO PROTOCOL ACTIVATED</h3>
+      <p id="veto-banner-desc">Security has breached critical forensic thresholds. Capital allocation short-circuited.</p>
+    </div>
+  </div>
+
+  <!-- Single Stock Scorecard -->
+  <div id="single-view" style="display: none;">
+    <div class="scorecard">
+      <div class="gauge-wrapper">
+        <svg class="gauge-svg" viewBox="0 0 100 100">
+          <circle class="gauge-bg" cx="50" cy="50" r="42" />
+          <circle id="gauge-circle" class="gauge-val" cx="50" cy="50" r="42" stroke-dasharray="263.89" stroke-dashoffset="263.89" />
+        </svg>
+        <div class="gauge-text" id="gauge-score">--</div>
+      </div>
+      <div class="scorecard-meta">
+        <h2 id="company-name">Security Evaluation</h2>
+        <p class="summary-text" id="verdict-summary">Evaluating forensic accounting and corporate governance integrity...</p>
+      </div>
+    </div>
+
+    <!-- Forensic Core Metrics Grid -->
+    <h3 class="section-title">Forensic Integrity Metrics</h3>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Promoter Pledging</div>
+        <div class="kpi-value" id="kpi-pledging">--</div>
+        <div class="kpi-sub">Threshold: &gt;50% Veto, &gt;25% Flag</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Related-Party Txns</div>
+        <div class="kpi-value" id="kpi-rpt">--</div>
+        <div class="kpi-sub">Threshold: &gt;25% Veto, &gt;10% Flag</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Beneish M-Score</div>
+        <div class="kpi-value" id="kpi-beneish">--</div>
+        <div class="kpi-sub">Threshold: &gt; -1.78 Manipulation</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Sloan Accrual Ratio</div>
+        <div class="kpi-value" id="kpi-sloan">--</div>
+        <div class="kpi-sub">Threshold: &gt;0.25 Distortion</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">DSO YoY Growth</div>
+        <div class="kpi-value" id="kpi-dso">--</div>
+        <div class="kpi-sub">Threshold: &gt;20% Warning</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">SBC Dilution %</div>
+        <div class="kpi-value" id="kpi-sbc">--</div>
+        <div class="kpi-sub">Threshold: &gt;10% Veto, &gt;5% Warning</div>
+      </div>
+    </div>
+
+    <!-- Red Flags & Observations -->
+    <div class="red-flags-card">
+      <h3 class="section-title">Forensic Audit Findings &amp; Warnings</h3>
+      <ul class="flag-list" id="flags-list">
+        <!-- Rendered dynamically -->
+      </ul>
+    </div>
+  </div>
+
+  <!-- Portfolio Batch Matrix View -->
+  <div id="batch-view" style="display: none;">
+    <div class="matrix-filters">
+      <button class="filter-btn active" onclick="filterBatch('ALL', this)">All Holdings (<span id="count-all">0</span>)</button>
+      <button class="filter-btn" onclick="filterBatch('VETO_DISQUALIFIED', this)">Veto Disqualified (<span id="count-veto">0</span>)</button>
+      <button class="filter-btn" onclick="filterBatch('FLAG', this)">Flagged (<span id="count-flag">0</span>)</button>
+      <button class="filter-btn" onclick="filterBatch('PASS', this)">Passed (<span id="count-pass">0</span>)</button>
+    </div>
+
+    <div class="audit-table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Gatekeeper Stance</th>
+            <th style="text-align: right;">Forensic Score</th>
+            <th style="text-align: right;">Pledging %</th>
+            <th style="text-align: right;">Beneish M</th>
+            <th style="text-align: right;">Sloan Accrual</th>
+            <th style="text-align: right;">RPT %</th>
+            <th>Red Flags / Audit Summary</th>
+          </tr>
+        </thead>
+        <tbody id="batch-table-body">
+          <!-- Rendered dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <p>Tier 3 Forensic Governance Gatekeeper · AID-BMAD-MODULAR-STOCK-V1 · Offline Self-Contained Verification</p>
+  </footer>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+function fmtNum(val, dec = 2) {
+  if (val === null || val === undefined || isNaN(val)) return 'N/A';
+  return Number(val).toFixed(dec);
+}
+
+function init() {
+  if (!DATA) {
+    document.getElementById('view-title').textContent = 'No Data Provided';
+    return;
+  }
+
+  // Check if payload is a VerdictBatch (Option C portfolio mode)
+  if (DATA.verdicts && Array.isArray(DATA.verdicts)) {
+    renderBatchView(DATA);
+  } else {
+    renderSingleView(DATA);
+  }
+}
+
+function renderSingleView(v) {
+  document.getElementById('single-view').style.display = 'block';
+  document.getElementById('batch-view').style.display = 'none';
+
+  const ticker = v.ticker || 'UNKNOWN';
+  document.getElementById('ticker-badge').textContent = ticker;
+  document.getElementById('view-title').textContent = `${ticker} · Forensic Governance Audit`;
+  document.getElementById('view-subtitle').textContent = `Evaluated: ${v.timestamp || 'N/A'}`;
+
+  const stanceBadge = document.getElementById('stance-badge');
+  stanceBadge.textContent = v.stance;
+  if (v.stance === 'VETO_DISQUALIFIED') {
+    stanceBadge.className = 'badge badge-veto';
+    document.getElementById('veto-banner-el').style.display = 'flex';
+    document.getElementById('veto-banner-desc').textContent = v.summary;
+  } else if (v.stance === 'FLAG') {
+    stanceBadge.className = 'badge badge-flag';
+  } else {
+    stanceBadge.className = 'badge badge-pass';
+  }
+
+  // Score & Gauge
+  const score = Math.round(Number(v.score || 0));
+  document.getElementById('gauge-score').textContent = score;
+  const circle = document.getElementById('gauge-circle');
+  const circumference = 263.89; // 2 * pi * 42
+  const offset = circumference - (score / 100) * circumference;
+  circle.style.strokeDashoffset = offset;
+
+  if (v.stance === 'VETO_DISQUALIFIED') {
+    circle.className = 'gauge-val gauge-val-veto';
+  } else if (v.stance === 'FLAG') {
+    circle.className = 'gauge-val gauge-val-flag';
+  } else {
+    circle.className = 'gauge-val gauge-val-pass';
+  }
+
+  document.getElementById('company-name').textContent = `${ticker} Governance Verdict: ${v.stance}`;
+  document.getElementById('verdict-summary').textContent = v.summary;
+
+  // Metrics
+  const m = v.metrics || {};
+  document.getElementById('kpi-pledging').textContent = m.promoter_pledging_pct !== null ? `${fmtNum(m.promoter_pledging_pct)}%` : 'N/A';
+  document.getElementById('kpi-rpt').textContent = m.related_party_transactions_pct !== null ? `${fmtNum(m.related_party_transactions_pct)}%` : 'N/A';
+  document.getElementById('kpi-beneish').textContent = m.beneish_m_score !== null ? fmtNum(m.beneish_m_score) : 'N/A';
+  document.getElementById('kpi-sloan').textContent = m.sloan_accrual_ratio !== null ? fmtNum(m.sloan_accrual_ratio, 4) : 'N/A';
+  document.getElementById('kpi-dso').textContent = m.dso_yoy_expansion_pct !== null ? `${fmtNum(m.dso_yoy_expansion_pct)}%` : 'N/A';
+  document.getElementById('kpi-sbc').textContent = m.sbc_dilution_pct !== null ? `${fmtNum(m.sbc_dilution_pct)}%` : 'N/A';
+
+  // Flags
+  const flagsList = document.getElementById('flags-list');
+  flagsList.innerHTML = '';
+  if (!v.red_flags || v.red_flags.length === 0) {
+    flagsList.innerHTML = '<li class="clean-flags">✅ Zero forensic red flags or accounting anomalies detected.</li>';
+  } else {
+    v.red_flags.forEach(f => {
+      const isVetoReason = f.includes('critical') || f.includes('manipulation') || f.includes('Severe') || f.includes('resignation') || f.includes('surveillance') || f.includes('VETO');
+      const li = document.createElement('li');
+      li.className = `flag-item ${isVetoReason ? 'flag-item-veto' : 'flag-item-warn'}`;
+      li.textContent = `${isVetoReason ? '🚨 ' : '⚠️ '}${f}`;
+      flagsList.appendChild(li);
+    });
+  }
+}
+
+let batchVerdicts = [];
+function renderBatchView(batch) {
+  document.getElementById('single-view').style.display = 'none';
+  document.getElementById('batch-view').style.display = 'block';
+
+  document.getElementById('ticker-badge').textContent = 'PORTFOLIO';
+  document.getElementById('stance-badge').textContent = 'BATCH AUDIT';
+  document.getElementById('view-title').textContent = 'Forensic Governance Portfolio Matrix';
+  document.getElementById('view-subtitle').textContent = `Batch Timestamp: ${batch.timestamp || 'N/A'} · Principle: ${batch.principle}`;
+
+  batchVerdicts = batch.verdicts || [];
+
+  let countVeto = 0;
+  let countFlag = 0;
+  let countPass = 0;
+
+  batchVerdicts.forEach(v => {
+    if (v.stance === 'VETO_DISQUALIFIED') countVeto++;
+    else if (v.stance === 'FLAG') countFlag++;
+    else countPass++;
+  });
+
+  document.getElementById('count-all').textContent = batchVerdicts.length;
+  document.getElementById('count-veto').textContent = countVeto;
+  document.getElementById('count-flag').textContent = countFlag;
+  document.getElementById('count-pass').textContent = countPass;
+
+  renderBatchRows(batchVerdicts);
+}
+
+function renderBatchRows(verdicts) {
+  const tbody = document.getElementById('batch-table-body');
+  tbody.innerHTML = '';
+
+  if (verdicts.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">No securities match the selected filter.</td></tr>';
+    return;
+  }
+
+  verdicts.forEach(v => {
+    const tr = document.createElement('tr');
+    const m = v.metrics || {};
+
+    let stancePillClass = 'pill-clean';
+    if (v.stance === 'VETO_DISQUALIFIED') stancePillClass = 'pill-veto';
+    else if (v.stance === 'FLAG') stancePillClass = 'pill-warn';
+
+    const redFlagCount = v.red_flags ? v.red_flags.length : 0;
+    const summarySnippet = v.summary || '';
+
+    tr.innerHTML = `
+      <td class="metric-name">${v.ticker}</td>
+      <td><span class="status-pill ${stancePillClass}">${v.stance}</span></td>
+      <td class="metric-val" style="color: ${v.stance === 'VETO_DISQUALIFIED' ? 'var(--rose)' : (v.stance === 'FLAG' ? 'var(--amber)' : 'var(--emerald)')}; font-size: 1.05rem;">${fmtNum(v.score, 1)}</td>
+      <td class="metric-val">${m.promoter_pledging_pct !== null ? fmtNum(m.promoter_pledging_pct) + '%' : '-'}</td>
+      <td class="metric-val">${m.beneish_m_score !== null ? fmtNum(m.beneish_m_score) : '-'}</td>
+      <td class="metric-val">${m.sloan_accrual_ratio !== null ? fmtNum(m.sloan_accrual_ratio, 4) : '-'}</td>
+      <td class="metric-val">${m.related_party_transactions_pct !== null ? fmtNum(m.related_party_transactions_pct) + '%' : '-'}</td>
+      <td style="max-width: 320px; font-size: 0.85rem; color: var(--text-muted);">${redFlagCount > 0 ? `<strong>${redFlagCount} issue(s):</strong> ` : ''}${summarySnippet}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterBatch(filterType, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  if (filterType === 'ALL') {
+    renderBatchRows(batchVerdicts);
+  } else {
+    const filtered = batchVerdicts.filter(v => v.stance === filterType);
+    renderBatchRows(filtered);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
+

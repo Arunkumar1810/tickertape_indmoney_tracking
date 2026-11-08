@@ -1,0 +1,52 @@
+{
+  "ticker": "BADCORP",
+  "name": "Bad Governance Corp",
+  "market": "IN",
+  "verdicts": [
+    {
+      "principle": "forensic_governance",
+      "ticker": "BADCORP",
+      "timestamp": "2026-11-08T10:00:00.000Z",
+      "score": 15.0,
+      "stance": "VETO_DISQUALIFIED",
+      "is_veto": true,
+      "metrics": {
+        "promoter_pledge_pct": 58.5,
+        "auditor_resignation": true,
+        "beneish_m_score": -1.2
+      },
+      "red_flags": [
+        "Promoter pledge at 58.5% exceeds 50% hard veto threshold",
+        "Auditor resigned mid-term without explanation"
+      ],
+      "summary": "Forensic audit failed: acute promoter pledging and auditor irregularity."
+    },
+    {
+      "principle": "graham",
+      "ticker": "BADCORP",
+      "timestamp": "2026-11-08T10:00:00.000Z",
+      "score": 82.0,
+      "stance": "BUY",
+      "is_veto": false,
+      "metrics": {
+        "ncav_discount_pct": 25.0
+      },
+      "red_flags": [],
+      "summary": "Deep value net-net discount detected."
+    },
+    {
+      "principle": "buffett_munger",
+      "ticker": "BADCORP",
+      "timestamp": "2026-11-08T10:00:00.000Z",
+      "score": 70.0,
+      "stance": "BUY",
+      "is_veto": false,
+      "metrics": {
+        "roic_pct": 18.0
+      },
+      "red_flags": [],
+      "summary": "Moderate capital allocation return."
+    }
+  ]
+}
+

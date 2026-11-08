@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Klarman Solvency & Downside Stress Audit · Altman Z-Score & Liquidity Cliff</title>
+<meta name="description" content="Tier 3 Seth Klarman Downside Stress & Solvency Engine Audit: Altman Z-Score, Debt Maturity Wall, Net Debt to EBITDA, and Interest Coverage.">
+<style>
+:root {
+  --bg: #090d16;
+  --surface: #111726;
+  --surface-alt: #172033;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #38bdf8;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --emerald: #10b981;
+  --emerald-bg: rgba(16, 185, 129, 0.12);
+  --emerald-border: rgba(16, 185, 129, 0.3);
+  --rose: #ef4444;
+  --rose-bg: rgba(239, 68, 68, 0.14);
+  --rose-border: rgba(239, 68, 68, 0.4);
+  --amber: #f59e0b;
+  --amber-bg: rgba(245, 158, 11, 0.12);
+  --amber-border: rgba(245, 158, 11, 0.3);
+  --cyan: #38bdf8;
+  --cyan-bg: rgba(56, 189, 248, 0.12);
+  --cyan-border: rgba(56, 189, 248, 0.3);
+  --purple: #a855f7;
+  --purple-bg: rgba(168, 85, 247, 0.12);
+  --purple-border: rgba(168, 85, 247, 0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  padding: 32px 20px 80px;
+  line-height: 1.5;
+}
+.container { max-width: 1200px; margin: 0 auto; }
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.brand-header h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.brand-header p { font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
+.header-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.badge {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.badge-pillar { color: #f59e0b; border-color: var(--amber-border); background: var(--amber-bg); }
+.badge-zone-safe { color: var(--emerald); border-color: var(--emerald-border); background: var(--emerald-bg); }
+.badge-zone-grey { color: var(--amber); border-color: var(--amber-border); background: var(--amber-bg); }
+.badge-zone-distress { color: var(--rose); border-color: var(--rose-border); background: var(--rose-bg); }
+.badge-buy { color: var(--emerald); border-color: var(--emerald-border); background: var(--emerald-bg); }
+.badge-hold { color: var(--amber); border-color: var(--amber-border); background: var(--amber-bg); }
+.badge-sell { color: var(--rose); border-color: var(--rose-border); background: var(--rose-bg); }
+
+.scorecard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 28px;
+  align-items: center;
+}
+@media (max-width: 768px) {
+  .scorecard { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+}
+.gauge-wrapper {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+.gauge-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.gauge-bg { fill: none; stroke: var(--surface-alt); stroke-width: 10; }
+.gauge-val {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease-in-out;
+}
+.gauge-val-buy { stroke: var(--emerald); }
+.gauge-val-hold { stroke: var(--amber); }
+.gauge-val-sell { stroke: var(--rose); }
+
+.gauge-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.gauge-center-text .score-num {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.gauge-center-text .score-lbl {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+.scorecard-details h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.scorecard-summary {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+
+/* Zone Meter */
+.meter-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+.meter-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.zone-track {
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 8px;
+}
+.zone-segment {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #fff;
+}
+.zone-distress-seg { width: 33.33%; background: #ef4444; }
+.zone-grey-seg { width: 33.33%; background: #f59e0b; }
+.zone-safe-seg { width: 33.34%; background: #10b981; }
+
+.zone-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Pillar KPI Grid */
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+.kpi-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.kpi-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.kpi-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Red Flags / Observations */
+.observations-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+.observations-section h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.observation-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.observation-item {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.obs-flag {
+  background: var(--rose-bg);
+  border: 1px solid var(--rose-border);
+  color: #fca5a5;
+}
+.obs-note {
+  background: var(--emerald-bg);
+  border: 1px solid var(--emerald-border);
+  color: #86efac;
+}
+
+/* Batch View */
+.batch-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.search-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  min-width: 260px;
+  outline: none;
+}
+.search-input:focus { border-color: var(--border-focus); }
+.filter-tabs { display: flex; gap: 8px; }
+.tab-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.tab-btn.active {
+  background: var(--surface-alt);
+  color: var(--text);
+  border-color: var(--border-focus);
+}
+
+.table-responsive {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow-x: auto;
+  margin-bottom: 24px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+th {
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+th:hover { color: var(--text); }
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+footer {
+  margin-top: 48px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="brand-header">
+      <h1 id="view-title">Klarman Solvency & Downside Stress Audit</h1>
+      <p id="view-subtitle">Seth Klarman Downside Risk · Altman Z-Score & Liquidity Cliff Engine</p>
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-pillar" id="pillar-badge">Pillar: Solvency</span>
+      <span class="badge" id="ticker-badge">TICKER</span>
+      <span class="badge" id="stance-badge">STANCE</span>
+    </div>
+  </header>
+
+  <!-- Single Stock View -->
+  <div id="single-view" style="display: none;">
+    <div class="scorecard">
+      <div class="gauge-wrapper">
+        <svg class="gauge-svg" viewBox="0 0 100 100">
+          <circle class="gauge-bg" cx="50" cy="50" r="42" />
+          <circle class="gauge-val" id="gauge-circle" cx="50" cy="50" r="42" stroke-dasharray="263.89" stroke-dashoffset="263.89" />
+        </svg>
+        <div class="gauge-center-text">
+          <div class="score-num" id="gauge-score">0</div>
+          <div class="score-lbl">Solvency</div>
+        </div>
+      </div>
+      <div class="scorecard-details">
+        <h2>Downside Stress Score: <span id="solvency-score-text">0/100.0</span></h2>
+        <p class="scorecard-summary" id="verdict-summary">Evaluating company solvency resilience and bankruptcy risk...</p>
+        <div class="header-badges">
+          <span class="badge" id="altman-zone-badge">Altman: Assessing...</span>
+          <span class="badge" id="leverage-badge">Leverage: Assessing...</span>
+          <span class="badge" id="cliff-badge">Maturity Cliff: Assessing...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Altman Z-Score Visual Meter -->
+    <div class="meter-card">
+      <div class="meter-title">
+        <span>Altman Z-Score Bankruptcy Gauge</span>
+        <span id="altman-z-val" style="font-weight: 800; font-size: 1.1rem;">Z = --</span>
+      </div>
+      <div class="zone-track">
+        <div class="zone-segment zone-distress-seg">Distress (&lt; 1.81)</div>
+        <div class="zone-segment zone-grey-seg">Grey (1.81 - 2.99)</div>
+        <div class="zone-segment zone-safe-seg">Safe (&gt; 2.99)</div>
+      </div>
+      <div class="zone-labels">
+        <span>0.0 (High Insolvency Risk)</span>
+        <span>1.81 (Distress Threshold)</span>
+        <span>2.99 (Safe Threshold)</span>
+        <span>5.0+ (Fortress)</span>
+      </div>
+    </div>
+
+    <!-- 4 Key Solvency Pillar Cards -->
+    <div class="grid-4">
+      <div class="kpi-card">
+        <div class="kpi-label">Altman Z-Score</div>
+        <div class="kpi-value" id="kpi-altman-z">--</div>
+        <div class="kpi-sub" id="kpi-altman-sub">35 pts max</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Net Debt / EBITDA</div>
+        <div class="kpi-value" id="kpi-net-debt-ebitda">--</div>
+        <div class="kpi-sub" id="kpi-net-debt-sub">25 pts max (&le; 1.0x safe)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Debt Due 24m vs Cash</div>
+        <div class="kpi-value" id="kpi-debt-cliff">--</div>
+        <div class="kpi-sub" id="kpi-cliff-sub">25 pts max (refinancing cushion)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Interest Coverage</div>
+        <div class="kpi-value" id="kpi-interest-coverage">--</div>
+        <div class="kpi-sub" id="kpi-interest-sub">15 pts max (&ge; 5.0x safe)</div>
+      </div>
+    </div>
+
+    <!-- Secondary Solvency Metrics -->
+    <div class="grid-4">
+      <div class="kpi-card">
+        <div class="kpi-label">Net Debt</div>
+        <div class="kpi-value" id="kpi-net-debt">--</div>
+        <div class="kpi-sub">Total Debt - Cash</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Operating Cash Flow / Debt</div>
+        <div class="kpi-value" id="kpi-ocf-debt">--</div>
+        <div class="kpi-sub">Annual CFO / Total Debt</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Accrual Gap</div>
+        <div class="kpi-value" id="kpi-accrual-gap">--</div>
+        <div class="kpi-sub">CFO - Net Income</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Debt Maturing (24m)</div>
+        <div class="kpi-value" id="kpi-debt-24m">--</div>
+        <div class="kpi-sub">Due within 24 months</div>
+      </div>
+    </div>
+
+    <!-- Observations & Red Flags -->
+    <div class="observations-section">
+      <h3>Solvency Observations & Risk Triggers</h3>
+      <ul class="observation-list" id="observations-list"></ul>
+    </div>
+  </div>
+
+  <!-- Multi-Stock Portfolio Batch View -->
+  <div id="batch-view" style="display: none;">
+    <div class="batch-controls">
+      <input type="text" class="search-input" id="search-input" placeholder="Search by ticker or stance...">
+      <div class="filter-tabs">
+        <button class="tab-btn active" data-filter="ALL" id="tab-all">All (<span id="count-all">0</span>)</button>
+        <button class="tab-btn" data-filter="BUY" id="tab-buy">Buy (<span id="count-buy">0</span>)</button>
+        <button class="tab-btn" data-filter="HOLD" id="tab-hold">Hold (<span id="count-hold">0</span>)</button>
+        <button class="tab-btn" data-filter="SELL" id="tab-sell">Sell (<span id="count-sell">0</span>)</button>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table id="batch-table">
+        <thead>
+          <tr>
+            <th data-sort="ticker">Ticker</th>
+            <th data-sort="stance">Stance</th>
+            <th data-sort="score">Score</th>
+            <th data-sort="altman">Altman Z</th>
+            <th data-sort="net_debt_ebitda">Net Debt / EBITDA</th>
+            <th data-sort="interest_cov">Interest Cov</th>
+            <th data-sort="cliff">Debt 24m Cov</th>
+            <th data-sort="flags">Flags</th>
+          </tr>
+        </thead>
+        <tbody id="batch-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <p>Seth Klarman Downside Stress & Solvency Engine · Invariant 2 Compliant · Pure Deterministic Evaluation</p>
+  </footer>
+</div>
+
+<script>
+/*__DATA__*/null;
+
+function fmtNum(n, d = 2) {
+  if (n === null || n === undefined || isNaN(n)) return 'N/A';
+  return Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+}
+
+function initDashboard() {
+  if (typeof DATA === 'undefined' || !DATA) {
+    document.getElementById('view-title').textContent = 'No Data Available';
+    return;
+  }
+
+  if (DATA.verdicts && Array.isArray(DATA.verdicts)) {
+    renderBatchView(DATA);
+  } else {
+    renderSingleView(DATA);
+  }
+}
+
+function renderSingleView(v) {
+  document.getElementById('single-view').style.display = 'block';
+  document.getElementById('batch-view').style.display = 'none';
+
+  const ticker = v.ticker || 'UNKNOWN';
+  document.getElementById('ticker-badge').textContent = ticker;
+  document.getElementById('view-title').textContent = `${ticker} · Klarman Solvency Audit`;
+  document.getElementById('view-subtitle').textContent = `Downside Stress Engine · Evaluated: ${v.timestamp || 'N/A'}`;
+
+  const stanceBadge = document.getElementById('stance-badge');
+  stanceBadge.textContent = v.stance;
+  if (v.stance === 'STRONG_BUY' || v.stance === 'BUY') {
+    stanceBadge.className = 'badge badge-buy';
+  } else if (v.stance === 'HOLD') {
+    stanceBadge.className = 'badge badge-hold';
+  } else {
+    stanceBadge.className = 'badge badge-sell';
+  }
+
+  const m = v.metrics || {};
+
+  // Altman Z-Score & Zone
+  const zScore = m.altman_z_score;
+  const zBadge = document.getElementById('altman-zone-badge');
+  const zValEl = document.getElementById('altman-z-val');
+  if (zScore !== null && zScore !== undefined) {
+    zValEl.textContent = `Z = ${fmtNum(zScore, 2)}`;
+    if (zScore > 2.99) {
+      zBadge.textContent = 'Altman: Safe Zone';
+      zBadge.className = 'badge badge-zone-safe';
+    } else if (zScore >= 1.81) {
+      zBadge.textContent = 'Altman: Grey Zone';
+      zBadge.className = 'badge badge-zone-grey';
+    } else {
+      zBadge.textContent = 'Altman: Distress Zone';
+      zBadge.className = 'badge badge-zone-distress';
+    }
+  } else {
+    zValEl.textContent = 'Z = N/A (Index ETF or Insufficient Data)';
+    zBadge.textContent = 'Altman: N/A';
+  }
+
+  // Leverage Badge
+  const levBadge = document.getElementById('leverage-badge');
+  const netDebtEbitda = m.net_debt_to_ebitda;
+  const netDebt = m.net_debt;
+  if (netDebt !== null && netDebt <= 0) {
+    levBadge.textContent = 'Leverage: Net Cash';
+    levBadge.className = 'badge badge-zone-safe';
+  } else if (netDebtEbitda !== null && netDebtEbitda <= 1.0) {
+    levBadge.textContent = `Leverage: Low (${fmtNum(netDebtEbitda, 1)}x)`;
+    levBadge.className = 'badge badge-zone-safe';
+  } else if (netDebtEbitda !== null && netDebtEbitda <= 2.5) {
+    levBadge.textContent = `Leverage: Moderate (${fmtNum(netDebtEbitda, 1)}x)`;
+    levBadge.className = 'badge badge-zone-grey';
+  } else if (netDebtEbitda !== null) {
+    levBadge.textContent = `Leverage: High (${fmtNum(netDebtEbitda, 1)}x)`;
+    levBadge.className = 'badge badge-zone-distress';
+  } else {
+    levBadge.textContent = 'Leverage: N/A';
+  }
+
+  // Cliff Badge
+  const cliffBadge = document.getElementById('cliff-badge');
+  const cashCliffRatio = m.cash_to_debt_maturing_ratio;
+  if (m.debt_maturing_24m === 0 || (cashCliffRatio !== null && cashCliffRatio >= 1.0)) {
+    cliffBadge.textContent = 'Maturity Cliff: Covered';
+    cliffBadge.className = 'badge badge-zone-safe';
+  } else if (cashCliffRatio !== null && cashCliffRatio >= 0.5) {
+    cliffBadge.textContent = `Maturity Cliff: Moderate (${fmtNum(cashCliffRatio, 1)}x)`;
+    cliffBadge.className = 'badge badge-zone-grey';
+  } else if (cashCliffRatio !== null) {
+    cliffBadge.textContent = 'Maturity Cliff: Acute Alert';
+    cliffBadge.className = 'badge badge-zone-distress';
+  } else {
+    cliffBadge.textContent = 'Maturity Cliff: None';
+    cliffBadge.className = 'badge badge-zone-safe';
+  }
+
+  // Score & Gauge
+  const score = Math.round(Number(v.score || 0));
+  document.getElementById('gauge-score').textContent = score;
+  document.getElementById('solvency-score-text').textContent = `${score}/100.0`;
+  const circle = document.getElementById('gauge-circle');
+  const circumference = 263.89; // 2 * pi * 42
+  const offset = circumference - (score / 100) * circumference;
+  circle.style.strokeDashoffset = offset;
+
+  if (v.stance === 'STRONG_BUY' || v.stance === 'BUY') {
+    circle.className = 'gauge-val gauge-val-buy';
+  } else if (v.stance === 'HOLD') {
+    circle.className = 'gauge-val gauge-val-hold';
+  } else {
+    circle.className = 'gauge-val gauge-val-sell';
+  }
+
+  document.getElementById('verdict-summary').textContent = v.summary || 'No summary available.';
+
+  // 4 Pillar KPIs
+  document.getElementById('kpi-altman-z').textContent = zScore !== null ? fmtNum(zScore, 2) : 'N/A';
+  document.getElementById('kpi-net-debt-ebitda').textContent = netDebtEbitda !== null ? (netDebtEbitda <= 0 ? 'Net Cash' : `${fmtNum(netDebtEbitda, 2)}x`) : 'N/A';
+  document.getElementById('kpi-debt-cliff').textContent = cashCliffRatio !== null ? `${fmtNum(cashCliffRatio, 2)}x` : (m.debt_maturing_24m === 0 ? 'Fully Covered' : 'N/A');
+  document.getElementById('kpi-interest-coverage').textContent = m.interest_coverage !== null ? `${fmtNum(m.interest_coverage, 2)}x` : 'N/A';
+
+  // Secondary KPIs
+  document.getElementById('kpi-net-debt').textContent = netDebt !== null ? fmtNum(netDebt) : 'N/A';
+  document.getElementById('kpi-ocf-debt').textContent = m.operating_cash_flow_to_debt !== null ? `${fmtNum(m.operating_cash_flow_to_debt, 2)}x` : 'N/A';
+  document.getElementById('kpi-accrual-gap').textContent = m.accrual_gap !== null ? fmtNum(m.accrual_gap) : 'N/A';
+  document.getElementById('kpi-debt-24m').textContent = m.debt_maturing_24m !== null ? fmtNum(m.debt_maturing_24m) : 'N/A';
+
+  // Observations
+  const obsList = document.getElementById('observations-list');
+  obsList.innerHTML = '';
+  const redFlags = Array.isArray(v.red_flags) ? v.red_flags : [];
+  if (redFlags.length === 0) {
+    const li = document.createElement('li');
+    li.className = 'observation-item obs-note';
+    li.innerHTML = '<span>✅ No acute downside insolvency risk, excessive debt burden, or debt cliff alerts triggered.</span>';
+    obsList.appendChild(li);
+  } else {
+    redFlags.forEach(f => {
+      const li = document.createElement('li');
+      li.className = 'observation-item obs-flag';
+      li.innerHTML = `<span>⚠️ ${f}</span>`;
+      obsList.appendChild(li);
+    });
+  }
+}
+
+let batchVerdicts = [];
+
+function renderBatchView(batch) {
+  document.getElementById('single-view').style.display = 'none';
+  document.getElementById('batch-view').style.display = 'block';
+
+  document.getElementById('view-title').textContent = 'Portfolio Solvency & Downside Stress Matrix';
+  document.getElementById('view-subtitle').textContent = `Klarman Downside Stress Batch Audit · Timestamp: ${batch.timestamp || 'N/A'}`;
+  document.getElementById('ticker-badge').textContent = `Positions: ${batch.verdicts.length}`;
+  document.getElementById('stance-badge').textContent = 'Portfolio Batch';
+
+  batchVerdicts = batch.verdicts || [];
+
+  const countAll = batchVerdicts.length;
+  const countBuy = batchVerdicts.filter(v => v.stance === 'STRONG_BUY' || v.stance === 'BUY').length;
+  const countHold = batchVerdicts.filter(v => v.stance === 'HOLD').length;
+  const countSell = batchVerdicts.filter(v => v.stance === 'REDUCE' || v.stance === 'STRONG_SELL').length;
+
+  document.getElementById('count-all').textContent = countAll;
+  document.getElementById('count-buy').textContent = countBuy;
+  document.getElementById('count-hold').textContent = countHold;
+  document.getElementById('count-sell').textContent = countSell;
+
+  renderBatchTable(batchVerdicts);
+  setupBatchListeners();
+}
+
+function renderBatchTable(verdicts) {
+  const tbody = document.getElementById('batch-tbody');
+  tbody.innerHTML = '';
+
+  verdicts.forEach(v => {
+    const tr = document.createElement('tr');
+    const m = v.metrics || {};
+
+    let stanceClass = 'badge badge-hold';
+    if (v.stance === 'STRONG_BUY' || v.stance === 'BUY') stanceClass = 'badge badge-buy';
+    else if (v.stance === 'REDUCE' || v.stance === 'STRONG_SELL') stanceClass = 'badge badge-sell';
+
+    let altmanZone = 'N/A';
+    let altmanClass = 'badge';
+    if (m.altman_z_score !== null) {
+      if (m.altman_z_score > 2.99) {
+        altmanZone = `Safe (${fmtNum(m.altman_z_score, 1)})`;
+        altmanClass = 'badge badge-zone-safe';
+      } else if (m.altman_z_score >= 1.81) {
+        altmanZone = `Grey (${fmtNum(m.altman_z_score, 1)})`;
+        altmanClass = 'badge badge-zone-grey';
+      } else {
+        altmanZone = `Distress (${fmtNum(m.altman_z_score, 1)})`;
+        altmanClass = 'badge badge-zone-distress';
+      }
+    }
+
+    const flagsCount = Array.isArray(v.red_flags) ? v.red_flags.length : 0;
+    const flagsBadge = flagsCount > 0
+      ? `<span class="badge badge-sell">${flagsCount} alerts</span>`
+      : `<span class="badge badge-buy">Clean</span>`;
+
+    tr.innerHTML = `
+      <td><strong>${v.ticker || 'UNKNOWN'}</strong></td>
+      <td><span class="${stanceClass}">${v.stance}</span></td>
+      <td><strong>${Math.round(v.score || 0)}</strong>/100</td>
+      <td><span class="${altmanClass}">${altmanZone}</span></td>
+      <td>${m.net_debt_to_ebitda !== null ? (m.net_debt_to_ebitda <= 0 ? 'Net Cash' : `${fmtNum(m.net_debt_to_ebitda, 1)}x`) : 'N/A'}</td>
+      <td>${m.interest_coverage !== null ? `${fmtNum(m.interest_coverage, 1)}x` : 'N/A'}</td>
+      <td>${m.cash_to_debt_maturing_ratio !== null ? `${fmtNum(m.cash_to_debt_maturing_ratio, 1)}x` : (m.debt_maturing_24m === 0 ? 'Covered' : 'N/A')}</td>
+      <td>${flagsBadge}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function setupBatchListeners() {
+  const searchInput = document.getElementById('search-input');
+  const tabs = document.querySelectorAll('.tab-btn');
+
+  let currentFilter = 'ALL';
+
+  function applyFilters() {
+    const q = searchInput.value.trim().toUpperCase();
+    let filtered = batchVerdicts.filter(v => {
+      const matchSearch = (v.ticker || '').toUpperCase().includes(q) || (v.stance || '').toUpperCase().includes(q);
+      if (!matchSearch) return false;
+
+      if (currentFilter === 'ALL') return true;
+      if (currentFilter === 'BUY') return v.stance === 'STRONG_BUY' || v.stance === 'BUY';
+      if (currentFilter === 'HOLD') return v.stance === 'HOLD';
+      if (currentFilter === 'SELL') return v.stance === 'REDUCE' || v.stance === 'STRONG_SELL';
+      return true;
+    });
+
+    renderBatchTable(filtered);
+  }
+
+  searchInput.addEventListener('input', applyFilters);
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentFilter = tab.getAttribute('data-filter');
+      applyFilters();
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initDashboard);
+</script>
+</body>
+</html>
+

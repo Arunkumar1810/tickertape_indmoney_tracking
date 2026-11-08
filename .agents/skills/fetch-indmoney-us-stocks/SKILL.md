@@ -33,4 +33,5 @@ When `INDMONEY_MCP_TOKEN` is not set or expired, the script prompts with authent
 
 ## Integration
 
-Serves as the single source of truth for US stock portfolio holdings, valuations, and ledger balances across tracking and fundamental audit workflows.
+Serves as the source of truth for US stock portfolio holdings, valuations, and ledger balances across tracking and fundamental audit workflows.
+Canonical `AccountHoldingsSnapshot` JSON contracts (`accounts/indmoney_us.json`) and offline dashboards are generated via the dedicated Tier 1 broker fetcher `fetch-indmoney-us` (`node .agents/skills/fetch-indmoney-us/scripts/fetch_indmoney_us.js`).

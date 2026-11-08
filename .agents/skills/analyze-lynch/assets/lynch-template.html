@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Peter Lynch GARP Valuation Audit · Growth Engine</title>
+<meta name="description" content="Tier 3 Peter Lynch GARP Valuation Audit: PEG Ratio, Inventory Divergence, and Lifecycle Classification.">
+<style>
+:root {
+  --bg: #090d16;
+  --surface: #111726;
+  --surface-alt: #172033;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #38bdf8;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --emerald: #10b981;
+  --emerald-bg: rgba(16, 185, 129, 0.12);
+  --emerald-border: rgba(16, 185, 129, 0.3);
+  --rose: #ef4444;
+  --rose-bg: rgba(239, 68, 68, 0.14);
+  --rose-border: rgba(239, 68, 68, 0.4);
+  --amber: #f59e0b;
+  --amber-bg: rgba(245, 158, 11, 0.12);
+  --amber-border: rgba(245, 158, 11, 0.3);
+  --cyan: #38bdf8;
+  --indigo: #6366f1;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  padding: 32px 20px 80px;
+  line-height: 1.5;
+}
+.container { max-width: 1200px; margin: 0 auto; }
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.brand-header h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.brand-header p { font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
+.header-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.badge {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.badge-pillar { color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.1); }
+.badge-category { color: #c084fc; border-color: rgba(192, 132, 252, 0.3); background: rgba(192, 132, 252, 0.1); }
+.badge-buy { color: var(--emerald); border-color: var(--emerald-border); background: var(--emerald-bg); }
+.badge-hold { color: var(--amber); border-color: var(--amber-border); background: var(--amber-bg); }
+.badge-sell { color: var(--rose); border-color: var(--rose-border); background: var(--rose-bg); }
+
+.scorecard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 28px;
+  align-items: center;
+}
+@media (max-width: 768px) {
+  .scorecard { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+}
+.gauge-wrapper {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+.gauge-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.gauge-bg { fill: none; stroke: var(--surface-alt); stroke-width: 10; }
+.gauge-val {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease;
+}
+.gauge-val-buy { stroke: var(--emerald); }
+.gauge-val-hold { stroke: var(--amber); }
+.gauge-val-sell { stroke: var(--rose); }
+.gauge-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.scorecard-meta h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
+.scorecard-meta p.summary-text { font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; }
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.kpi-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.kpi-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.kpi-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+
+.audit-table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+th {
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255, 255, 255, 0.02); }
+.metric-name { font-weight: 600; color: var(--text); }
+.metric-val { text-align: right; font-weight: 700; }
+.status-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.pill-buy { background: var(--emerald-bg); color: var(--emerald); border: 1px solid var(--emerald-border); }
+.pill-hold { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.pill-sell { background: var(--rose-bg); color: var(--rose); border: 1px solid var(--rose-border); }
+
+.red-flags-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+}
+.flag-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.flag-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+}
+.flag-item-warn {
+  background: var(--amber-bg);
+  border-color: var(--amber-border);
+  color: #fde68a;
+}
+.flag-item-danger {
+  background: var(--rose-bg);
+  border-color: var(--rose-border);
+  color: #fca5a5;
+  font-weight: 600;
+}
+.clean-flags {
+  padding: 12px 16px;
+  background: var(--emerald-bg);
+  border: 1px solid var(--emerald-border);
+  color: var(--emerald);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Portfolio Matrix View Styles */
+.matrix-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.filter-btn:hover { color: var(--text); border-color: var(--cyan); }
+.filter-btn.active { background: var(--cyan); color: #090d16; border-color: var(--cyan); }
+
+footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="brand-header">
+      <h1 id="view-title">Peter Lynch GARP Valuation Audit</h1>
+      <p id="view-subtitle">Tier 3 Growth-At-A-Reasonable-Price &amp; Operational Velocity Engine</p>
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-pillar">Lynch Growth Pillar</span>
+      <span class="badge badge-category" id="category-badge">CATEGORY</span>
+      <span class="badge" id="ticker-badge">TICKER</span>
+      <span class="badge" id="stance-badge">STANCE</span>
+    </div>
+  </header>
+
+  <!-- Single Stock View -->
+  <div id="single-view" style="display: none;">
+    <div class="scorecard">
+      <div class="gauge-wrapper">
+        <svg class="gauge-svg" viewBox="0 0 100 100">
+          <circle class="gauge-bg" cx="50" cy="50" r="42" />
+          <circle id="gauge-circle" class="gauge-val" cx="50" cy="50" r="42" stroke-dasharray="263.89" stroke-dashoffset="263.89" />
+        </svg>
+        <div class="gauge-text" id="gauge-score">--</div>
+      </div>
+      <div class="scorecard-meta">
+        <h2 id="company-name">Growth Valuation Verdict</h2>
+        <p class="summary-text" id="verdict-summary">Evaluating Peter Lynch PEG multiple, lifecycle archetype, and inventory divergence...</p>
+      </div>
+    </div>
+
+    <!-- Lynch GARP Metrics Grid -->
+    <h3 class="section-title">GARP Valuation &amp; Growth Metrics</h3>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Traditional PEG Ratio</div>
+        <div class="kpi-value" id="kpi-peg">--</div>
+        <div class="kpi-sub">Benchmark: &le; 1.0 Fair, &le; 0.5 Bargain</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Yield-Adjusted PEG</div>
+        <div class="kpi-value" id="kpi-adj-peg">--</div>
+        <div class="kpi-sub">P/E &divide; (Growth + Div Yield)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">5Y EPS Growth CAGR</div>
+        <div class="kpi-value" id="kpi-eps-growth">--</div>
+        <div class="kpi-sub">Earnings Engine Expansion</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Lynch Fair Value Line</div>
+        <div class="kpi-value" id="kpi-fair-val">--</div>
+        <div class="kpi-sub">(Growth + Yield) &times; EPS</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Inventory Velocity Delta</div>
+        <div class="kpi-value" id="kpi-inventory-delta">--</div>
+        <div class="kpi-sub">Inventory Growth &minus; Sales Growth</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Debt-to-Equity Ratio</div>
+        <div class="kpi-value" id="kpi-de">--</div>
+        <div class="kpi-sub">Conservative Ceiling: &le; 1.0</div>
+      </div>
+    </div>
+
+    <!-- Defensive & Growth Rules Checklist -->
+    <div class="audit-table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Lynch Discipline Criteria</th>
+            <th>Standard Benchmark</th>
+            <th style="text-align: right;">Reported Value</th>
+            <th>Audit Status</th>
+          </tr>
+        </thead>
+        <tbody id="checklist-body">
+          <!-- Rendered dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Observations & Red Flags -->
+    <div class="red-flags-card">
+      <h3 class="section-title">Lynch Observations &amp; Operational Warnings</h3>
+      <ul class="flag-list" id="flags-list">
+        <!-- Rendered dynamically -->
+      </ul>
+    </div>
+  </div>
+
+  <!-- Portfolio Batch Matrix View -->
+  <div id="batch-view" style="display: none;">
+    <div class="matrix-filters">
+      <button class="filter-btn active" onclick="filterBatch('ALL', this)">All Holdings (<span id="count-all">0</span>)</button>
+      <button class="filter-btn" onclick="filterBatch('BUY', this)">Strong Buy / Buy (<span id="count-buy">0</span>)</button>
+      <button class="filter-btn" onclick="filterBatch('HOLD', this)">Hold (<span id="count-hold">0</span>)</button>
+      <button class="filter-btn" onclick="filterBatch('SELL', this)">Reduce / Sell (<span id="count-sell">0</span>)</button>
+    </div>
+
+    <div class="audit-table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Stance</th>
+            <th style="text-align: right;">Lynch Score</th>
+            <th style="text-align: right;">PEG Ratio</th>
+            <th style="text-align: right;">Adj. PEG</th>
+            <th style="text-align: right;">EPS CAGR</th>
+            <th style="text-align: right;">Inv. Delta</th>
+            <th>Lynch Summary</th>
+          </tr>
+        </thead>
+        <tbody id="batch-table-body">
+          <!-- Rendered dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <p>Tier 3 Peter Lynch Valuation Engine · AID-BMAD-MODULAR-STOCK-V1 · Offline Self-Contained Verification</p>
+  </footer>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+function fmtNum(val, dec = 2) {
+  if (val === null || val === undefined || isNaN(val)) return 'N/A';
+  return Number(val).toFixed(dec);
+}
+
+function init() {
+  if (!DATA) {
+    document.getElementById('view-title').textContent = 'No Data Provided';
+    return;
+  }
+
+  if (DATA.verdicts && Array.isArray(DATA.verdicts)) {
+    renderBatchView(DATA);
+  } else {
+    renderSingleView(DATA);
+  }
+}
+
+function renderSingleView(v) {
+  document.getElementById('single-view').style.display = 'block';
+  document.getElementById('batch-view').style.display = 'none';
+
+  const ticker = v.ticker || 'UNKNOWN';
+  document.getElementById('ticker-badge').textContent = ticker;
+  document.getElementById('view-title').textContent = `${ticker} · Lynch GARP Valuation Audit`;
+  document.getElementById('view-subtitle').textContent = `Evaluated: ${v.timestamp || 'N/A'}`;
+
+  const stanceBadge = document.getElementById('stance-badge');
+  stanceBadge.textContent = v.stance;
+  if (v.stance === 'STRONG_BUY' || v.stance === 'BUY') {
+    stanceBadge.className = 'badge badge-buy';
+  } else if (v.stance === 'HOLD') {
+    stanceBadge.className = 'badge badge-hold';
+  } else {
+    stanceBadge.className = 'badge badge-sell';
+  }
+
+  const category = v.summary && v.summary.includes('Fast Grower') ? 'Fast Grower'
+    : (v.summary && v.summary.includes('Stalwart') ? 'Stalwart'
+    : (v.summary && v.summary.includes('Slow Grower') ? 'Slow Grower'
+    : (v.summary && v.summary.includes('Cyclical') ? 'Cyclical'
+    : (v.summary && v.summary.includes('Asset Play') ? 'Asset Play' : 'GARP Growth'))));
+  document.getElementById('category-badge').textContent = category;
+
+  // Score & Gauge
+  const score = Math.round(Number(v.score || 0));
+  document.getElementById('gauge-score').textContent = score;
+  const circle = document.getElementById('gauge-circle');
+  const circumference = 263.89; // 2 * pi * 42
+  const offset = circumference - (score / 100) * circumference;
+  circle.style.strokeDashoffset = offset;
+
+  if (v.stance === 'STRONG_BUY' || v.stance === 'BUY') {
+    circle.className = 'gauge-val gauge-val-buy';
+  } else if (v.stance === 'HOLD') {
+    circle.className = 'gauge-val gauge-val-hold';
+  } else {
+    circle.className = 'gauge-val gauge-val-sell';
+  }
+
+  document.getElementById('company-name').textContent = `${ticker} Lynch Valuation: ${v.stance}`;
+  document.getElementById('verdict-summary').textContent = v.summary;
+
+  // Metrics
+  const m = v.metrics || {};
+  document.getElementById('kpi-peg').textContent = m.peg_ratio !== null ? fmtNum(m.peg_ratio) : 'N/A';
+  document.getElementById('kpi-adj-peg').textContent = m.yield_adjusted_peg_ratio !== null ? fmtNum(m.yield_adjusted_peg_ratio) : 'N/A';
+  document.getElementById('kpi-eps-growth').textContent = m.eps_growth_rate_pct !== null ? `${fmtNum(m.eps_growth_rate_pct)}%` : 'N/A';
+  document.getElementById('kpi-fair-val').textContent = m.lynch_fair_value !== null ? fmtNum(m.lynch_fair_value) : 'N/A';
+  document.getElementById('kpi-inventory-delta').textContent = m.inventory_divergence_pct !== null ? `${fmtNum(m.inventory_divergence_pct)}%` : 'N/A';
+  document.getElementById('kpi-de').textContent = m.debt_to_equity !== null ? fmtNum(m.debt_to_equity) : 'N/A';
+
+  // Checklist table
+  const checklist = [
+    {
+      rule: 'PEG Ratio Discipline',
+      bench: 'PEG ≤ 1.0 (Fair), ≤ 0.5 (Bargain)',
+      val: m.peg_ratio !== null ? fmtNum(m.peg_ratio) : 'N/A',
+      pass: m.peg_ratio !== null && m.peg_ratio <= 1.0
+    },
+    {
+      rule: 'Inventory Velocity Alignment',
+      bench: 'Inventory Growth ≤ Sales Growth (Δ ≤ 5%)',
+      val: m.inventory_divergence_pct !== null ? `${fmtNum(m.inventory_divergence_pct)}%` : 'N/A',
+      pass: m.inventory_divergence_pct !== null && m.inventory_divergence_pct <= 5.0
+    },
+    {
+      rule: 'Sustainable Earnings Expansion',
+      bench: 'EPS CAGR ≥ 10.0%',
+      val: m.eps_growth_rate_pct !== null ? `${fmtNum(m.eps_growth_rate_pct)}%` : 'N/A',
+      pass: m.eps_growth_rate_pct !== null && m.eps_growth_rate_pct >= 10.0
+    },
+    {
+      rule: 'Conservative Debt-to-Equity',
+      bench: 'Debt-to-Equity ≤ 1.0',
+      val: m.debt_to_equity !== null ? fmtNum(m.debt_to_equity) : 'N/A',
+      pass: m.debt_to_equity === null || m.debt_to_equity <= 1.0
+    }
+  ];
+
+  const tbody = document.getElementById('checklist-body');
+  tbody.innerHTML = '';
+  checklist.forEach(item => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="metric-name">${item.rule}</td>
+      <td style="color: var(--text-muted);">${item.bench}</td>
+      <td class="metric-val">${item.val}</td>
+      <td><span class="status-pill ${item.pass ? 'pill-buy' : 'pill-sell'}">${item.pass ? 'PASSED' : 'DEFICIENT'}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Observations
+  const flagsList = document.getElementById('flags-list');
+  flagsList.innerHTML = '';
+  if (!v.red_flags || v.red_flags.length === 0) {
+    flagsList.innerHTML = '<li class="clean-flags">✅ Robust growth velocity and PEG discipline confirmed. Zero inventory divergence.</li>';
+  } else {
+    v.red_flags.forEach(f => {
+      const isSevere = f.includes('Severe') || f.includes('Extreme') || f.includes('High');
+      const li = document.createElement('li');
+      li.className = `flag-item ${isSevere ? 'flag-item-danger' : 'flag-item-warn'}`;
+      li.textContent = `${isSevere ? '🚨 ' : '⚠️ '}${f}`;
+      flagsList.appendChild(li);
+    });
+  }
+}
+
+let batchVerdicts = [];
+function renderBatchView(batch) {
+  document.getElementById('single-view').style.display = 'none';
+  document.getElementById('batch-view').style.display = 'block';
+
+  document.getElementById('ticker-badge').textContent = 'PORTFOLIO';
+  document.getElementById('stance-badge').textContent = 'BATCH LYNCH AUDIT';
+  document.getElementById('category-badge').textContent = 'MULTI-ARCHETYPE';
+  document.getElementById('view-title').textContent = 'Peter Lynch GARP Valuation Portfolio Matrix';
+  document.getElementById('view-subtitle').textContent = `Batch Timestamp: ${batch.timestamp || 'N/A'} · Principle: ${batch.principle}`;
+
+  batchVerdicts = batch.verdicts || [];
+
+  let countBuy = 0;
+  let countHold = 0;
+  let countSell = 0;
+
+  batchVerdicts.forEach(v => {
+    if (v.stance === 'STRONG_BUY' || v.stance === 'BUY') countBuy++;
+    else if (v.stance === 'HOLD') countHold++;
+    else countSell++;
+  });
+
+  document.getElementById('count-all').textContent = batchVerdicts.length;
+  document.getElementById('count-buy').textContent = countBuy;
+  document.getElementById('count-hold').textContent = countHold;
+  document.getElementById('count-sell').textContent = countSell;
+
+  renderBatchRows(batchVerdicts);
+}
+
+function renderBatchRows(verdicts) {
+  const tbody = document.getElementById('batch-table-body');
+  tbody.innerHTML = '';
+
+  if (verdicts.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">No securities match the selected filter.</td></tr>';
+    return;
+  }
+
+  verdicts.forEach(v => {
+    const tr = document.createElement('tr');
+    const m = v.metrics || {};
+
+    let stancePillClass = 'pill-buy';
+    if (v.stance === 'HOLD') stancePillClass = 'pill-hold';
+    else if (v.stance === 'REDUCE' || v.stance === 'STRONG_SELL') stancePillClass = 'pill-sell';
+
+    tr.innerHTML = `
+      <td class="metric-name">${v.ticker}</td>
+      <td><span class="status-pill ${stancePillClass}">${v.stance}</span></td>
+      <td class="metric-val" style="color: ${v.stance === 'STRONG_BUY' || v.stance === 'BUY' ? 'var(--emerald)' : (v.stance === 'HOLD' ? 'var(--amber)' : 'var(--rose)')}; font-size: 1.05rem;">${fmtNum(v.score, 1)}</td>
+      <td class="metric-val">${m.peg_ratio !== null ? fmtNum(m.peg_ratio) : '-'}</td>
+      <td class="metric-val">${m.yield_adjusted_peg_ratio !== null ? fmtNum(m.yield_adjusted_peg_ratio) : '-'}</td>
+      <td class="metric-val">${m.eps_growth_rate_pct !== null ? fmtNum(m.eps_growth_rate_pct) + '%' : '-'}</td>
+      <td class="metric-val">${m.inventory_divergence_pct !== null ? fmtNum(m.inventory_divergence_pct) + '%' : '-'}</td>
+      <td style="max-width: 320px; font-size: 0.85rem; color: var(--text-muted);">${v.summary}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterBatch(filterType, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  if (filterType === 'ALL') {
+    renderBatchRows(batchVerdicts);
+  } else if (filterType === 'BUY') {
+    const filtered = batchVerdicts.filter(v => v.stance === 'STRONG_BUY' || v.stance === 'BUY');
+    renderBatchRows(filtered);
+  } else if (filterType === 'HOLD') {
+    const filtered = batchVerdicts.filter(v => v.stance === 'HOLD');
+    renderBatchRows(filtered);
+  } else {
+    const filtered = batchVerdicts.filter(v => v.stance === 'REDUCE' || v.stance === 'STRONG_SELL');
+    renderBatchRows(filtered);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
+

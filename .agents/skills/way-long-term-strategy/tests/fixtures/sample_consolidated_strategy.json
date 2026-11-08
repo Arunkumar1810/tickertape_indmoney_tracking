@@ -1,0 +1,418 @@
+{
+  "strategy_id": "fundamental_lts",
+  "timestamp": "2026-11-08T12:00:00.000Z",
+  "eval_date": "2026-11-08",
+  "base_currency": "INR",
+  "summary": {
+    "total_strategy_equity": 750000.0,
+    "total_invested_capital": 600000.0,
+    "unrealized_pnl": 150000.0,
+    "unrealized_pnl_pct": 25.0,
+    "xirr": 21.5,
+    "portfolio_health_score": 82.25,
+    "total_positions": 3,
+    "disqualified_count": 1,
+    "needs_review_count": 0,
+    "approved_count": 2,
+    "capital_at_risk": 100000.0
+  },
+  "blended_holdings": {
+    "strategy_id": "fundamental_lts",
+    "base_currency": "INR",
+    "eval_date": "2026-11-08",
+    "timestamp": "2026-11-08T12:00:00.000Z",
+    "accounts_blended": ["angelone", "indmoney_us"],
+    "summary": {
+      "total_invested_capital_base": 600000.0,
+      "total_current_value_base": 700000.0,
+      "total_unrealized_pnl_base": 100000.0,
+      "unrealized_pnl_pct": 16.67,
+      "pooled_cash_base": 50000.0,
+      "total_strategy_equity": 750000.0,
+      "positions_count": 3
+    },
+    "positions": [
+      {
+        "ticker": "INFY",
+        "name": "Infosys Limited",
+        "market": "IN",
+        "currency": "INR",
+        "total_quantity": 200,
+        "weighted_avg_cost": 1500.0,
+        "cmp": 1850.0,
+        "invested_value_base": 300000.0,
+        "current_value_base": 370000.0,
+        "unrealized_pnl_base": 70000.0,
+        "unrealized_pnl_pct": 23.33,
+        "weight_in_strategy_pct": 49.33,
+        "attribution": [
+          {
+            "account_id": "angelone",
+            "quantity": 200,
+            "cost_per_share": 1500.0,
+            "original_currency": "INR",
+            "fx_rate": 1.0,
+            "cost_in_base_currency": 1500.0,
+            "invested_value_base": 300000.0,
+            "current_value_base": 370000.0,
+            "weight_in_position_pct": 100.0
+          }
+        ]
+      },
+      {
+        "ticker": "AAPL",
+        "name": "Apple Inc.",
+        "market": "US",
+        "currency": "USD",
+        "total_quantity": 15,
+        "weighted_avg_cost": 150.0,
+        "cmp": 180.0,
+        "invested_value_base": 200000.0,
+        "current_value_base": 230000.0,
+        "unrealized_pnl_base": 30000.0,
+        "unrealized_pnl_pct": 15.0,
+        "weight_in_strategy_pct": 30.67,
+        "attribution": [
+          {
+            "account_id": "indmoney_us",
+            "quantity": 15,
+            "cost_per_share": 150.0,
+            "original_currency": "USD",
+            "fx_rate": 88.5,
+            "cost_in_base_currency": 13275.0,
+            "invested_value_base": 200000.0,
+            "current_value_base": 230000.0,
+            "weight_in_position_pct": 100.0
+          }
+        ]
+      },
+      {
+        "ticker": "BADCORP",
+        "name": "Bad Governance Corp",
+        "market": "IN",
+        "currency": "INR",
+        "total_quantity": 500,
+        "weighted_avg_cost": 200.0,
+        "cmp": 200.0,
+        "invested_value_base": 100000.0,
+        "current_value_base": 100000.0,
+        "unrealized_pnl_base": 0.0,
+        "unrealized_pnl_pct": 0.0,
+        "weight_in_strategy_pct": 13.33,
+        "attribution": [
+          {
+            "account_id": "angelone",
+            "quantity": 500,
+            "cost_per_share": 200.0,
+            "original_currency": "INR",
+            "fx_rate": 1.0,
+            "cost_in_base_currency": 200.0,
+            "invested_value_base": 100000.0,
+            "current_value_base": 100000.0,
+            "weight_in_position_pct": 100.0
+          }
+        ]
+      }
+    ],
+    "pooled_cash": [
+      {
+        "account_id": "angelone",
+        "cash_balance": 30000.0,
+        "original_currency": "INR",
+        "fx_rate": 1.0,
+        "cash_in_base_currency": 30000.0,
+        "weight_in_cash_pct": 60.0
+      },
+      {
+        "account_id": "indmoney_us",
+        "cash_balance": 225.99,
+        "original_currency": "USD",
+        "fx_rate": 88.5,
+        "cash_in_base_currency": 20000.0,
+        "weight_in_cash_pct": 40.0
+      }
+    ]
+  },
+  "performance": {
+    "strategy_id": "fundamental_lts",
+    "timestamp": "2026-11-08T12:00:00.000Z",
+    "base_currency": "INR",
+    "eval_date": "2026-11-08",
+    "xirr": 21.5,
+    "xirr_annualized": 21.5,
+    "absolute_return": 25.0,
+    "total_deposited": 600000.0,
+    "total_withdrawn": 0.0,
+    "net_invested": 600000.0,
+    "terminal_equity": 750000.0,
+    "days_held": 450,
+    "is_sub_annual": false,
+    "friction_breakdown": {
+      "brokerage": 1250.0,
+      "stt": 850.0,
+      "fx_drag": 1400.0,
+      "taxes_and_charges": 600.0,
+      "total_friction": 4100.0,
+      "friction_drag_pct": 0.68
+    },
+    "account_cashflows_summary": [],
+    "cashflows": []
+  },
+  "verdict_synthesis": {
+    "strategy_id": "fundamental_lts",
+    "timestamp": "2026-11-08T12:00:00.000Z",
+    "eval_date": "2026-11-08",
+    "summary": {
+      "portfolio_health_score": 82.25,
+      "total_positions": 3,
+      "disqualified_count": 1,
+      "needs_review_count": 0,
+      "approved_count": 2,
+      "capital_at_risk": 100000.0
+    },
+    "portfolio_verdicts": [
+      {
+        "ticker": "INFY",
+        "name": "Infosys Limited",
+        "market": "IN",
+        "synthesized_score": 86.5,
+        "synthesized_stance": "STRONG_BUY",
+        "is_disqualified": false,
+        "guardrail_triggered": false,
+        "gatekeeper_verdict": {
+          "principle": "forensic_governance",
+          "stance": "PASS",
+          "is_veto": false,
+          "score": 92.0,
+          "red_flags": []
+        },
+        "pillar_verdicts": {
+          "buffett_munger": {
+            "score": 88.0,
+            "stance": "STRONG_BUY",
+            "weight": 0.35,
+            "weighted_score": 30.8,
+            "red_flags": []
+          }
+        },
+        "notes": ["Clean forensic pass", "Solid compounding fundamentals"],
+        "recommended_allocation_pct": 60.0
+      },
+      {
+        "ticker": "AAPL",
+        "name": "Apple Inc.",
+        "market": "US",
+        "synthesized_score": 78.0,
+        "synthesized_stance": "BUY",
+        "is_disqualified": false,
+        "guardrail_triggered": false,
+        "gatekeeper_verdict": {
+          "principle": "forensic_governance",
+          "stance": "PASS",
+          "is_veto": false,
+          "score": 95.0,
+          "red_flags": []
+        },
+        "pillar_verdicts": {
+          "buffett_munger": {
+            "score": 92.0,
+            "stance": "STRONG_BUY",
+            "weight": 0.35,
+            "weighted_score": 32.2,
+            "red_flags": []
+          }
+        },
+        "notes": ["World-class brand moat"],
+        "recommended_allocation_pct": 40.0
+      },
+      {
+        "ticker": "BADCORP",
+        "name": "Bad Governance Corp",
+        "market": "IN",
+        "synthesized_score": 0.0,
+        "synthesized_stance": "DISQUALIFIED",
+        "is_disqualified": true,
+        "guardrail_triggered": false,
+        "gatekeeper_verdict": {
+          "principle": "forensic_governance",
+          "stance": "VETO_DISQUALIFIED",
+          "is_veto": true,
+          "score": 15.0,
+          "red_flags": ["Promoter pledge at 58.5% exceeds 50% hard veto threshold"]
+        },
+        "pillar_verdicts": {},
+        "notes": [
+          "GATEKEEPER VETO: Forensic governance audit triggered a hard veto. Automated capital allocation disqualified (0.0%)."
+        ],
+        "recommended_allocation_pct": 0.0
+      }
+    ],
+    "allocations": [
+      {
+        "ticker": "INFY",
+        "current_weight_pct": 49.33,
+        "recommended_weight_pct": 60.0,
+        "action": "INCREASE"
+      },
+      {
+        "ticker": "AAPL",
+        "current_weight_pct": 30.67,
+        "recommended_weight_pct": 40.0,
+        "action": "INCREASE"
+      },
+      {
+        "ticker": "BADCORP",
+        "current_weight_pct": 13.33,
+        "recommended_weight_pct": 0.0,
+        "action": "LIQUIDATE_IMMEDIATELY"
+      }
+    ]
+  },
+  "embedded_audits": {
+    "INFY": {
+      "ticker": "INFY",
+      "name": "Infosys Limited",
+      "market": "IN",
+      "synthesized_stance": "STRONG_BUY",
+      "synthesized_score": 86.5,
+      "gatekeeper_verdict": {
+        "principle": "forensic_governance",
+        "stance": "PASS",
+        "is_veto": false,
+        "score": 92.0,
+        "metrics": {
+          "promoter_pledge_pct": 0.0,
+          "beneish_m_score": -2.6
+        },
+        "red_flags": [],
+        "summary": "Pristine governance audit and zero promoter pledge."
+      },
+      "pillar_verdicts": {
+        "graham": {
+          "score": 75.0,
+          "stance": "BUY",
+          "weight": 0.25,
+          "weighted_score": 18.75,
+          "metrics": { "graham_number_ratio": 1.15 },
+          "red_flags": [],
+          "summary": "Reasonable Graham valuation floor."
+        },
+        "lynch": {
+          "score": 80.0,
+          "stance": "BUY",
+          "weight": 0.25,
+          "weighted_score": 20.0,
+          "metrics": { "peg_ratio": 1.25 },
+          "red_flags": [],
+          "summary": "Solid stalwart profile with fair PEG ratio."
+        },
+        "buffett_munger": {
+          "score": 88.0,
+          "stance": "STRONG_BUY",
+          "weight": 0.30,
+          "weighted_score": 26.4,
+          "metrics": { "roic_pct": 28.5 },
+          "red_flags": [],
+          "summary": "High un-leveraged ROIC and wide moat."
+        },
+        "klarman_solvency": {
+          "score": 90.0,
+          "stance": "STRONG_BUY",
+          "weight": 0.20,
+          "weighted_score": 18.0,
+          "metrics": { "altman_z_score": 8.5 },
+          "red_flags": [],
+          "summary": "Fortress balance sheet with ample liquidity."
+        }
+      },
+      "notes": ["Clean forensic pass", "Solid compounding fundamentals"]
+    },
+    "AAPL": {
+      "ticker": "AAPL",
+      "name": "Apple Inc.",
+      "market": "US",
+      "synthesized_stance": "BUY",
+      "synthesized_score": 78.0,
+      "gatekeeper_verdict": {
+        "principle": "forensic_governance",
+        "stance": "PASS",
+        "is_veto": false,
+        "score": 95.0,
+        "metrics": { "beneish_m_score": -3.1 },
+        "red_flags": [],
+        "summary": "Excellent accounting integrity."
+      },
+      "pillar_verdicts": {
+        "graham": {
+          "score": 65.0,
+          "stance": "HOLD",
+          "weight": 0.20,
+          "weighted_score": 13.0,
+          "metrics": { "graham_number_ratio": 1.45 },
+          "red_flags": [],
+          "summary": "Trades at a premium to Graham liquidation value."
+        },
+        "lynch": {
+          "score": 75.0,
+          "stance": "BUY",
+          "weight": 0.25,
+          "weighted_score": 18.75,
+          "metrics": { "peg_ratio": 1.4 },
+          "red_flags": [],
+          "summary": "High growth stalwart."
+        },
+        "buffett_munger": {
+          "score": 92.0,
+          "stance": "STRONG_BUY",
+          "weight": 0.35,
+          "weighted_score": 32.2,
+          "metrics": { "roic_pct": 35.0 },
+          "red_flags": [],
+          "summary": "Immense economic moat and brand pricing power."
+        },
+        "klarman_solvency": {
+          "score": 80.0,
+          "stance": "BUY",
+          "weight": 0.20,
+          "weighted_score": 16.0,
+          "metrics": { "altman_z_score": 6.2 },
+          "red_flags": [],
+          "summary": "High free cash flow provides debt buffer."
+        }
+      },
+      "notes": ["World-class brand moat", "Share buyback capital allocation"]
+    },
+    "BADCORP": {
+      "ticker": "BADCORP",
+      "name": "Bad Governance Corp",
+      "market": "IN",
+      "synthesized_stance": "DISQUALIFIED",
+      "synthesized_score": 0.0,
+      "gatekeeper_verdict": {
+        "principle": "forensic_governance",
+        "stance": "VETO_DISQUALIFIED",
+        "is_veto": true,
+        "score": 15.0,
+        "metrics": { "promoter_pledge_pct": 58.5 },
+        "red_flags": ["Promoter pledge at 58.5% exceeds 50% hard veto threshold"],
+        "summary": "Acute promoter pledging and auditor irregularity."
+      },
+      "pillar_verdicts": {
+        "graham": {
+          "score": 82.0,
+          "stance": "BUY",
+          "weight": 0.25,
+          "weighted_score": 20.5,
+          "metrics": {},
+          "red_flags": [],
+          "summary": "Deep value discount."
+        }
+      },
+      "notes": [
+        "GATEKEEPER VETO: Forensic governance audit triggered a hard veto. Automated capital allocation disqualified (0.0%).",
+        "[Gatekeeper Red Flag] Promoter pledge at 58.5% exceeds 50% hard veto threshold"
+      ]
+    }
+  }
+}
+

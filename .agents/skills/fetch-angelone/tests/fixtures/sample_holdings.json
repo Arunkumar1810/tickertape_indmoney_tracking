@@ -1,0 +1,79 @@
+{
+  "holdings": [
+    {
+      "tradingsymbol": "ITC",
+      "ticker": "ITC",
+      "symbol": "ITC",
+      "name": "ITC Ltd",
+      "isin": "INE154A01025",
+      "exchange": "NSE",
+      "quantity": 29,
+      "average_price": 268.87,
+      "last_price": 257.9,
+      "invested": 7797.23,
+      "current_value": 7479.1,
+      "pnl": -318.13,
+      "buyDate": "2026-09-11"
+    },
+    {
+      "tradingsymbol": "INFY",
+      "ticker": "INFY",
+      "symbol": "INFY",
+      "name": "Infosys Ltd",
+      "isin": "INE009A01021",
+      "exchange": "NSE",
+      "quantity": 5,
+      "average_price": 1042.99,
+      "last_price": 1153.8,
+      "invested": 5214.95,
+      "current_value": 5769.0,
+      "pnl": 554.05,
+      "buyDate": "2026-06-25"
+    },
+    {
+      "tradingsymbol": "ZYDUSLIFE",
+      "ticker": "ZYDUSLIFE",
+      "symbol": "ZYDUSLIFE",
+      "name": "Zydus Lifesciences Ltd",
+      "isin": "INE010B01027",
+      "exchange": "NSE",
+      "quantity": 10,
+      "average_price": 950.0,
+      "last_price": 1020.0,
+      "invested": 9500.0,
+      "current_value": 10200.0,
+      "pnl": 700.0,
+      "buyDate": "2026-08-15"
+    }
+  ],
+  "margin": {
+    "available_cash": 12500.5,
+    "collateral": 0,
+    "utilised": 0,
+    "net_margin": 12500.5
+  },
+  "trades": [
+    {
+      "type": "BUY",
+      "symbol": "ITC",
+      "date": "2026-09-11",
+      "quantity": 29,
+      "price": 268.87
+    },
+    {
+      "type": "BUY",
+      "symbol": "INFY",
+      "date": "2026-06-25",
+      "quantity": 5,
+      "price": 1042.99
+    },
+    {
+      "type": "BUY",
+      "symbol": "ZYDUSLIFE",
+      "date": "2026-08-15",
+      "quantity": 10,
+      "price": 950.0
+    }
+  ]
+}
+

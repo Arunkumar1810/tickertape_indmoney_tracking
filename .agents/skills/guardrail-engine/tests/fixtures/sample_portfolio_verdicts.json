@@ -1,0 +1,237 @@
+{
+  "strategy_id": "fundamental_lts",
+  "eval_date": "2026-11-08",
+  "stocks": [
+    {
+      "ticker": "INFY",
+      "name": "Infosys Limited",
+      "market": "IN",
+      "current_value": 300000.0,
+      "verdicts": [
+        {
+          "principle": "forensic_governance",
+          "ticker": "INFY",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 92.0,
+          "stance": "PASS",
+          "is_veto": false,
+          "metrics": { "promoter_pledge_pct": 0.0 },
+          "red_flags": [],
+          "summary": "Clean governance pass."
+        },
+        {
+          "principle": "graham",
+          "ticker": "INFY",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 75.0,
+          "stance": "BUY",
+          "is_veto": false,
+          "metrics": {},
+          "red_flags": [],
+          "summary": "Good Graham valuation."
+        },
+        {
+          "principle": "lynch",
+          "ticker": "INFY",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 80.0,
+          "stance": "BUY",
+          "is_veto": false,
+          "metrics": {},
+          "red_flags": [],
+          "summary": "Sound PEG ratio."
+        },
+        {
+          "principle": "buffett_munger",
+          "ticker": "INFY",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 88.0,
+          "stance": "STRONG_BUY",
+          "is_veto": false,
+          "metrics": {},
+          "red_flags": [],
+          "summary": "Strong ROIC compounding."
+        },
+        {
+          "principle": "klarman_solvency",
+          "ticker": "INFY",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 90.0,
+          "stance": "STRONG_BUY",
+          "is_veto": false,
+          "metrics": {},
+          "red_flags": [],
+          "summary": "Pristine balance sheet."
+        }
+      ]
+    },
+    {
+      "ticker": "RISKYTECH",
+      "name": "Risky Growth Technologies",
+      "market": "US",
+      "current_value": 150000.0,
+      "verdicts": [
+        {
+          "principle": "forensic_governance",
+          "ticker": "RISKYTECH",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 90.0,
+          "stance": "PASS",
+          "is_veto": false,
+          "metrics": {},
+          "red_flags": [],
+          "summary": "Pass."
+        },
+        {
+          "principle": "graham",
+          "ticker": "RISKYTECH",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 70.0,
+          "stance": "BUY",
+          "is_veto": false,
+          "metrics": {},
+          "red_flags": [],
+          "summary": "Fair margin."
+        },
+        {
+          "principle": "lynch",
+          "ticker": "RISKYTECH",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 22.0,
+          "stance": "STRONG_SELL",
+          "is_veto": false,
+          "metrics": {},
+          "red_flags": ["Inventory velocity divergence +38%"],
+          "summary": "Severe growth multiple bubble."
+        },
+        {
+          "principle": "buffett_munger",
+          "ticker": "RISKYTECH",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 88.0,
+          "stance": "STRONG_BUY",
+          "is_veto": false,
+          "metrics": {},
+          "red_flags": [],
+          "summary": "High ROIC."
+        },
+        {
+          "principle": "klarman_solvency",
+          "ticker": "RISKYTECH",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 82.0,
+          "stance": "BUY",
+          "is_veto": false,
+          "metrics": {},
+          "red_flags": [],
+          "summary": "Adequate liquidity."
+        }
+      ]
+    },
+    {
+      "ticker": "BADCORP",
+      "name": "Bad Governance Corp",
+      "market": "IN",
+      "current_value": 100000.0,
+      "verdicts": [
+        {
+          "principle": "forensic_governance",
+          "ticker": "BADCORP",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 15.0,
+          "stance": "VETO_DISQUALIFIED",
+          "is_veto": true,
+          "metrics": {},
+          "red_flags": ["Promoter pledge at 58.5% exceeds 50% hard veto threshold"],
+          "summary": "Severe forensic failure."
+        },
+        {
+          "principle": "graham",
+          "ticker": "BADCORP",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 82.0,
+          "stance": "BUY",
+          "is_veto": false,
+          "metrics": {},
+          "red_flags": [],
+          "summary": "Graham discount."
+        },
+        {
+          "principle": "buffett_munger",
+          "ticker": "BADCORP",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 70.0,
+          "stance": "BUY",
+          "is_veto": false,
+          "metrics": {},
+          "red_flags": [],
+          "summary": "Moderate returns."
+        }
+      ]
+    },
+    {
+      "ticker": "LEVCORP",
+      "name": "High Leverage Inc",
+      "market": "IN",
+      "current_value": 50000.0,
+      "verdicts": [
+        {
+          "principle": "forensic_governance",
+          "ticker": "LEVCORP",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 85.0,
+          "stance": "PASS",
+          "is_veto": false,
+          "metrics": {},
+          "red_flags": [],
+          "summary": "Governance pass."
+        },
+        {
+          "principle": "graham",
+          "ticker": "LEVCORP",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 70.0,
+          "stance": "BUY",
+          "is_veto": false,
+          "metrics": {},
+          "red_flags": [],
+          "summary": "Acceptable value."
+        },
+        {
+          "principle": "lynch",
+          "ticker": "LEVCORP",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 72.0,
+          "stance": "BUY",
+          "is_veto": false,
+          "metrics": {},
+          "red_flags": [],
+          "summary": "Decent growth."
+        },
+        {
+          "principle": "buffett_munger",
+          "ticker": "LEVCORP",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 75.0,
+          "stance": "BUY",
+          "is_veto": false,
+          "metrics": {},
+          "red_flags": [],
+          "summary": "Decent ROE."
+        },
+        {
+          "principle": "klarman_solvency",
+          "ticker": "LEVCORP",
+          "timestamp": "2026-11-08T10:00:00.000Z",
+          "score": 40.0,
+          "stance": "REDUCE",
+          "is_veto": false,
+          "metrics": { "debt_maturing_24m_ratio": 0.65 },
+          "red_flags": ["Debt maturity wall: 65% of total debt maturing within 24 months"],
+          "summary": "Refinancing risk near term."
+        }
+      ]
+    }
+  ]
+}
+
