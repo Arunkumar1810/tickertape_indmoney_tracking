@@ -1,4 +1,4 @@
-const { createAngelOneClient } = require('../shared/angelone');
+const { createAngelOneClient } = require('../../scripts/angelone');
 (async () => {
   const c = createAngelOneClient();
   try {
