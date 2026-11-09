@@ -22,13 +22,14 @@ function compileConsolidatedPortfolio(params) {
   const evalDate = params.evalDate || new Date().toISOString().slice(0, 10);
   const timestamp = params.timestamp || new Date().toISOString();
 
-  const blendedHoldings = params.blendedHoldings || {
-    strategy_id: strategyId,
-    base_currency: baseCurrency,
-    eval_date: evalDate,
-    timestamp,
-    accounts_blended: [],
-    summary: {
+  const rawBlended = params.blendedHoldings || {};
+  const blendedHoldings = {
+    strategy_id: rawBlended.strategy_id || strategyId,
+    base_currency: rawBlended.base_currency || baseCurrency,
+    eval_date: rawBlended.eval_date || evalDate,
+    timestamp: rawBlended.timestamp || timestamp,
+    accounts_blended: rawBlended.accounts_blended || [],
+    summary: rawBlended.summary || {
       total_invested_capital_base: 0.0,
       total_current_value_base: 0.0,
       total_unrealized_pnl_base: 0.0,
@@ -37,25 +38,48 @@ function compileConsolidatedPortfolio(params) {
       total_strategy_equity: 0.0,
       positions_count: 0
     },
-    positions: [],
-    pooled_cash: []
+    positions: (rawBlended.positions || []).map(p => ({
+      ...p,
+      total_quantity: p.total_quantity !== undefined ? p.total_quantity : (p.quantity || 0),
+      weighted_avg_cost: p.weighted_avg_cost !== undefined ? p.weighted_avg_cost : (p.average_price || 0),
+      invested_value_base: p.invested_value_base !== undefined ? p.invested_value_base : (p.invested_value || 0),
+      current_value_base: p.current_value_base !== undefined ? p.current_value_base : (p.current_value || 0),
+      unrealized_pnl_base: p.unrealized_pnl_base !== undefined ? p.unrealized_pnl_base : (p.unrealized_pnl || 0),
+      weight_in_strategy_pct: p.weight_in_strategy_pct !== undefined ? p.weight_in_strategy_pct : (p.weight_pct || 0)
+    })),
+    pooled_cash: rawBlended.pooled_cash || (
+      Array.isArray(rawBlended.accounts_blended) && rawBlended.accounts_blended.length > 0 && typeof rawBlended.accounts_blended[0] === 'object'
+        ? rawBlended.accounts_blended.map(acc => {
+            const totalCash = (rawBlended.summary && (rawBlended.summary.pooled_cash || rawBlended.summary.pooled_cash_base)) || 1;
+            return {
+              account_id: acc.account_id,
+              original_currency: acc.original_currency || baseCurrency,
+              cash_balance: acc.raw_cash !== undefined ? acc.raw_cash : 0,
+              fx_rate: acc.fx_rate !== undefined ? acc.fx_rate : 1,
+              cash_in_base_currency: acc.pooled_cash_contribution !== undefined ? acc.pooled_cash_contribution : (acc.raw_cash || 0),
+              weight_in_cash_pct: totalCash > 0 ? Number((((acc.pooled_cash_contribution || acc.raw_cash || 0) / totalCash) * 100).toFixed(1)) : 0
+            };
+          })
+        : []
+    )
   };
 
-  const performance = params.performance || {
-    strategy_id: strategyId,
-    timestamp,
-    base_currency: baseCurrency,
-    eval_date: evalDate,
-    xirr: null,
-    xirr_annualized: null,
-    absolute_return: 0.0,
-    total_deposited: 0.0,
-    total_withdrawn: 0.0,
-    net_invested: 0.0,
-    terminal_equity: 0.0,
-    days_held: 0,
-    is_sub_annual: true,
-    friction_breakdown: {
+  const rawPerformance = params.performance || {};
+  const performance = {
+    strategy_id: rawPerformance.strategy_id || strategyId,
+    timestamp: rawPerformance.timestamp || timestamp,
+    base_currency: rawPerformance.base_currency || baseCurrency,
+    eval_date: rawPerformance.eval_date || evalDate,
+    xirr: rawPerformance.xirr !== undefined ? rawPerformance.xirr : null,
+    xirr_annualized: rawPerformance.xirr_annualized !== undefined ? rawPerformance.xirr_annualized : null,
+    absolute_return: rawPerformance.absolute_return !== undefined ? rawPerformance.absolute_return : 0.0,
+    total_deposited: rawPerformance.total_deposited !== undefined ? rawPerformance.total_deposited : 0.0,
+    total_withdrawn: rawPerformance.total_withdrawn !== undefined ? rawPerformance.total_withdrawn : 0.0,
+    net_invested: rawPerformance.net_invested !== undefined ? rawPerformance.net_invested : 0.0,
+    terminal_equity: rawPerformance.terminal_equity !== undefined ? rawPerformance.terminal_equity : 0.0,
+    days_held: rawPerformance.days_held !== undefined ? rawPerformance.days_held : 0,
+    is_sub_annual: rawPerformance.is_sub_annual !== undefined ? rawPerformance.is_sub_annual : true,
+    friction_breakdown: rawPerformance.friction_breakdown || {
       brokerage: 0.0,
       stt: 0.0,
       fx_drag: 0.0,
@@ -63,15 +87,16 @@ function compileConsolidatedPortfolio(params) {
       total_friction: 0.0,
       friction_drag_pct: 0.0
     },
-    account_cashflows_summary: [],
-    cashflows: []
+    account_cashflows_summary: rawPerformance.account_cashflows_summary || [],
+    cashflows: rawPerformance.cashflows || []
   };
 
-  const verdictSynthesis = params.verdictSynthesis || {
-    strategy_id: strategyId,
-    timestamp,
-    eval_date: evalDate,
-    summary: {
+  const rawSynthesis = params.verdictSynthesis || {};
+  const verdictSynthesis = {
+    strategy_id: rawSynthesis.strategy_id || strategyId,
+    timestamp: rawSynthesis.timestamp || timestamp,
+    eval_date: rawSynthesis.eval_date || evalDate,
+    summary: rawSynthesis.summary || {
       portfolio_health_score: 0.0,
       total_positions: 0,
       disqualified_count: 0,
@@ -79,8 +104,8 @@ function compileConsolidatedPortfolio(params) {
       approved_count: 0,
       capital_at_risk: 0.0
     },
-    portfolio_verdicts: [],
-    allocations: []
+    portfolio_verdicts: rawSynthesis.portfolio_verdicts || [],
+    allocations: rawSynthesis.allocations || []
   };
 
   // Compile embedded audits
@@ -98,13 +123,17 @@ function compileConsolidatedPortfolio(params) {
     : 0.0;
 
   const totalInvested = blendedHoldings.summary
-    ? blendedHoldings.summary.total_invested_capital_base || 0.0
+    ? (blendedHoldings.summary.total_invested !== undefined
+        ? blendedHoldings.summary.total_invested
+        : (blendedHoldings.summary.total_invested_capital_base || 0.0))
     : 0.0;
 
   const unrealizedPnl = blendedHoldings.summary
-    ? (blendedHoldings.summary.total_unrealized_pnl_base !== undefined
-        ? blendedHoldings.summary.total_unrealized_pnl_base
-        : totalEquity - totalInvested)
+    ? (blendedHoldings.summary.unrealized_pnl !== undefined
+        ? blendedHoldings.summary.unrealized_pnl
+        : (blendedHoldings.summary.total_unrealized_pnl_base !== undefined
+            ? blendedHoldings.summary.total_unrealized_pnl_base
+            : totalEquity - totalInvested))
     : 0.0;
 
   const unrealizedPnlPct = totalInvested > 0

@@ -371,7 +371,8 @@ function processStrategyWay(wayId, options = {}) {
   const manifestPath = options.manifestPath || DEFAULT_MANIFEST_PATH;
   const manifest = loadManifestFile(manifestPath);
 
-  const way = (manifest.investment_ways || []).find(w => w.id === wayId);
+  const ways = (manifest && manifest.investment_ways) || {};
+  const way = Array.isArray(ways) ? ways.find(w => w.id === wayId) : ways[wayId];
   if (!way) {
     throw new Error(`Investment Way "${wayId}" not found in manifest at ${manifestPath}`);
   }
@@ -381,8 +382,10 @@ function processStrategyWay(wayId, options = {}) {
   // Find blended holdings
   const blendedCandidates = [
     path.join(REPO_ROOT, 'strategies', wayId, 'holdings_blended.json'),
+    path.join(REPO_ROOT, 'reports', 'strategies', `${wayId}_blended_holdings.json`),
     path.join(REPO_ROOT, 'reports', 'strategy_holdings_blended.json'),
     path.join(REPO_ROOT, 'reports', 'holdings_blended.json'),
+    path.join(REPO_ROOT, 'reports', 'strategies', 'custom_strategy_blended_holdings.json'),
     path.join(SKILL_ROOT, 'tests', 'fixtures', 'sample_portfolio_verdicts.json')
   ];
 

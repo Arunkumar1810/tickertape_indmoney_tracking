@@ -145,7 +145,7 @@ function renderHtml(portfolio) {
     else if (action === 'TRIM') actBadge = 'badge-reduce';
     else if (action === 'MAINTAIN') actBadge = 'badge-pass';
 
-    const pnlPos = pos.unrealized_pnl_base || 0.0;
+    const pnlPos = pos.unrealized_pnl_base !== undefined ? pos.unrealized_pnl_base : (pos.unrealized_pnl || 0.0);
     const pnlPosClass = pnlPos >= 0 ? 'val-positive' : 'val-negative';
     const pnlPosDisplay = (pnlPos >= 0 ? '+' : '') + pnlPos.toLocaleString();
 
@@ -155,10 +155,10 @@ function renderHtml(portfolio) {
       <tr>
         <td><strong>${tr.account_id}</strong></td>
         <td class="text-right">${tr.quantity}</td>
-        <td class="text-right">${tr.cost_per_share} ${tr.original_currency}</td>
+        <td class="text-right">${tr.cost_per_share || tr.average_price || 0} ${tr.original_currency}</td>
         <td class="text-right">${tr.fx_rate}</td>
-        <td class="text-right">${tr.invested_value_base.toLocaleString()}</td>
-        <td class="text-right">${tr.weight_in_position_pct.toFixed(1)}%</td>
+        <td class="text-right">${(tr.invested_value_base !== undefined ? tr.invested_value_base : (tr.invested_value || 0)).toLocaleString()}</td>
+        <td class="text-right">${(tr.weight_in_position_pct !== undefined ? tr.weight_in_position_pct : (tr.weight_pct || 0)).toFixed(1)}%</td>
       </tr>
     `).join('');
 
@@ -265,12 +265,12 @@ function renderHtml(portfolio) {
           </div>
         </details>
       </td>
-      <td class="text-center"><span class="badge ${pos.market === 'US' ? 'badge-hold' : 'badge-pass'}">${pos.market}</span></td>
-      <td class="text-right">${pos.total_quantity}</td>
-      <td class="text-right">${pos.weighted_avg_cost.toLocaleString()}</td>
-      <td class="text-right"><strong>${pos.cmp.toLocaleString()}</strong></td>
-      <td class="text-right"><strong>${pos.current_value_base.toLocaleString()}</strong></td>
-      <td class="text-right ${pnlPosClass}"><strong>${pnlPosDisplay}</strong> (${pos.unrealized_pnl_pct.toFixed(1)}%)</td>
+      <td class="text-center"><span class="badge ${pos.market === 'US' ? 'badge-hold' : 'badge-pass'}">${pos.market || 'IN'}</span></td>
+      <td class="text-right">${pos.total_quantity !== undefined ? pos.total_quantity : (pos.quantity || 0)}</td>
+      <td class="text-right">${(pos.weighted_avg_cost !== undefined ? pos.weighted_avg_cost : (pos.average_price || 0)).toLocaleString()}</td>
+      <td class="text-right"><strong>${(pos.cmp || 0).toLocaleString()}</strong></td>
+      <td class="text-right"><strong>${(pos.current_value_base !== undefined ? pos.current_value_base : (pos.current_value || 0)).toLocaleString()}</strong></td>
+      <td class="text-right ${pnlPosClass}"><strong>${pnlPosDisplay}</strong> (${(pos.unrealized_pnl_pct || 0).toFixed(1)}%)</td>
       <td class="text-center"><span class="badge ${stanceBadge}">${stance}</span></td>
       <td class="text-right"><strong>${(pv.recommended_allocation_pct || al.recommended_weight_pct || 0).toFixed(1)}%</strong></td>
       <td class="text-center"><span class="badge ${actBadge}">${action}</span></td>
@@ -383,9 +383,9 @@ function writeArtifacts(portfolio, outDir) {
  * @param {object} [options]
  */
 function processOfflineFiles(blendedPath, xirrPath, synthesisPath, options = {}) {
-  let blendedHoldings = null;
-  let performance = null;
-  let verdictSynthesis = null;
+  let blendedHoldings = options.blendedHoldings || null;
+  let performance = options.performance || null;
+  let verdictSynthesis = options.verdictSynthesis || null;
 
   if (blendedPath && fs.existsSync(blendedPath)) {
     const raw = JSON.parse(fs.readFileSync(path.resolve(blendedPath), 'utf8'));
@@ -463,8 +463,10 @@ function processStrategyWay(wayId, options = {}) {
   // 1. Locate blended holdings or fallback
   const blendedCandidates = [
     path.join(REPO_ROOT, 'strategies', wayId, 'holdings_blended.json'),
+    path.join(REPO_ROOT, 'reports', 'strategies', `${wayId}_blended_holdings.json`),
     path.join(REPO_ROOT, 'reports', 'strategy_holdings_blended.json'),
     path.join(REPO_ROOT, 'reports', 'holdings_blended.json'),
+    path.join(REPO_ROOT, 'reports', 'strategies', 'custom_strategy_blended_holdings.json'),
     path.join(SKILL_ROOT, 'tests', 'fixtures', 'sample_consolidated_strategy.json')
   ];
 
@@ -479,6 +481,7 @@ function processStrategyWay(wayId, options = {}) {
   // 2. Locate XIRR report or fallback
   const xirrCandidates = [
     path.join(REPO_ROOT, 'strategies', wayId, 'strategy_xirr.json'),
+    path.join(REPO_ROOT, 'reports', 'strategies', `${wayId}_strategy_xirr.json`),
     path.join(REPO_ROOT, 'reports', 'strategy_xirr.json'),
     path.join(SKILL_ROOT, 'tests', 'fixtures', 'sample_consolidated_strategy.json')
   ];
@@ -494,6 +497,8 @@ function processStrategyWay(wayId, options = {}) {
   // 3. Locate Verdict Synthesis or fallback
   const synthesisCandidates = [
     path.join(REPO_ROOT, 'strategies', wayId, 'strategy_verdict_synthesis.json'),
+    path.join(REPO_ROOT, 'reports', 'strategies', `${wayId}_strategy_verdict_synthesis.json`),
+    path.join(REPO_ROOT, 'reports', `${wayId}_verdict_synthesis.json`),
     path.join(REPO_ROOT, 'reports', 'strategy_verdict_synthesis.json'),
     path.join(SKILL_ROOT, 'tests', 'fixtures', 'sample_consolidated_strategy.json')
   ];
