@@ -131,6 +131,27 @@ function evaluateKlarmanSolvency(financials, options = {}) {
   );
 
   if (isIndexEtf) {
+    const etfSummary = `Index ETF passive basket (${ticker}): Single-equity Seth Klarman downside stress and solvency evaluation bypassed.`;
+    const verdict = {
+      principle: 'klarman_solvency',
+      principle_title: 'Seth Klarman Downside Solvency & Distress',
+      ticker,
+      timestamp,
+      stance: 'HOLD',
+      score: 100.0,
+      is_veto: false,
+      summary: etfSummary
+    };
+    const metrics = {
+      altman_z_score: null,
+      net_debt: null,
+      net_debt_to_ebitda: null,
+      interest_coverage: null,
+      debt_maturing_24m: null,
+      cash_to_debt_maturing_ratio: null,
+      accrual_gap: null,
+      operating_cash_flow_to_debt: null
+    };
     return {
       principle: 'klarman_solvency',
       ticker,
@@ -138,18 +159,29 @@ function evaluateKlarmanSolvency(financials, options = {}) {
       score: 100.0,
       stance: 'HOLD',
       is_veto: false,
-      metrics: {
-        altman_z_score: null,
-        net_debt: null,
-        net_debt_to_ebitda: null,
-        interest_coverage: null,
-        debt_maturing_24m: null,
-        cash_to_debt_maturing_ratio: null,
-        accrual_gap: null,
-        operating_cash_flow_to_debt: null
-      },
+      summary: etfSummary,
+      metrics,
       red_flags: [],
-      summary: `Index ETF passive basket (${ticker}): Single-equity Seth Klarman downside stress and solvency evaluation bypassed.`
+      verdict,
+      audit: [
+        {
+          check: 'Broad-Market Index Diversification',
+          criterion: 'Passive Index Basket',
+          value: 'Full Basket',
+          status: 'PASS',
+          score: 100.0,
+          max_score: 100.0,
+          details: 'Broad-market ETF bypasses single-company Altman Z and debt cliff constraints'
+        }
+      ],
+      positive: [
+        'Passive index fund provides automated broad-market insolvency diversification.'
+      ],
+      negative: [],
+      observations: [
+        'Passive index fund is evaluated on asset diversification rather than single-balance-sheet debt maturity walls.'
+      ],
+      warnings: []
     };
   }
 
@@ -225,84 +257,92 @@ function evaluateKlarmanSolvency(financials, options = {}) {
   let score = 0.0;
   const redFlags = [];
 
+  let pillar1Score = 0.0;
   // Pillar 1: Altman Z-Score & Bankruptcy Resistance (35 pts)
   if (altmanZScore !== null) {
     if (altmanZScore > 2.99) {
-      score += 35.0; // Safe Zone
+      pillar1Score = 35.0; // Safe Zone
     } else if (altmanZScore >= 2.50) {
-      score += 25.0; // Upper Grey Zone
+      pillar1Score = 25.0; // Upper Grey Zone
     } else if (altmanZScore >= 1.81) {
-      score += 15.0; // Lower Grey Zone
+      pillar1Score = 15.0; // Lower Grey Zone
       redFlags.push(`Grey Zone: Altman Z-Score of ${altmanZScore} indicates vulnerability to adverse economic shocks.`);
     } else {
-      score += 0.0; // Distress Zone
+      pillar1Score = 0.0; // Distress Zone
       redFlags.push(`Distress Zone: Altman Z-Score of ${altmanZScore} (< 1.81) indicates heightened bankruptcy and insolvency probability.`);
     }
   } else {
     // Missing balance sheet denominators or insufficient data
-    score += 0.0;
+    pillar1Score = 0.0;
   }
+  score += pillar1Score;
 
+  let pillar2Score = 0.0;
   // Pillar 2: Leverage Burden & Net Debt to EBITDA (25 pts)
   if (netDebt <= 0) {
-    score += 25.0; // Fortress Net Cash balance sheet
+    pillar2Score = 25.0; // Fortress Net Cash balance sheet
   } else if (ebitda !== null && ebitda > 0 && netDebtToEbitda !== null) {
     if (netDebtToEbitda <= 1.0) {
-      score += 25.0;
+      pillar2Score = 25.0;
     } else if (netDebtToEbitda <= 2.5) {
-      score += 18.0;
+      pillar2Score = 18.0;
     } else if (netDebtToEbitda <= 4.0) {
-      score += 8.0;
+      pillar2Score = 8.0;
       redFlags.push(`Elevated Leverage: Net Debt to EBITDA of ${netDebtToEbitda}x (above conservative 2.5x threshold).`);
     } else {
-      score += 0.0;
+      pillar2Score = 0.0;
       redFlags.push(`Excessive Leverage: Net Debt to EBITDA ratio of ${netDebtToEbitda}x (> 4.0x) indicates high debt vulnerability.`);
     }
   } else {
-    score += 0.0; // Positive net debt with zero or negative EBITDA
+    pillar2Score = 0.0; // Positive net debt with zero or negative EBITDA
     redFlags.push(`Severe Leverage Burden: Positive net debt (${netDebt}) with non-positive or negative EBITDA (${ebitda}).`);
   }
+  score += pillar2Score;
 
+  let pillar3Score = 0.0;
   // Pillar 3: Debt Maturity Wall & Refinancing Exposure (25 pts)
   if (debtMaturing24m <= 0) {
-    score += 25.0; // No debt due in 24m
+    pillar3Score = 25.0; // No debt due in 24m
   } else if (cash >= debtMaturing24m) {
-    score += 25.0; // Fully covered by liquid cash reserves
+    pillar3Score = 25.0; // Fully covered by liquid cash reserves
   } else if ((cash + ocf) >= debtMaturing24m) {
-    score += 18.0; // Covered by operating cash flow + cash
+    pillar3Score = 18.0; // Covered by operating cash flow + cash
   } else {
     const totalLiquidCushion = cash + Math.max(0, ocf);
     const liquidityCoverageRatio = totalLiquidCushion / debtMaturing24m;
     if (liquidityCoverageRatio >= 0.5) {
-      score += 8.0;
+      pillar3Score = 8.0;
       redFlags.push(`Refinancing Exposure: Cash and operating cash flow cover only ${round2(liquidityCoverageRatio * 100)}% of debt maturing within 24 months (${debtMaturing24m}).`);
     } else {
-      score += 0.0;
+      pillar3Score = 0.0;
       redFlags.push(`Debt Maturity Cliff: Imminent debt wall of ${debtMaturing24m} severely exceeds total liquidity (${round2(totalLiquidCushion)}), risking refinancing distress.`);
     }
   }
+  score += pillar3Score;
 
+  let pillar4Score = 0.0;
   // Pillar 4: Interest Coverage & Debt Service Cushion (15 pts)
   if (totalDebt <= 0 || interestExpense <= 0) {
-    score += 15.0; // No interest-bearing debt burden
+    pillar4Score = 15.0; // No interest-bearing debt burden
   } else if (interestCoverage !== null) {
     if (interestCoverage >= 5.0) {
-      score += 15.0; // Safe interest buffer
+      pillar4Score = 15.0; // Safe interest buffer
     } else if (interestCoverage >= 3.0) {
-      score += 10.0;
+      pillar4Score = 10.0;
     } else if (interestCoverage >= 1.5) {
-      score += 5.0;
+      pillar4Score = 5.0;
       redFlags.push(`Thin Interest Coverage: Operating earnings cover interest expense by only ${interestCoverage}x (below 3.0x safe buffer).`);
     } else {
-      score += 0.0;
+      pillar4Score = 0.0;
       redFlags.push(`Strained Debt Service: Interest coverage ratio of ${interestCoverage}x (< 1.5x) or negative operating profit.`);
     }
   } else {
-    score += 0.0;
+    pillar4Score = 0.0;
     if (ebit <= 0) {
       redFlags.push(`Strained Debt Service: Operating profit (EBIT) is negative (${ebit}) with ongoing interest charges.`);
     }
   }
+  score += pillar4Score;
 
   // 4. Stance Synthesis
   score = round2(Math.max(0.0, Math.min(100.0, score)));
@@ -339,6 +379,133 @@ function evaluateKlarmanSolvency(financials, options = {}) {
       `Altman distress zone or acute debt maturity cliff requires extreme caution.`;
   }
 
+  // 1. Audit Array (4 Pillars)
+  const audit = [
+    {
+      check: 'Altman Z-Score Distress Buffer',
+      criterion: 'Z-Score > 2.99 (Safe Zone, > 1.81 Grey Zone)',
+      value: altmanZScore !== null ? `${altmanZScore}` : 'N/A',
+      status: altmanZScore !== null && altmanZScore > 2.99 ? 'PASS' : (altmanZScore !== null && altmanZScore >= 1.81 ? 'WARN' : 'FAIL'),
+      score: pillar1Score,
+      max_score: 35,
+      details: altmanZScore !== null
+        ? `Altman Z-Score of ${altmanZScore} (${altmanZScore > 2.99 ? 'Safe Zone' : (altmanZScore >= 1.81 ? 'Grey Zone' : 'Distress Zone')})`
+        : 'Insufficient data for Altman Z calculation'
+    },
+    {
+      check: 'Leverage Burden & Net Debt to EBITDA',
+      criterion: 'Net Cash or Net Debt / EBITDA ≤ 2.5x',
+      value: netDebt <= 0 ? `Net Cash (${netDebt})` : (netDebtToEbitda !== null ? `${netDebtToEbitda}x` : 'N/A'),
+      status: netDebt <= 0 || (netDebtToEbitda !== null && netDebtToEbitda <= 2.5) ? 'PASS' : (netDebtToEbitda !== null && netDebtToEbitda <= 4.0 ? 'WARN' : 'FAIL'),
+      score: pillar2Score,
+      max_score: 25,
+      details: netDebt <= 0
+        ? `Fortress balance sheet with net cash position of ${Math.abs(netDebt)}`
+        : (netDebtToEbitda !== null ? `Net debt of ${netDebt} represents ${netDebtToEbitda}x EBITDA` : 'Non-positive EBITDA with net debt')
+    },
+    {
+      check: 'Debt Maturity Wall (24M Cushion)',
+      criterion: 'Cash & OCF cover 100% of debt due in 24 months',
+      value: debtMaturing24m <= 0 ? 'No Debt Due in 24M' : `${cashToDebtMaturingRatio !== null ? cashToDebtMaturingRatio + 'x' : 'N/A'} (Due: ${debtMaturing24m})`,
+      status: (debtMaturing24m <= 0 || cash >= debtMaturing24m || (cash + ocf) >= debtMaturing24m) ? 'PASS' : ((cash + Math.max(0, ocf)) >= 0.5 * debtMaturing24m ? 'WARN' : 'FAIL'),
+      score: pillar3Score,
+      max_score: 25,
+      details: debtMaturing24m <= 0
+        ? 'No debt maturities in the next 24 months'
+        : (cash >= debtMaturing24m
+          ? `Liquid cash reserves (${cash}) fully cover 24M debt wall (${debtMaturing24m})`
+          : `Cash (${cash}) and OCF (${ocf}) vs 24M maturities (${debtMaturing24m})`)
+    },
+    {
+      check: 'Interest Coverage & Debt Service Cushion',
+      criterion: 'Interest Coverage ≥ 3.0x (or Zero Debt)',
+      value: (totalDebt <= 0 || interestExpense <= 0) ? 'Debt-Free / No Interest' : (interestCoverage !== null ? `${interestCoverage}x` : 'N/A'),
+      status: (totalDebt <= 0 || interestExpense <= 0 || (interestCoverage !== null && interestCoverage >= 3.0)) ? 'PASS' : (interestCoverage !== null && interestCoverage >= 1.5 ? 'WARN' : 'FAIL'),
+      score: pillar4Score,
+      max_score: 15,
+      details: (totalDebt <= 0 || interestExpense <= 0)
+        ? 'Zero interest-bearing debt burden'
+        : (interestCoverage !== null
+          ? `Operating profit (EBIT ${ebit}) covers interest expense (${interestExpense}) by ${interestCoverage}x`
+          : 'Negative operating profit with ongoing interest charges')
+    }
+  ];
+
+  // 2. Positive Factors
+  const positive = [];
+  if (altmanZScore !== null && altmanZScore > 2.99) {
+    positive.push(`Altman Safe Zone: Z-Score of ${altmanZScore} indicates robust bankruptcy resistance.`);
+  }
+  if (netDebt <= 0) {
+    positive.push(`Fortress net cash: Cash and liquid equivalents exceed total debt by ${Math.abs(netDebt)}.`);
+  } else if (netDebtToEbitda !== null && netDebtToEbitda <= 1.0) {
+    positive.push(`Conservative leverage: Net Debt / EBITDA of ${netDebtToEbitda}x is well within safe bounds.`);
+  }
+  if (debtMaturing24m <= 0) {
+    positive.push('Zero near-term refinancing risk: No debt maturities scheduled in next 24 months.');
+  } else if (cash >= debtMaturing24m) {
+    positive.push(`Fully funded debt wall: Liquid cash reserves (${cash}) completely cover 24-month maturities (${debtMaturing24m}).`);
+  }
+  if (totalDebt <= 0 || interestExpense <= 0) {
+    positive.push('Unencumbered operations: Zero interest expense eliminates debt servicing vulnerability.');
+  } else if (interestCoverage !== null && interestCoverage >= 5.0) {
+    positive.push(`Generous debt service cushion: Interest coverage of ${interestCoverage}x easily absorbs earnings volatility.`);
+  }
+  if (accrualGap !== null && accrualGap > 0) {
+    positive.push(`Strong cash quality: Operating cash flow exceeds net income by ${accrualGap} (positive accrual cushion).`);
+  }
+
+  // 3. Negative Factors
+  const negative = [];
+  if (altmanZScore !== null && altmanZScore < 1.81) {
+    negative.push(`Altman Distress Zone: Z-Score of ${altmanZScore} indicates elevated insolvency risk.`);
+  } else if (altmanZScore !== null && altmanZScore < 2.50) {
+    negative.push(`Altman Grey Zone: Z-Score of ${altmanZScore} indicates vulnerability to macro stress.`);
+  }
+  if (netDebt > 0 && (netDebtToEbitda === null || netDebtToEbitda > 4.0)) {
+    negative.push(`High debt leverage: Net Debt / EBITDA ratio of ${netDebtToEbitda !== null ? netDebtToEbitda + 'x' : 'N/A'} exceeds 4.0x ceiling.`);
+  }
+  if (debtMaturing24m > 0 && (cash + Math.max(0, ocf)) < debtMaturing24m) {
+    negative.push(`Refinancing cliff exposure: Cash and operating flows do not fully cover 24M debt maturities (${debtMaturing24m}).`);
+  }
+  if (totalDebt > 0 && (interestCoverage === null || interestCoverage < 1.5)) {
+    negative.push(`Constrained interest service: Interest coverage (${interestCoverage !== null ? interestCoverage + 'x' : 'N/A'}) falls below defensive thresholds.`);
+  }
+
+  // 4. Observations
+  const observations = [
+    `Downside Solvency Posture: ${score >= 80 ? 'Fortress Balance Sheet' : (score >= 65 ? 'Adequate Solvency Buffer' : (score >= 50 ? 'Moderate Downside Risk' : 'High Solvency Stress'))}.`,
+    `Altman Z-Score: ${altmanZScore !== null ? altmanZScore : 'N/A'} (${altmanZScore > 2.99 ? 'Safe Zone' : (altmanZScore >= 1.81 ? 'Grey Zone' : 'Distress Zone')}).`,
+    `Net Debt Position: ${netDebt <= 0 ? 'Net Cash of ' + Math.abs(netDebt) : 'Net Debt of ' + netDebt} (Total Debt: ${totalDebt}, Cash: ${cash}).`,
+    `Operating Cash Flow to Total Debt: ${ocfToDebt !== null ? ocfToDebt + 'x' : (totalDebt <= 0 ? 'N/A (Debt-free)' : 'N/A')}.`
+  ];
+
+  // 5. Warnings
+  const warnings = [...redFlags];
+
+  // 6. Verdict Container
+  const verdict = {
+    principle: 'klarman_solvency',
+    principle_title: 'Seth Klarman Downside Solvency & Distress',
+    ticker,
+    timestamp,
+    stance,
+    score,
+    is_veto: false,
+    summary
+  };
+
+  const metrics = {
+    altman_z_score: altmanZScore,
+    net_debt: netDebt,
+    net_debt_to_ebitda: netDebtToEbitda,
+    interest_coverage: interestCoverage,
+    debt_maturing_24m: round2(debtMaturing24m),
+    cash_to_debt_maturing_ratio: cashToDebtMaturingRatio,
+    accrual_gap: accrualGap,
+    operating_cash_flow_to_debt: ocfToDebt
+  };
+
   return {
     principle: 'klarman_solvency',
     ticker,
@@ -346,18 +513,15 @@ function evaluateKlarmanSolvency(financials, options = {}) {
     score,
     stance,
     is_veto: false,
-    metrics: {
-      altman_z_score: altmanZScore,
-      net_debt: netDebt,
-      net_debt_to_ebitda: netDebtToEbitda,
-      interest_coverage: interestCoverage,
-      debt_maturing_24m: round2(debtMaturing24m),
-      cash_to_debt_maturing_ratio: cashToDebtMaturingRatio,
-      accrual_gap: accrualGap,
-      operating_cash_flow_to_debt: ocfToDebt
-    },
+    metrics,
     red_flags: redFlags,
-    summary
+    summary,
+    verdict,
+    audit,
+    positive,
+    negative,
+    observations,
+    warnings
   };
 }
 
@@ -369,8 +533,8 @@ function renderHtml(data) {
     throw new Error(`Template not found at ${TEMPLATE_PATH}`);
   }
   const template = fs.readFileSync(TEMPLATE_PATH, 'utf8');
-  const serialized = JSON.stringify(data);
-  return template.replace('/*__DATA__*/null;', `const DATA = ${serialized};`);
+  const serialized = JSON.stringify(data, null, 2);
+  return template.replace('/*__DATA__*/null', () => serialized);
 }
 
 /**

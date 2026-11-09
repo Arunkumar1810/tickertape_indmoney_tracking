@@ -98,6 +98,34 @@
           "type": "string",
           "minLength": 1,
           "description": "Human-readable narrative explanation of the verdict."
+        },
+        "verdict": {
+          "type": "object",
+          "description": "Standardized verdict container holding stance, score, is_veto, and summary."
+        },
+        "audit": {
+          "type": "array",
+          "description": "Detailed pillar-by-pillar audit checks with criteria, values, and status."
+        },
+        "positive": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Positive valuation findings and competitive strengths."
+        },
+        "negative": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Negative valuation findings and vulnerabilities."
+        },
+        "observations": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Qualitative and contextual observations."
+        },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Warnings and risk flags."
         }
       },
       "allOf": [

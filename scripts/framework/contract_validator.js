@@ -124,7 +124,7 @@ const FORENSICS_ALL_KEYS = new Set([
   ...FORENSICS_STRING_KEYS
 ]);
 
-const VERDICT_TOP_KEYS = new Set([
+const VERDICT_TOP_REQUIRED_KEYS = new Set([
   'principle',
   'ticker',
   'timestamp',
@@ -134,6 +134,20 @@ const VERDICT_TOP_KEYS = new Set([
   'metrics',
   'red_flags',
   'summary'
+]);
+
+const VERDICT_OPTIONAL_KEYS = new Set([
+  'verdict',
+  'audit',
+  'positive',
+  'negative',
+  'observations',
+  'warnings'
+]);
+
+const VERDICT_TOP_KEYS = new Set([
+  ...VERDICT_TOP_REQUIRED_KEYS,
+  ...VERDICT_OPTIONAL_KEYS
 ]);
 
 const VERDICT_BATCH_TOP_KEYS = new Set(['principle', 'timestamp', 'verdicts']);
@@ -823,7 +837,7 @@ function validateUniformVerdict(payload, pathPrefix = '') {
     }
   }
 
-  for (const reqKey of VERDICT_TOP_KEYS) {
+  for (const reqKey of VERDICT_TOP_REQUIRED_KEYS) {
     if (!(reqKey in payload)) {
       addError(
         'ERR_MISSING_REQUIRED_FIELD',

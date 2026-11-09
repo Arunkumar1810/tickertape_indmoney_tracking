@@ -172,6 +172,29 @@ function evaluateBuffettMungerValuation(financials, options = {}) {
   );
 
   if (isIndexEtf) {
+    const etfSummary = `Index ETF passive basket (${ticker}): Single-equity Buffett-Munger DuPont decomposition and Owner Earnings bypassed.`;
+    const verdict = {
+      principle: 'buffett_munger',
+      principle_title: 'Buffett & Munger Quality Compounding',
+      ticker,
+      timestamp,
+      stance: 'HOLD',
+      score: 100.0,
+      is_veto: false,
+      summary: etfSummary
+    };
+    const metrics = {
+      owner_earnings: null,
+      owner_earnings_yield_pct: null,
+      sbc_dilution_pct: null,
+      roe_pct: null,
+      tax_burden: null,
+      interest_burden: null,
+      operating_margin_pct: null,
+      asset_turnover: null,
+      financial_leverage: null,
+      roic_pct: null
+    };
     return {
       principle: 'buffett_munger',
       ticker,
@@ -179,20 +202,29 @@ function evaluateBuffettMungerValuation(financials, options = {}) {
       score: 100.0,
       stance: 'HOLD',
       is_veto: false,
-      metrics: {
-        owner_earnings: null,
-        owner_earnings_yield_pct: null,
-        sbc_dilution_pct: null,
-        roe_pct: null,
-        tax_burden: null,
-        interest_burden: null,
-        operating_margin_pct: null,
-        asset_turnover: null,
-        financial_leverage: null,
-        roic_pct: null
-      },
+      summary: etfSummary,
+      metrics,
       red_flags: [],
-      summary: `Index ETF passive basket (${ticker}): Single-equity Buffett-Munger DuPont decomposition and Owner Earnings bypassed.`
+      verdict,
+      audit: [
+        {
+          check: 'Broad-Market Index Diversification',
+          criterion: 'Passive Index Basket',
+          value: 'Full Basket',
+          status: 'PASS',
+          score: 100.0,
+          max_score: 100.0,
+          details: 'Passive ETF automatically diversifies across constituent holdings'
+        }
+      ],
+      positive: [
+        'Passive index fund provides automated broad-market diversification.'
+      ],
+      negative: [],
+      observations: [
+        'Passive index fund is evaluated on asset diversification rather than individual DuPont decomposition and Owner Earnings.'
+      ],
+      warnings: []
     };
   }
 
@@ -250,82 +282,90 @@ function evaluateBuffettMungerValuation(financials, options = {}) {
   let score = 0.0;
   const redFlags = [];
 
+  let pillar1Score = 0.0;
   // Pillar 1: Capital Efficiency & ROIC Moat (max 35 pts)
   if (roic !== null) {
     if (roic >= 20.0) {
-      score += 35.0;
+      pillar1Score = 35.0;
       redFlags.unshift(`🌟 Wide economic moat confirmed: ROIC of ${roic}% exceeds 20.0% hurdle`);
     } else if (roic >= 15.0) {
-      score += 28.0;
+      pillar1Score = 28.0;
     } else if (roic >= 10.0) {
-      score += 18.0;
+      pillar1Score = 18.0;
     } else if (roic >= 5.0) {
-      score += 8.0;
+      pillar1Score = 8.0;
     } else {
-      score += 0.0;
+      pillar1Score = 0.0;
       redFlags.push(`Sub-par capital efficiency: ROIC of ${roic}% is below 5.0% threshold`);
     }
   } else {
-    score += 0.0;
+    pillar1Score = 0.0;
     redFlags.push('Negative or indeterminable ROIC indicates capital destruction or negative invested capital');
   }
+  score += pillar1Score;
 
+  let pillar2Score = 0.0;
   // Pillar 2: True Owner Earnings & Dilution Quality (max 25 pts)
   if (trueOwnerEarnings !== null && trueOwnerEarnings > 0) {
     if (sbcDilutionPct <= 5.0) {
-      score += 25.0;
+      pillar2Score = 25.0;
     } else if (sbcDilutionPct <= 15.0) {
-      score += 18.0;
+      pillar2Score = 18.0;
     } else if (sbcDilutionPct <= 25.0) {
-      score += 8.0;
+      pillar2Score = 8.0;
       redFlags.push(`Elevated equity dilution: SBC represents ${sbcDilutionPct}% of operating cash flow (>15.0% threshold)`);
     } else {
-      score += 0.0;
+      pillar2Score = 0.0;
       redFlags.push(`Severe SBC dilution: SBC represents ${sbcDilutionPct}% of operating cash flow (>25.0% ceiling)`);
     }
   } else {
-    score += 0.0;
+    pillar2Score = 0.0;
     redFlags.push(`Negative true Owner Earnings (${trueOwnerEarnings}) indicates cash drain net of CapEx and SBC`);
   }
+  score += pillar2Score;
 
+  let pillar3Score = 0.0;
   // Pillar 3: DuPont ROE Quality & Discipline (max 25 pts)
   if (dupont !== null) {
     if (dupont.calculatedRoePct >= 15.0 && dupont.operatingMarginPct >= 15.0 && dupont.financialLeverage <= 2.5) {
-      score += 25.0;
+      pillar3Score = 25.0;
     } else if (dupont.calculatedRoePct >= 12.0 && dupont.financialLeverage <= 3.5) {
-      score += 15.0;
+      pillar3Score = 15.0;
     } else if (dupont.financialLeverage > 3.5) {
-      score += 5.0;
+      pillar3Score = 5.0;
       redFlags.push(`Artificial ROE leverage: Financial leverage of ${dupont.financialLeverage}x exceeds 3.5x ceiling with thin margins`);
     } else if (dupont.calculatedRoePct >= 8.0) {
-      score += 8.0;
+      pillar3Score = 8.0;
     } else {
-      score += 0.0;
+      pillar3Score = 0.0;
       redFlags.push(`Tepid ROE: DuPont calculated ROE (${dupont.calculatedRoePct}%) is below 8.0% threshold`);
     }
   } else {
-    score += 0.0;
+    pillar3Score = 0.0;
     redFlags.push('Negative or indeterminable earnings preclude 5-step DuPont ROE decomposition');
   }
+  score += pillar3Score;
 
+  let pillar4Score = 0.0;
   // Pillar 4: Valuation & Owner Earnings Yield (max 15 pts)
   if (ownerEarningsYield !== null) {
     if (ownerEarningsYield >= 6.0) {
-      score += 15.0;
+      pillar4Score = 15.0;
     } else if (ownerEarningsYield >= 4.0) {
-      score += 10.0;
+      pillar4Score = 10.0;
     } else if (ownerEarningsYield >= 2.0) {
-      score += 5.0;
+      pillar4Score = 5.0;
     } else {
-      score += 0.0;
+      pillar4Score = 0.0;
       redFlags.push(`Compressed Owner Earnings Yield (${ownerEarningsYield}% < 2.0%) indicates stretched valuation multiple`);
     }
   } else {
-    score += 0.0;
+    pillar4Score = 0.0;
     if (marketCap && marketCap > 0 && trueOwnerEarnings <= 0) {
       redFlags.push('Zero or negative Owner Earnings Yield precludes valuation multiple support');
     }
   }
+  score += pillar4Score;
 
   // Stance Mapping
   const finalScore = round2(Math.max(0.0, Math.min(score, 100.0)));
@@ -356,6 +396,128 @@ function evaluateBuffettMungerValuation(financials, options = {}) {
     summary = `${stance} (${moatDescription}): Deficient capital compounding or heavy dilution. ${sbcDilutionPct > 15.0 ? `Heavy SBC dilution of ${sbcDilutionPct}% eroding cash conversion.` : ''} ${dupont && dupont.financialLeverage > 3.5 ? `DuPont analysis indicates artificial leverage (${dupont.financialLeverage}x).` : ''}`;
   }
 
+  // 1. Audit Array (4 Pillars)
+  const audit = [
+    {
+      check: 'Economic Moat & ROIC Hurdle',
+      criterion: 'ROIC ≥ 15.0% (Wide Moat ≥ 20.0%)',
+      value: roic !== null ? `${roic}%` : 'N/A',
+      status: roic !== null && roic >= 15.0 ? 'PASS' : (roic !== null && roic >= 8.0 ? 'WARN' : 'FAIL'),
+      score: pillar1Score,
+      max_score: 35,
+      details: roic !== null ? `ROIC of ${roic}% indicates ${moatDescription}` : 'Negative or indeterminable ROIC'
+    },
+    {
+      check: 'True Owner Earnings & Dilution Quality',
+      criterion: 'Owner Earnings > 0 & SBC Dilution ≤ 15.0%',
+      value: trueOwnerEarnings !== null ? `${trueOwnerEarnings} (SBC: ${sbcDilutionPct}%)` : 'N/A',
+      status: (trueOwnerEarnings !== null && trueOwnerEarnings > 0 && sbcDilutionPct <= 15.0) ? 'PASS' : ((trueOwnerEarnings !== null && trueOwnerEarnings > 0 && sbcDilutionPct <= 25.0) ? 'WARN' : 'FAIL'),
+      score: pillar2Score,
+      max_score: 25,
+      details: trueOwnerEarnings !== null && trueOwnerEarnings > 0
+        ? `True Owner Earnings ${trueOwnerEarnings} with ${sbcDilutionPct}% SBC dilution drag`
+        : 'Negative Owner Earnings indicates cash drain net of CapEx and SBC'
+    },
+    {
+      check: 'DuPont ROE Quality & Discipline',
+      criterion: 'ROE ≥ 15.0% with Financial Leverage ≤ 2.5x',
+      value: dupont ? `${dupont.calculatedRoePct}% (Lev: ${dupont.financialLeverage}x)` : 'N/A',
+      status: dupont && dupont.calculatedRoePct >= 15.0 && dupont.financialLeverage <= 2.5 ? 'PASS' : (dupont && dupont.calculatedRoePct >= 10.0 && dupont.financialLeverage <= 3.5 ? 'WARN' : 'FAIL'),
+      score: pillar3Score,
+      max_score: 25,
+      details: dupont
+        ? `DuPont ROE ${dupont.calculatedRoePct}%, Operating Margin ${dupont.operatingMarginPct}%, Leverage ${dupont.financialLeverage}x`
+        : 'DuPont ROE decomposition unavailable'
+    },
+    {
+      check: 'Valuation & Owner Earnings Yield',
+      criterion: 'Owner Earnings Yield ≥ 4.0% (Strong ≥ 6.0%)',
+      value: ownerEarningsYield !== null ? `${ownerEarningsYield}%` : 'N/A',
+      status: ownerEarningsYield !== null && ownerEarningsYield >= 4.0 ? 'PASS' : (ownerEarningsYield !== null && ownerEarningsYield >= 2.0 ? 'WARN' : 'FAIL'),
+      score: pillar4Score,
+      max_score: 15,
+      details: ownerEarningsYield !== null
+        ? `Owner Earnings Yield of ${ownerEarningsYield}% on Market Cap ${marketCap}`
+        : 'Owner Earnings Yield unavailable'
+    }
+  ];
+
+  // 2. Positive Factors
+  const positive = [];
+  if (roic !== null && roic >= 20.0) {
+    positive.push(`Wide economic moat confirmed: Exceptional ROIC of ${roic}% reflects superior pricing power and competitive barriers.`);
+  } else if (roic !== null && roic >= 15.0) {
+    positive.push(`Solid economic moat: ROIC of ${roic}% comfortably exceeds standard cost of capital.`);
+  }
+  if (trueOwnerEarnings !== null && trueOwnerEarnings > 0 && sbcDilutionPct <= 5.0) {
+    positive.push(`Supreme cash conversion: True Owner Earnings (${trueOwnerEarnings}) with negligible SBC dilution (${sbcDilutionPct}%).`);
+  } else if (trueOwnerEarnings !== null && trueOwnerEarnings > 0 && sbcDilutionPct <= 15.0) {
+    positive.push(`Healthy cash conversion: Positive Owner Earnings (${trueOwnerEarnings}) with manageable SBC dilution (${sbcDilutionPct}%).`);
+  }
+  if (dupont && dupont.calculatedRoePct >= 15.0 && dupont.financialLeverage <= 2.5) {
+    positive.push(`High-quality un-leveraged ROE: DuPont ROE of ${dupont.calculatedRoePct}% powered by operating margins (${dupont.operatingMarginPct}%), not balance sheet debt.`);
+  }
+  if (ownerEarningsYield !== null && ownerEarningsYield >= 4.0) {
+    positive.push(`Attractive intrinsic cash yield: Owner Earnings yield of ${ownerEarningsYield}% provides strong fundamental valuation support.`);
+  }
+  if (totalDebt === 0) {
+    positive.push('Pristine debt-free balance sheet eliminates financial leverage vulnerability.');
+  }
+
+  // 3. Negative Factors
+  const negative = [];
+  if (roic !== null && roic < 10.0) {
+    negative.push(`Weak capital efficiency: ROIC of ${roic}% indicates narrow or deteriorating economic moat.`);
+  }
+  if (trueOwnerEarnings !== null && trueOwnerEarnings <= 0) {
+    negative.push('Negative Owner Earnings: Operations fail to generate free cash flow after maintenance CapEx and SBC dilution.');
+  }
+  if (sbcDilutionPct > 15.0) {
+    negative.push(`Stock-based compensation drag: SBC consumes ${sbcDilutionPct}% of operating cash flow, diluting shareholder claims.`);
+  }
+  if (dupont && dupont.financialLeverage > 3.5) {
+    negative.push(`Artificial ROE leverage: High financial leverage (${dupont.financialLeverage}x) artificially inflates headline ROE.`);
+  }
+  if (ownerEarningsYield !== null && ownerEarningsYield < 2.0) {
+    negative.push(`Compressed cash yield: Owner Earnings yield of ${ownerEarningsYield}% signals elevated valuation multiples.`);
+  }
+
+  // 4. Observations
+  const observations = [
+    `Economic Moat Classification: ${moatDescription}.`,
+    `DuPont 5-Step Decomposition: Tax Burden ${dupont ? dupont.taxBurden : 'N/A'}, Interest Burden ${dupont ? dupont.interestBurden : 'N/A'}, Operating Margin ${dupont ? dupont.operatingMarginPct + '%' : 'N/A'}, Asset Turnover ${dupont ? dupont.assetTurnover : 'N/A'}, Financial Leverage ${dupont ? dupont.financialLeverage + 'x' : 'N/A'}.`,
+    `True Owner Earnings: ${trueOwnerEarnings !== null ? trueOwnerEarnings : 'N/A'} (OCF ${ocf} - CapEx ${capex} - SBC ${sbc}).`,
+    `Return on Invested Capital (ROIC): ${roic !== null ? roic + '%' : 'N/A'}.`
+  ];
+
+  // 5. Warnings
+  const warnings = [...redFlags];
+
+  // 6. Verdict Container
+  const verdict = {
+    principle: 'buffett_munger',
+    principle_title: 'Buffett & Munger Quality Compounding',
+    ticker,
+    timestamp,
+    stance,
+    score: finalScore,
+    is_veto: false,
+    summary
+  };
+
+  const metrics = {
+    owner_earnings: trueOwnerEarnings,
+    owner_earnings_yield_pct: ownerEarningsYield,
+    sbc_dilution_pct: sbcDilutionPct,
+    roe_pct: dupont ? dupont.calculatedRoePct : null,
+    tax_burden: dupont ? dupont.taxBurden : null,
+    interest_burden: dupont ? dupont.interestBurden : null,
+    operating_margin_pct: dupont ? dupont.operatingMarginPct : null,
+    asset_turnover: dupont ? dupont.assetTurnover : null,
+    financial_leverage: dupont ? dupont.financialLeverage : null,
+    roic_pct: roic
+  };
+
   return {
     principle: 'buffett_munger',
     ticker,
@@ -363,20 +525,15 @@ function evaluateBuffettMungerValuation(financials, options = {}) {
     score: finalScore,
     stance,
     is_veto: false,
-    metrics: {
-      owner_earnings: trueOwnerEarnings,
-      owner_earnings_yield_pct: ownerEarningsYield,
-      sbc_dilution_pct: sbcDilutionPct,
-      roe_pct: dupont ? dupont.calculatedRoePct : null,
-      tax_burden: dupont ? dupont.taxBurden : null,
-      interest_burden: dupont ? dupont.interestBurden : null,
-      operating_margin_pct: dupont ? dupont.operatingMarginPct : null,
-      asset_turnover: dupont ? dupont.assetTurnover : null,
-      financial_leverage: dupont ? dupont.financialLeverage : null,
-      roic_pct: roic
-    },
+    metrics,
     red_flags: redFlags,
-    summary
+    summary,
+    verdict,
+    audit,
+    positive,
+    negative,
+    observations,
+    warnings
   };
 }
 

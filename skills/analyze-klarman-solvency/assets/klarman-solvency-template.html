@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Klarman Solvency & Downside Stress Audit · Altman Z-Score & Liquidity Cliff</title>
-<meta name="description" content="Tier 3 Seth Klarman Downside Stress & Solvency Engine Audit: Altman Z-Score, Debt Maturity Wall, Net Debt to EBITDA, and Interest Coverage.">
+<title>Tier 3 Valuation Audit Dashboard · Modular Stock Framework</title>
+<meta name="description" content="Standardized Tier 3 Valuation Audit: Verdict, Metrics, Audit, Positive, Negative, Observations, Warnings.">
 <style>
 :root {
   --bg: #090d16;
@@ -26,9 +26,7 @@
   --cyan: #38bdf8;
   --cyan-bg: rgba(56, 189, 248, 0.12);
   --cyan-border: rgba(56, 189, 248, 0.3);
-  --purple: #a855f7;
-  --purple-bg: rgba(168, 85, 247, 0.12);
-  --purple-border: rgba(168, 85, 247, 0.3);
+  --indigo: #6366f1;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -53,7 +51,7 @@ header {
   font-size: 1.85rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -72,14 +70,24 @@ header {
   font-size: 0.8rem;
   font-weight: 600;
 }
-.badge-pillar { color: #f59e0b; border-color: var(--amber-border); background: var(--amber-bg); }
-.badge-zone-safe { color: var(--emerald); border-color: var(--emerald-border); background: var(--emerald-bg); }
-.badge-zone-grey { color: var(--amber); border-color: var(--amber-border); background: var(--amber-bg); }
-.badge-zone-distress { color: var(--rose); border-color: var(--rose-border); background: var(--rose-bg); }
+.badge-ticker { color: #f8fafc; border-color: rgba(255, 255, 255, 0.2); font-weight: 700; }
+.badge-pillar { color: #38bdf8; border-color: var(--cyan-border); background: var(--cyan-bg); }
 .badge-buy { color: var(--emerald); border-color: var(--emerald-border); background: var(--emerald-bg); }
 .badge-hold { color: var(--amber); border-color: var(--amber-border); background: var(--amber-bg); }
 .badge-sell { color: var(--rose); border-color: var(--rose-border); background: var(--rose-bg); }
 
+/* Section Header */
+.section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 28px 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 1. Verdict Card */
 .scorecard {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -96,8 +104,8 @@ header {
 }
 .gauge-wrapper {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: 130px;
+  height: 130px;
 }
 .gauge-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .gauge-bg { fill: none; stroke: var(--surface-alt); stroke-width: 10; }
@@ -105,200 +113,52 @@ header {
   fill: none;
   stroke-width: 10;
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.8s ease-in-out;
+  transition: stroke-dashoffset 0.8s ease;
 }
 .gauge-val-buy { stroke: var(--emerald); }
 .gauge-val-hold { stroke: var(--amber); }
 .gauge-val-sell { stroke: var(--rose); }
-
-.gauge-center-text {
+.gauge-text {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  text-align: center;
-}
-.gauge-center-text .score-num {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 800;
-  line-height: 1;
+  color: var(--text);
 }
-.gauge-center-text .score-lbl {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 2px;
-}
-.scorecard-details h2 {
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-.scorecard-summary {
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  margin-bottom: 14px;
-  line-height: 1.6;
-}
+.scorecard-meta h2 { font-size: 1.35rem; font-weight: 700; margin-bottom: 8px; }
+.scorecard-meta p.summary-text { font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; }
 
-/* Zone Meter */
-.meter-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 20px 24px;
-  margin-bottom: 24px;
-}
-.meter-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  margin-bottom: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.zone-track {
-  height: 16px;
-  border-radius: 8px;
-  display: flex;
-  overflow: hidden;
-  position: relative;
-  margin-bottom: 8px;
-}
-.zone-segment {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: #fff;
-}
-.zone-distress-seg { width: 33.33%; background: #ef4444; }
-.zone-grey-seg { width: 33.33%; background: #f59e0b; }
-.zone-safe-seg { width: 33.34%; background: #10b981; }
-
-.zone-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-/* Pillar KPI Grid */
-.grid-4 {
+/* 2. Metrics KPI Grid */
+.kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
   margin-bottom: 24px;
 }
 .kpi-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 18px 20px;
+  border-radius: 10px;
+  padding: 14px 16px;
 }
 .kpi-label {
   font-size: 0.75rem;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
-  margin-bottom: 6px;
-  font-weight: 600;
-}
-.kpi-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text);
   margin-bottom: 4px;
 }
-.kpi-sub {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-/* Red Flags / Observations */
-.observations-section {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 20px 24px;
-  margin-bottom: 24px;
-}
-.observations-section h3 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.observation-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.observation-item {
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 0.88rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-.obs-flag {
-  background: var(--rose-bg);
-  border: 1px solid var(--rose-border);
-  color: #fca5a5;
-}
-.obs-note {
-  background: var(--emerald-bg);
-  border: 1px solid var(--emerald-border);
-  color: #86efac;
-}
-
-/* Batch View */
-.batch-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.search-input {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+.kpi-value {
+  font-size: 1.35rem;
+  font-weight: 800;
   color: var(--text);
-  padding: 8px 14px;
-  font-size: 0.9rem;
-  min-width: 260px;
-  outline: none;
-}
-.search-input:focus { border-color: var(--border-focus); }
-.filter-tabs { display: flex; gap: 8px; }
-.tab-btn {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  padding: 6px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-.tab-btn.active {
-  background: var(--surface-alt);
-  color: var(--text);
-  border-color: var(--border-focus);
 }
 
-.table-responsive {
+/* 3. Audit Breakdown Table */
+.audit-table-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -308,198 +168,338 @@ header {
 table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
 }
 th {
   background: var(--surface-alt);
   color: var(--text-muted);
-  padding: 12px 16px;
-  font-weight: 600;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  padding: 12px 16px;
+  text-align: left;
   border-bottom: 1px solid var(--border);
-  cursor: pointer;
 }
-th:hover { color: var(--text); }
 td {
   padding: 12px 16px;
   border-bottom: 1px solid var(--border);
+  vertical-align: middle;
 }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: rgba(255, 255, 255, 0.02); }
+.metric-name { font-weight: 600; color: var(--text); }
+.metric-val { text-align: right; }
+.status-pill {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.pill-pass { background: var(--emerald-bg); color: var(--emerald); border: 1px solid var(--emerald-border); }
+.pill-warn { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.pill-fail { background: var(--rose-bg); color: var(--rose); border: 1px solid var(--rose-border); }
+
+/* 4 & 5. Positive and Negative Factors Grid */
+.pos-neg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+@media (max-width: 768px) {
+  .pos-neg-grid { grid-template-columns: 1fr; }
+}
+.factor-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+.factor-card-positive { border-left: 4px solid var(--emerald); }
+.factor-card-negative { border-left: 4px solid var(--rose); }
+.factor-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.factor-card-positive h3 { color: var(--emerald); }
+.factor-card-negative h3 { color: var(--rose); }
+.factor-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.factor-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  padding: 6px 0;
+}
+.factor-positive { color: #d1fae5; }
+.factor-negative { color: #fee2e2; }
+.factor-observation { color: #e2e8f0; }
+.factor-icon { flex-shrink: 0; font-weight: 800; font-size: 0.95rem; }
+.factor-empty { color: var(--text-muted); font-style: italic; }
+
+/* 6. Observations Card */
+.observations-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--cyan);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+}
+.observations-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cyan);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 7. Warnings Card */
+.warnings-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--amber);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 32px;
+}
+.warnings-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--amber);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.warning-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--rose-bg);
+  border: 1px solid var(--rose-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  font-size: 0.88rem;
+  color: #fca5a5;
+}
+.warning-item:last-child { margin-bottom: 0; }
+.clean-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--emerald-bg);
+  border: 1px solid var(--emerald-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: var(--emerald);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Batch Controls */
+.batch-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.filter-btn.active {
+  background: var(--cyan-bg);
+  border-color: var(--cyan-border);
+  color: var(--cyan);
+}
 
 footer {
-  margin-top: 48px;
-  text-align: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
   font-size: 0.8rem;
   color: var(--text-muted);
+  text-align: center;
 }
 </style>
 </head>
 <body>
 <div class="container">
-  <header>
-    <div class="brand-header">
-      <h1 id="view-title">Klarman Solvency & Downside Stress Audit</h1>
-      <p id="view-subtitle">Seth Klarman Downside Risk · Altman Z-Score & Liquidity Cliff Engine</p>
-    </div>
-    <div class="header-badges">
-      <span class="badge badge-pillar" id="pillar-badge">Pillar: Solvency</span>
-      <span class="badge" id="ticker-badge">TICKER</span>
-      <span class="badge" id="stance-badge">STANCE</span>
-    </div>
-  </header>
 
-  <!-- Single Stock View -->
+  <!-- ================= SINGLE VIEW ================= -->
   <div id="single-view" style="display: none;">
+    <header>
+      <div class="brand-header">
+        <h1 id="view-title">Valuation Audit</h1>
+        <p id="view-subtitle">Modular Stock Portfolio & Analysis Framework</p>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-ticker" id="ticker-badge">TICKER</span>
+        <span class="badge badge-pillar" id="principle-badge">Principle</span>
+        <span class="badge badge-hold" id="stance-badge">HOLD</span>
+      </div>
+    </header>
+
+    <!-- 1. VERDICT -->
+    <div class="section-title">🎯 1. Verdict & Scoring</div>
     <div class="scorecard">
       <div class="gauge-wrapper">
         <svg class="gauge-svg" viewBox="0 0 100 100">
-          <circle class="gauge-bg" cx="50" cy="50" r="42" />
-          <circle class="gauge-val" id="gauge-circle" cx="50" cy="50" r="42" stroke-dasharray="263.89" stroke-dashoffset="263.89" />
+          <circle class="gauge-bg" cx="50" cy="50" r="42"></circle>
+          <circle class="gauge-val gauge-val-hold" id="gauge-circle" cx="50" cy="50" r="42" stroke-dasharray="263.89" stroke-dashoffset="131.95"></circle>
         </svg>
-        <div class="gauge-center-text">
-          <div class="score-num" id="gauge-score">0</div>
-          <div class="score-lbl">Solvency</div>
-        </div>
+        <div class="gauge-text" id="gauge-score">50</div>
       </div>
-      <div class="scorecard-details">
-        <h2>Downside Stress Score: <span id="solvency-score-text">0/100.0</span></h2>
-        <p class="scorecard-summary" id="verdict-summary">Evaluating company solvency resilience and bankruptcy risk...</p>
-        <div class="header-badges">
-          <span class="badge" id="altman-zone-badge">Altman: Assessing...</span>
-          <span class="badge" id="leverage-badge">Leverage: Assessing...</span>
-          <span class="badge" id="cliff-badge">Maturity Cliff: Assessing...</span>
-        </div>
+      <div class="scorecard-meta">
+        <h2 id="verdict-heading">Verdict Heading</h2>
+        <p class="summary-text" id="verdict-summary">Loading narrative summary...</p>
       </div>
     </div>
 
-    <!-- Altman Z-Score Visual Meter -->
-    <div class="meter-card">
-      <div class="meter-title">
-        <span>Altman Z-Score Bankruptcy Gauge</span>
-        <span id="altman-z-val" style="font-weight: 800; font-size: 1.1rem;">Z = --</span>
+    <!-- 2. METRICS -->
+    <div class="section-title">📊 2. Key Valuation Metrics</div>
+    <div class="kpi-grid" id="metrics-grid">
+      <!-- Populated dynamically -->
+    </div>
+
+    <!-- 3. AUDIT -->
+    <div class="section-title">🔍 3. Audit Checks & Pillar Breakdown</div>
+    <div class="audit-table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Check / Pillar</th>
+            <th>Criterion / Benchmark</th>
+            <th style="text-align: right;">Observed Value</th>
+            <th style="text-align: center;">Status</th>
+            <th style="text-align: right;">Score Contribution</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="audit-table-body">
+          <!-- Populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 4 & 5. POSITIVE & NEGATIVE -->
+    <div class="section-title">⚖️ 4 & 5. Balance of Factors</div>
+    <div class="pos-neg-grid">
+      <div class="factor-card factor-card-positive">
+        <h3>🟢 Positive Findings & Strengths</h3>
+        <ul class="factor-list" id="positive-list">
+          <!-- Populated dynamically -->
+        </ul>
       </div>
-      <div class="zone-track">
-        <div class="zone-segment zone-distress-seg">Distress (&lt; 1.81)</div>
-        <div class="zone-segment zone-grey-seg">Grey (1.81 - 2.99)</div>
-        <div class="zone-segment zone-safe-seg">Safe (&gt; 2.99)</div>
-      </div>
-      <div class="zone-labels">
-        <span>0.0 (High Insolvency Risk)</span>
-        <span>1.81 (Distress Threshold)</span>
-        <span>2.99 (Safe Threshold)</span>
-        <span>5.0+ (Fortress)</span>
+      <div class="factor-card factor-card-negative">
+        <h3>🔴 Negative Findings & Deficits</h3>
+        <ul class="factor-list" id="negative-list">
+          <!-- Populated dynamically -->
+        </ul>
       </div>
     </div>
 
-    <!-- 4 Key Solvency Pillar Cards -->
-    <div class="grid-4">
-      <div class="kpi-card">
-        <div class="kpi-label">Altman Z-Score</div>
-        <div class="kpi-value" id="kpi-altman-z">--</div>
-        <div class="kpi-sub" id="kpi-altman-sub">35 pts max</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Net Debt / EBITDA</div>
-        <div class="kpi-value" id="kpi-net-debt-ebitda">--</div>
-        <div class="kpi-sub" id="kpi-net-debt-sub">25 pts max (&le; 1.0x safe)</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Debt Due 24m vs Cash</div>
-        <div class="kpi-value" id="kpi-debt-cliff">--</div>
-        <div class="kpi-sub" id="kpi-cliff-sub">25 pts max (refinancing cushion)</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Interest Coverage</div>
-        <div class="kpi-value" id="kpi-interest-coverage">--</div>
-        <div class="kpi-sub" id="kpi-interest-sub">15 pts max (&ge; 5.0x safe)</div>
-      </div>
+    <!-- 6. OBSERVATIONS -->
+    <div class="section-title">📝 6. Qualitative Observations</div>
+    <div class="observations-card">
+      <h3>Contextual Commentary & Archetype Classification</h3>
+      <ul class="factor-list" id="observations-list">
+        <!-- Populated dynamically -->
+      </ul>
     </div>
 
-    <!-- Secondary Solvency Metrics -->
-    <div class="grid-4">
-      <div class="kpi-card">
-        <div class="kpi-label">Net Debt</div>
-        <div class="kpi-value" id="kpi-net-debt">--</div>
-        <div class="kpi-sub">Total Debt - Cash</div>
+    <!-- 7. WARNINGS -->
+    <div class="section-title">⚠️ 7. Warnings & Risk Flags</div>
+    <div class="warnings-card">
+      <h3>Active Risk Alerts & Governance Cautions</h3>
+      <div id="warnings-list">
+        <!-- Populated dynamically -->
       </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Operating Cash Flow / Debt</div>
-        <div class="kpi-value" id="kpi-ocf-debt">--</div>
-        <div class="kpi-sub">Annual CFO / Total Debt</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Accrual Gap</div>
-        <div class="kpi-value" id="kpi-accrual-gap">--</div>
-        <div class="kpi-sub">CFO - Net Income</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Debt Maturing (24m)</div>
-        <div class="kpi-value" id="kpi-debt-24m">--</div>
-        <div class="kpi-sub">Due within 24 months</div>
-      </div>
-    </div>
-
-    <!-- Observations & Red Flags -->
-    <div class="observations-section">
-      <h3>Solvency Observations & Risk Triggers</h3>
-      <ul class="observation-list" id="observations-list"></ul>
     </div>
   </div>
 
-  <!-- Multi-Stock Portfolio Batch View -->
+  <!-- ================= BATCH VIEW ================= -->
   <div id="batch-view" style="display: none;">
-    <div class="batch-controls">
-      <input type="text" class="search-input" id="search-input" placeholder="Search by ticker or stance...">
-      <div class="filter-tabs">
-        <button class="tab-btn active" data-filter="ALL" id="tab-all">All (<span id="count-all">0</span>)</button>
-        <button class="tab-btn" data-filter="BUY" id="tab-buy">Buy (<span id="count-buy">0</span>)</button>
-        <button class="tab-btn" data-filter="HOLD" id="tab-hold">Hold (<span id="count-hold">0</span>)</button>
-        <button class="tab-btn" data-filter="SELL" id="tab-sell">Sell (<span id="count-sell">0</span>)</button>
+    <header>
+      <div class="brand-header">
+        <h1 id="batch-title">Consolidated Valuation Portfolio Batch</h1>
+        <p id="batch-subtitle">Modular Stock Portfolio & Analysis Framework</p>
       </div>
+      <div class="header-badges">
+        <span class="badge badge-pillar" id="batch-principle-badge">Principle</span>
+      </div>
+    </header>
+
+    <div class="batch-controls">
+      <button class="filter-btn active" onclick="filterBatch('ALL', this)">All (<span id="count-all">0</span>)</button>
+      <button class="filter-btn" onclick="filterBatch('BUY', this)">Strong Buy / Buy (<span id="count-buy">0</span>)</button>
+      <button class="filter-btn" onclick="filterBatch('HOLD', this)">Hold (<span id="count-hold">0</span>)</button>
+      <button class="filter-btn" onclick="filterBatch('SELL', this)">Reduce / Sell (<span id="count-sell">0</span>)</button>
     </div>
 
-    <div class="table-responsive">
-      <table id="batch-table">
+    <div class="audit-table-card">
+      <table>
         <thead>
           <tr>
-            <th data-sort="ticker">Ticker</th>
-            <th data-sort="stance">Stance</th>
-            <th data-sort="score">Score</th>
-            <th data-sort="altman">Altman Z</th>
-            <th data-sort="net_debt_ebitda">Net Debt / EBITDA</th>
-            <th data-sort="interest_cov">Interest Cov</th>
-            <th data-sort="cliff">Debt 24m Cov</th>
-            <th data-sort="flags">Flags</th>
+            <th>Ticker</th>
+            <th style="text-align: center;">Stance</th>
+            <th style="text-align: right;">Score</th>
+            <th>Primary Metrics</th>
+            <th>Summary Narrative</th>
           </tr>
         </thead>
-        <tbody id="batch-tbody"></tbody>
+        <tbody id="batch-table-body">
+          <!-- Populated dynamically -->
+        </tbody>
       </table>
     </div>
   </div>
 
   <footer>
-    <p>Seth Klarman Downside Stress & Solvency Engine · Invariant 2 Compliant · Pure Deterministic Evaluation</p>
+    <p>Tier 3 Valuation Engine · AID-BMAD-MODULAR-STOCK-V1 · Offline Self-Contained Verification</p>
   </footer>
 </div>
 
 <script>
-/*__DATA__*/null;
+const DATA = /*__DATA__*/null;
+let batchVerdicts = [];
 
-function fmtNum(n, d = 2) {
-  if (n === null || n === undefined || isNaN(n)) return 'N/A';
-  return Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+function fmtNum(val, dec = 2) {
+  if (val === null || val === undefined || isNaN(val)) return 'N/A';
+  return Number(val).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: dec });
 }
 
-function initDashboard() {
-  if (typeof DATA === 'undefined' || !DATA) {
-    document.getElementById('view-title').textContent = 'No Data Available';
+function formatLabel(key) {
+  return key
+    .replace(/_pct$/, ' (%)')
+    .replace(/_ratio$/, ' Ratio')
+    .replace(/_number$/, ' Number')
+    .replace(/_per_share$/, ' / Share')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function init() {
+  if (!DATA) {
+    document.getElementById('view-title').textContent = 'No Verdict Data Available';
     return;
   }
-
   if (DATA.verdicts && Array.isArray(DATA.verdicts)) {
     renderBatchView(DATA);
   } else {
@@ -512,239 +512,222 @@ function renderSingleView(v) {
   document.getElementById('batch-view').style.display = 'none';
 
   const ticker = v.ticker || 'UNKNOWN';
+  const principle = v.principle || 'Valuation';
+  const principleTitle = (v.verdict && v.verdict.principle_title) || principle.toUpperCase().replace(/_/g, ' ');
+
+  // Header
   document.getElementById('ticker-badge').textContent = ticker;
-  document.getElementById('view-title').textContent = `${ticker} · Klarman Solvency Audit`;
-  document.getElementById('view-subtitle').textContent = `Downside Stress Engine · Evaluated: ${v.timestamp || 'N/A'}`;
+  document.getElementById('principle-badge').textContent = principleTitle;
+  document.getElementById('view-title').textContent = `${ticker} · ${principleTitle} Audit`;
+  document.getElementById('view-subtitle').textContent = `Evaluated: ${v.timestamp || 'N/A'}`;
 
+  // Stance badge
+  const stance = v.stance || 'HOLD';
   const stanceBadge = document.getElementById('stance-badge');
-  stanceBadge.textContent = v.stance;
-  if (v.stance === 'STRONG_BUY' || v.stance === 'BUY') {
-    stanceBadge.className = 'badge badge-buy';
-  } else if (v.stance === 'HOLD') {
-    stanceBadge.className = 'badge badge-hold';
-  } else {
-    stanceBadge.className = 'badge badge-sell';
+  stanceBadge.textContent = stance;
+  let stanceClass = 'badge-hold';
+  let gaugeClass = 'gauge-val-hold';
+
+  if (stance === 'STRONG_BUY' || stance === 'BUY') {
+    stanceClass = 'badge-buy';
+    gaugeClass = 'gauge-val-buy';
+  } else if (stance === 'REDUCE' || stance === 'STRONG_SELL') {
+    stanceClass = 'badge-sell';
+    gaugeClass = 'gauge-val-sell';
   }
+  stanceBadge.className = `badge ${stanceClass}`;
 
-  const m = v.metrics || {};
-
-  // Altman Z-Score & Zone
-  const zScore = m.altman_z_score;
-  const zBadge = document.getElementById('altman-zone-badge');
-  const zValEl = document.getElementById('altman-z-val');
-  if (zScore !== null && zScore !== undefined) {
-    zValEl.textContent = `Z = ${fmtNum(zScore, 2)}`;
-    if (zScore > 2.99) {
-      zBadge.textContent = 'Altman: Safe Zone';
-      zBadge.className = 'badge badge-zone-safe';
-    } else if (zScore >= 1.81) {
-      zBadge.textContent = 'Altman: Grey Zone';
-      zBadge.className = 'badge badge-zone-grey';
-    } else {
-      zBadge.textContent = 'Altman: Distress Zone';
-      zBadge.className = 'badge badge-zone-distress';
-    }
-  } else {
-    zValEl.textContent = 'Z = N/A (Index ETF or Insufficient Data)';
-    zBadge.textContent = 'Altman: N/A';
-  }
-
-  // Leverage Badge
-  const levBadge = document.getElementById('leverage-badge');
-  const netDebtEbitda = m.net_debt_to_ebitda;
-  const netDebt = m.net_debt;
-  if (netDebt !== null && netDebt <= 0) {
-    levBadge.textContent = 'Leverage: Net Cash';
-    levBadge.className = 'badge badge-zone-safe';
-  } else if (netDebtEbitda !== null && netDebtEbitda <= 1.0) {
-    levBadge.textContent = `Leverage: Low (${fmtNum(netDebtEbitda, 1)}x)`;
-    levBadge.className = 'badge badge-zone-safe';
-  } else if (netDebtEbitda !== null && netDebtEbitda <= 2.5) {
-    levBadge.textContent = `Leverage: Moderate (${fmtNum(netDebtEbitda, 1)}x)`;
-    levBadge.className = 'badge badge-zone-grey';
-  } else if (netDebtEbitda !== null) {
-    levBadge.textContent = `Leverage: High (${fmtNum(netDebtEbitda, 1)}x)`;
-    levBadge.className = 'badge badge-zone-distress';
-  } else {
-    levBadge.textContent = 'Leverage: N/A';
-  }
-
-  // Cliff Badge
-  const cliffBadge = document.getElementById('cliff-badge');
-  const cashCliffRatio = m.cash_to_debt_maturing_ratio;
-  if (m.debt_maturing_24m === 0 || (cashCliffRatio !== null && cashCliffRatio >= 1.0)) {
-    cliffBadge.textContent = 'Maturity Cliff: Covered';
-    cliffBadge.className = 'badge badge-zone-safe';
-  } else if (cashCliffRatio !== null && cashCliffRatio >= 0.5) {
-    cliffBadge.textContent = `Maturity Cliff: Moderate (${fmtNum(cashCliffRatio, 1)}x)`;
-    cliffBadge.className = 'badge badge-zone-grey';
-  } else if (cashCliffRatio !== null) {
-    cliffBadge.textContent = 'Maturity Cliff: Acute Alert';
-    cliffBadge.className = 'badge badge-zone-distress';
-  } else {
-    cliffBadge.textContent = 'Maturity Cliff: None';
-    cliffBadge.className = 'badge badge-zone-safe';
-  }
-
-  // Score & Gauge
+  // 1. Verdict Scorecard & Gauge
   const score = Math.round(Number(v.score || 0));
   document.getElementById('gauge-score').textContent = score;
-  document.getElementById('solvency-score-text').textContent = `${score}/100.0`;
   const circle = document.getElementById('gauge-circle');
   const circumference = 263.89; // 2 * pi * 42
   const offset = circumference - (score / 100) * circumference;
   circle.style.strokeDashoffset = offset;
+  circle.className = `gauge-val ${gaugeClass}`;
 
-  if (v.stance === 'STRONG_BUY' || v.stance === 'BUY') {
-    circle.className = 'gauge-val gauge-val-buy';
-  } else if (v.stance === 'HOLD') {
-    circle.className = 'gauge-val gauge-val-hold';
-  } else {
-    circle.className = 'gauge-val gauge-val-sell';
+  document.getElementById('verdict-heading').textContent = `${ticker} Stance: ${stance}`;
+  document.getElementById('verdict-summary').textContent = v.summary || (v.verdict && v.verdict.summary) || 'No narrative summary provided.';
+
+  // 2. Metrics Grid
+  const metricsContainer = document.getElementById('metrics-grid');
+  metricsContainer.innerHTML = '';
+  const m = v.metrics || {};
+  for (const [k, val] of Object.entries(m)) {
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    const isPct = k.endsWith('_pct');
+    let displayVal = 'N/A';
+    if (val !== null && val !== undefined && !isNaN(val)) {
+      displayVal = isPct ? `${fmtNum(val)}%` : fmtNum(val);
+    }
+    card.innerHTML = `
+      <div class="kpi-label">${formatLabel(k)}</div>
+      <div class="kpi-value">${displayVal}</div>
+    `;
+    metricsContainer.appendChild(card);
   }
 
-  document.getElementById('verdict-summary').textContent = v.summary || 'No summary available.';
-
-  // 4 Pillar KPIs
-  document.getElementById('kpi-altman-z').textContent = zScore !== null ? fmtNum(zScore, 2) : 'N/A';
-  document.getElementById('kpi-net-debt-ebitda').textContent = netDebtEbitda !== null ? (netDebtEbitda <= 0 ? 'Net Cash' : `${fmtNum(netDebtEbitda, 2)}x`) : 'N/A';
-  document.getElementById('kpi-debt-cliff').textContent = cashCliffRatio !== null ? `${fmtNum(cashCliffRatio, 2)}x` : (m.debt_maturing_24m === 0 ? 'Fully Covered' : 'N/A');
-  document.getElementById('kpi-interest-coverage').textContent = m.interest_coverage !== null ? `${fmtNum(m.interest_coverage, 2)}x` : 'N/A';
-
-  // Secondary KPIs
-  document.getElementById('kpi-net-debt').textContent = netDebt !== null ? fmtNum(netDebt) : 'N/A';
-  document.getElementById('kpi-ocf-debt').textContent = m.operating_cash_flow_to_debt !== null ? `${fmtNum(m.operating_cash_flow_to_debt, 2)}x` : 'N/A';
-  document.getElementById('kpi-accrual-gap').textContent = m.accrual_gap !== null ? fmtNum(m.accrual_gap) : 'N/A';
-  document.getElementById('kpi-debt-24m').textContent = m.debt_maturing_24m !== null ? fmtNum(m.debt_maturing_24m) : 'N/A';
-
-  // Observations
-  const obsList = document.getElementById('observations-list');
-  obsList.innerHTML = '';
-  const redFlags = Array.isArray(v.red_flags) ? v.red_flags : [];
-  if (redFlags.length === 0) {
-    const li = document.createElement('li');
-    li.className = 'observation-item obs-note';
-    li.innerHTML = '<span>✅ No acute downside insolvency risk, excessive debt burden, or debt cliff alerts triggered.</span>';
-    obsList.appendChild(li);
+  // 3. Audit Breakdown Table
+  const auditTbody = document.getElementById('audit-table-body');
+  auditTbody.innerHTML = '';
+  const auditItems = v.audit || [];
+  if (auditItems.length === 0) {
+    auditTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 18px;">No audit checks recorded.</td></tr>';
   } else {
-    redFlags.forEach(f => {
+    auditItems.forEach(item => {
+      const tr = document.createElement('tr');
+      const st = (item.status || 'PASS').toUpperCase();
+      let itemPill = 'pill-pass';
+      if (st === 'WARN' || st === 'HOLD') itemPill = 'pill-warn';
+      else if (st === 'FAIL' || st === 'SELL') itemPill = 'pill-fail';
+
+      tr.innerHTML = `
+        <td class="metric-name">${item.check || 'Audit Check'}</td>
+        <td style="color: var(--text-muted); font-size: 0.85rem;">${item.criterion || '-'}</td>
+        <td class="metric-val"><strong>${item.value !== undefined ? item.value : '-'}</strong></td>
+        <td style="text-align: center;"><span class="status-pill ${itemPill}">${st}</span></td>
+        <td class="metric-val" style="font-weight: 700;">${item.score !== undefined ? `${item.score} / ${item.max_score || item.score} pts` : '-'}</td>
+        <td style="font-size: 0.85rem; color: var(--text-muted);">${item.details || '-'}</td>
+      `;
+      auditTbody.appendChild(tr);
+    });
+  }
+
+  // 4. Positive Factors
+  const posContainer = document.getElementById('positive-list');
+  posContainer.innerHTML = '';
+  const posItems = v.positive || [];
+  if (posItems.length === 0) {
+    posContainer.innerHTML = '<li class="factor-item factor-empty">None recorded.</li>';
+  } else {
+    posItems.forEach(p => {
       const li = document.createElement('li');
-      li.className = 'observation-item obs-flag';
-      li.innerHTML = `<span>⚠️ ${f}</span>`;
-      obsList.appendChild(li);
+      li.className = 'factor-item factor-positive';
+      li.innerHTML = `<span class="factor-icon">✔</span><span>${p}</span>`;
+      posContainer.appendChild(li);
+    });
+  }
+
+  // 5. Negative Factors
+  const negContainer = document.getElementById('negative-list');
+  negContainer.innerHTML = '';
+  const negItems = v.negative || [];
+  if (negItems.length === 0) {
+    negContainer.innerHTML = '<li class="factor-item factor-empty">None recorded.</li>';
+  } else {
+    negItems.forEach(n => {
+      const li = document.createElement('li');
+      li.className = 'factor-item factor-negative';
+      li.innerHTML = `<span class="factor-icon">✖</span><span>${n}</span>`;
+      negContainer.appendChild(li);
+    });
+  }
+
+  // 6. Observations
+  const obsContainer = document.getElementById('observations-list');
+  obsContainer.innerHTML = '';
+  const obsItems = v.observations || [];
+  if (obsItems.length === 0) {
+    obsContainer.innerHTML = '<li class="factor-item factor-empty">No additional qualitative observations recorded.</li>';
+  } else {
+    obsItems.forEach(o => {
+      const li = document.createElement('li');
+      li.className = 'factor-item factor-observation';
+      li.innerHTML = `<span class="factor-icon">ℹ</span><span>${o}</span>`;
+      obsContainer.appendChild(li);
+    });
+  }
+
+  // 7. Warnings
+  const warnContainer = document.getElementById('warnings-list');
+  warnContainer.innerHTML = '';
+  const warnItems = v.warnings || v.red_flags || [];
+  if (warnItems.length === 0) {
+    warnContainer.innerHTML = '<div class="clean-banner"><span>✅</span> Zero active warning flags or critical risks detected.</div>';
+  } else {
+    warnItems.forEach(w => {
+      const div = document.createElement('div');
+      div.className = 'warning-item';
+      div.innerHTML = `<span class="factor-icon">⚠️</span><span>${w}</span>`;
+      warnContainer.appendChild(div);
     });
   }
 }
 
-let batchVerdicts = [];
-
-function renderBatchView(batch) {
+function renderBatchView(data) {
   document.getElementById('single-view').style.display = 'none';
   document.getElementById('batch-view').style.display = 'block';
 
-  document.getElementById('view-title').textContent = 'Portfolio Solvency & Downside Stress Matrix';
-  document.getElementById('view-subtitle').textContent = `Klarman Downside Stress Batch Audit · Timestamp: ${batch.timestamp || 'N/A'}`;
-  document.getElementById('ticker-badge').textContent = `Positions: ${batch.verdicts.length}`;
-  document.getElementById('stance-badge').textContent = 'Portfolio Batch';
+  const principle = data.principle || 'Valuation';
+  const principleTitle = principle.toUpperCase().replace(/_/g, ' ');
+  document.getElementById('batch-principle-badge').textContent = principleTitle;
+  document.getElementById('batch-title').textContent = `${principleTitle} · Consolidated Valuation Portfolio Batch`;
+  document.getElementById('batch-subtitle').textContent = `Batch Timestamp: ${data.timestamp || 'N/A'}`;
 
-  batchVerdicts = batch.verdicts || [];
+  const verdicts = data.verdicts || [];
+  batchVerdicts = verdicts;
 
-  const countAll = batchVerdicts.length;
-  const countBuy = batchVerdicts.filter(v => v.stance === 'STRONG_BUY' || v.stance === 'BUY').length;
-  const countHold = batchVerdicts.filter(v => v.stance === 'HOLD').length;
-  const countSell = batchVerdicts.filter(v => v.stance === 'REDUCE' || v.stance === 'STRONG_SELL').length;
+  const countBuy = verdicts.filter(v => v.stance === 'STRONG_BUY' || v.stance === 'BUY').length;
+  const countHold = verdicts.filter(v => v.stance === 'HOLD').length;
+  const countSell = verdicts.filter(v => v.stance === 'REDUCE' || v.stance === 'STRONG_SELL').length;
 
-  document.getElementById('count-all').textContent = countAll;
+  document.getElementById('count-all').textContent = verdicts.length;
   document.getElementById('count-buy').textContent = countBuy;
   document.getElementById('count-hold').textContent = countHold;
   document.getElementById('count-sell').textContent = countSell;
 
-  renderBatchTable(batchVerdicts);
-  setupBatchListeners();
+  renderBatchRows(batchVerdicts);
 }
 
-function renderBatchTable(verdicts) {
-  const tbody = document.getElementById('batch-tbody');
+function renderBatchRows(verdicts) {
+  const tbody = document.getElementById('batch-table-body');
   tbody.innerHTML = '';
+
+  if (verdicts.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No securities match the selected filter.</td></tr>';
+    return;
+  }
 
   verdicts.forEach(v => {
     const tr = document.createElement('tr');
     const m = v.metrics || {};
+    let stancePillClass = 'pill-pass';
+    if (v.stance === 'HOLD') stancePillClass = 'pill-warn';
+    else if (v.stance === 'REDUCE' || v.stance === 'STRONG_SELL') stancePillClass = 'pill-fail';
 
-    let stanceClass = 'badge badge-hold';
-    if (v.stance === 'STRONG_BUY' || v.stance === 'BUY') stanceClass = 'badge badge-buy';
-    else if (v.stance === 'REDUCE' || v.stance === 'STRONG_SELL') stanceClass = 'badge badge-sell';
-
-    let altmanZone = 'N/A';
-    let altmanClass = 'badge';
-    if (m.altman_z_score !== null) {
-      if (m.altman_z_score > 2.99) {
-        altmanZone = `Safe (${fmtNum(m.altman_z_score, 1)})`;
-        altmanClass = 'badge badge-zone-safe';
-      } else if (m.altman_z_score >= 1.81) {
-        altmanZone = `Grey (${fmtNum(m.altman_z_score, 1)})`;
-        altmanClass = 'badge badge-zone-grey';
-      } else {
-        altmanZone = `Distress (${fmtNum(m.altman_z_score, 1)})`;
-        altmanClass = 'badge badge-zone-distress';
-      }
-    }
-
-    const flagsCount = Array.isArray(v.red_flags) ? v.red_flags.length : 0;
-    const flagsBadge = flagsCount > 0
-      ? `<span class="badge badge-sell">${flagsCount} alerts</span>`
-      : `<span class="badge badge-buy">Clean</span>`;
+    const metricPairs = Object.entries(m).slice(0, 4).map(([k, val]) => {
+      const isPct = k.endsWith('_pct');
+      return `<span><strong>${formatLabel(k)}:</strong> ${val !== null && val !== undefined ? (isPct ? fmtNum(val) + '%' : fmtNum(val)) : '-'}</span>`;
+    }).join(' &bull; ');
 
     tr.innerHTML = `
-      <td><strong>${v.ticker || 'UNKNOWN'}</strong></td>
-      <td><span class="${stanceClass}">${v.stance}</span></td>
-      <td><strong>${Math.round(v.score || 0)}</strong>/100</td>
-      <td><span class="${altmanClass}">${altmanZone}</span></td>
-      <td>${m.net_debt_to_ebitda !== null ? (m.net_debt_to_ebitda <= 0 ? 'Net Cash' : `${fmtNum(m.net_debt_to_ebitda, 1)}x`) : 'N/A'}</td>
-      <td>${m.interest_coverage !== null ? `${fmtNum(m.interest_coverage, 1)}x` : 'N/A'}</td>
-      <td>${m.cash_to_debt_maturing_ratio !== null ? `${fmtNum(m.cash_to_debt_maturing_ratio, 1)}x` : (m.debt_maturing_24m === 0 ? 'Covered' : 'N/A')}</td>
-      <td>${flagsBadge}</td>
+      <td class="metric-name" style="font-size: 1.05rem;">${v.ticker}</td>
+      <td style="text-align: center;"><span class="status-pill ${stancePillClass}">${v.stance}</span></td>
+      <td class="metric-val" style="font-weight: 800; font-size: 1.05rem;">${fmtNum(v.score, 1)}</td>
+      <td style="font-size: 0.85rem; color: var(--text-muted);">${metricPairs}</td>
+      <td style="max-width: 320px; font-size: 0.85rem; color: var(--text-muted);">${v.summary || '-'}</td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-function setupBatchListeners() {
-  const searchInput = document.getElementById('search-input');
-  const tabs = document.querySelectorAll('.tab-btn');
+function filterBatch(filterType, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
 
-  let currentFilter = 'ALL';
-
-  function applyFilters() {
-    const q = searchInput.value.trim().toUpperCase();
-    let filtered = batchVerdicts.filter(v => {
-      const matchSearch = (v.ticker || '').toUpperCase().includes(q) || (v.stance || '').toUpperCase().includes(q);
-      if (!matchSearch) return false;
-
-      if (currentFilter === 'ALL') return true;
-      if (currentFilter === 'BUY') return v.stance === 'STRONG_BUY' || v.stance === 'BUY';
-      if (currentFilter === 'HOLD') return v.stance === 'HOLD';
-      if (currentFilter === 'SELL') return v.stance === 'REDUCE' || v.stance === 'STRONG_SELL';
-      return true;
-    });
-
-    renderBatchTable(filtered);
+  if (filterType === 'ALL') {
+    renderBatchRows(batchVerdicts);
+  } else if (filterType === 'BUY') {
+    renderBatchRows(batchVerdicts.filter(v => v.stance === 'STRONG_BUY' || v.stance === 'BUY'));
+  } else if (filterType === 'HOLD') {
+    renderBatchRows(batchVerdicts.filter(v => v.stance === 'HOLD'));
+  } else {
+    renderBatchRows(batchVerdicts.filter(v => v.stance === 'REDUCE' || v.stance === 'STRONG_SELL'));
   }
-
-  searchInput.addEventListener('input', applyFilters);
-
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      currentFilter = tab.getAttribute('data-filter');
-      applyFilters();
-    });
-  });
 }
 
-document.addEventListener('DOMContentLoaded', initDashboard);
+window.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
-

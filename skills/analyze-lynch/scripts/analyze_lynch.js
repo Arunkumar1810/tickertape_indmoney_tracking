@@ -181,6 +181,27 @@ function evaluateLynchValuation(financials, options = {}) {
   );
 
   if (isIndexEtf) {
+    const etfSummary = `Index ETF passive basket (${ticker}): Single-equity Peter Lynch PEG valuation and inventory divergence bypassed.`;
+    const verdict = {
+      principle: 'lynch',
+      principle_title: 'Peter Lynch GARP Valuation',
+      ticker,
+      timestamp,
+      stance: 'HOLD',
+      score: 100.0,
+      is_veto: false,
+      summary: etfSummary
+    };
+    const metrics = {
+      peg_ratio: null,
+      yield_adjusted_peg_ratio: null,
+      eps_growth_rate_pct: null,
+      dividend_yield_pct: null,
+      pe_ratio: null,
+      lynch_fair_value: null,
+      inventory_divergence_pct: null,
+      debt_to_equity: null
+    };
     return {
       principle: 'lynch',
       ticker,
@@ -188,18 +209,29 @@ function evaluateLynchValuation(financials, options = {}) {
       score: 100.0,
       stance: 'HOLD',
       is_veto: false,
-      metrics: {
-        peg_ratio: null,
-        yield_adjusted_peg_ratio: null,
-        eps_growth_rate_pct: null,
-        dividend_yield_pct: null,
-        pe_ratio: null,
-        lynch_fair_value: null,
-        inventory_divergence_pct: null,
-        debt_to_equity: null
-      },
+      summary: etfSummary,
+      metrics,
       red_flags: [],
-      summary: `Index ETF passive basket (${ticker}): Single-equity Peter Lynch PEG valuation and inventory divergence bypassed.`
+      verdict,
+      audit: [
+        {
+          check: 'Broad-Market Index Diversification',
+          criterion: 'Passive Index Basket',
+          value: 'Full Basket',
+          status: 'PASS',
+          score: 100.0,
+          max_score: 100.0,
+          details: 'Broad-market ETF bypasses single-company PEG and inventory divergence constraints'
+        }
+      ],
+      positive: [
+        'Passive index fund provides automated sector and company diversification.'
+      ],
+      negative: [],
+      observations: [
+        'Passive index fund is evaluated on asset diversification rather than individual company GARP expansion.'
+      ],
+      warnings: []
     };
   }
 
@@ -250,24 +282,25 @@ function evaluateLynchValuation(financials, options = {}) {
   let score = 0.0;
   const redFlags = [];
 
+  let pillar1Score = 0.0;
   // Pillar 1: PEG Valuation Discipline (max 40 pts)
   if (pegRatio !== null) {
     if (pegRatio <= 0.50) {
-      score += 40.0;
+      pillar1Score = 40.0;
       redFlags.unshift(`🌟 Exceptional growth bargain: PEG ratio of ${pegRatio} is at or below 0.50 screaming buy threshold`);
     } else if (pegRatio <= 1.0) {
-      score += 32.0;
+      pillar1Score = 32.0;
     } else if (pegRatio <= 1.5) {
-      score += 20.0;
+      pillar1Score = 20.0;
     } else if (pegRatio <= 2.0) {
-      score += 10.0;
+      pillar1Score = 10.0;
       redFlags.push(`Moderate valuation stretch: PEG ratio of ${pegRatio} is between 1.5 and 2.0`);
     } else {
-      score += 0.0;
+      pillar1Score = 0.0;
       redFlags.push(`Unfavorable growth valuation: PEG ratio of ${pegRatio} exceeds Peter Lynch 2.0 ceiling`);
     }
   } else {
-    score += 0.0;
+    pillar1Score = 0.0;
     if (!isFiniteNumber(epsGrowth) || epsGrowth <= 0) {
       redFlags.push(`Zero or negative EPS growth rate (${epsGrowth !== null ? epsGrowth + '%' : 'missing'}) precludes PEG calculation`);
     }
@@ -275,62 +308,69 @@ function evaluateLynchValuation(financials, options = {}) {
       redFlags.push('Negative or zero P/E multiple precludes PEG calculation');
     }
   }
+  score += pillar1Score;
 
   if (pe !== null && pe > 50.0) {
     redFlags.push(`Elevated P/E multiple (${pe} > 50.0) represents excessive market expectations`);
   }
 
+  let pillar2Score = 0.0;
   // Pillar 2: Earnings & Revenue Expansion Engine (max 25 pts)
   if (epsGrowthRatePct !== null) {
     if (epsGrowthRatePct >= 20.0) {
-      score += 25.0;
+      pillar2Score = 25.0;
     } else if (epsGrowthRatePct >= 10.0) {
-      score += 18.0;
+      pillar2Score = 18.0;
     } else if (epsGrowthRatePct >= 5.0) {
-      score += 10.0;
+      pillar2Score = 10.0;
     } else {
-      score += 0.0;
+      pillar2Score = 0.0;
       redFlags.push(`Sluggish earnings expansion: 5-year EPS CAGR (${epsGrowthRatePct}%) is below 5.0% threshold`);
     }
   } else {
-    score += 0.0;
+    pillar2Score = 0.0;
     redFlags.push('Missing or unestablished historical EPS growth rate');
   }
+  score += pillar2Score;
 
+  let pillar3Score = 0.0;
   // Pillar 3: Operational Inventory Velocity (max 20 pts)
   const hasNoInventory = (balance.inventory === 0 || balance.inventory === null);
   if (hasNoInventory) {
-    score += 20.0;
+    pillar3Score = 20.0;
   } else if (inventoryDivergencePct !== null) {
     if (inventoryDivergencePct <= 0.0) {
-      score += 20.0;
+      pillar3Score = 20.0;
     } else if (inventoryDivergencePct <= 5.0) {
-      score += 14.0;
+      pillar3Score = 14.0;
     } else if (inventoryDivergencePct <= 10.0) {
-      score += 6.0;
+      pillar3Score = 6.0;
       redFlags.push(`Inventory divergence warning: Inventory growth outpaces sales growth by ${inventoryDivergencePct}% (>5.0% threshold)`);
     } else {
-      score += 0.0;
+      pillar3Score = 0.0;
       redFlags.push(`Severe inventory bloat: Inventory growth outpaces sales growth by ${inventoryDivergencePct}% (>10.0% ceiling)`);
     }
   } else {
-    score += 10.0; // neutral when inventory metric not present
+    pillar3Score = 10.0; // neutral when inventory metric not present
   }
+  score += pillar3Score;
 
+  let pillar4Score = 0.0;
   // Pillar 4: Balance Sheet Health & Financial Freedom (max 15 pts)
   if (debtToEquity !== null) {
     if (debtToEquity <= 0.50) {
-      score += 15.0;
+      pillar4Score = 15.0;
     } else if (debtToEquity <= 1.0) {
-      score += 10.0;
+      pillar4Score = 10.0;
     } else {
-      score += 0.0;
+      pillar4Score = 0.0;
       redFlags.push(`Elevated financial leverage: Debt-to-Equity (${debtToEquity}) exceeds 1.0 ceiling`);
     }
   } else {
-    score += 0.0;
+    pillar4Score = 0.0;
     redFlags.push('Negative or missing equity precludes Debt-to-Equity calculation');
   }
+  score += pillar4Score;
 
   // Stance Mapping
   const finalScore = round2(Math.max(0.0, Math.min(score, 100.0)));
@@ -359,6 +399,136 @@ function evaluateLynchValuation(financials, options = {}) {
     summary = `${stance} (${category}): Valuation multiple stretch or operational friction. PEG ratio (${pegRatio !== null ? pegRatio : 'N/A'}) exceeds reasonable bounds.${inventoryDivergencePct !== null && inventoryDivergencePct > 5.0 ? ` Inventory divergence of ${inventoryDivergencePct}% signals channel risk.` : ''}`;
   }
 
+  // 1. Audit Array (4 Pillars)
+  const audit = [
+    {
+      check: 'PEG Valuation Discipline',
+      criterion: 'PEG ≤ 1.0 (Ceiling ≤ 2.0)',
+      value: pegRatio !== null ? `${pegRatio}x` : 'N/A',
+      status: pegRatio !== null && pegRatio <= 1.0 ? 'PASS' : (pegRatio !== null && pegRatio <= 2.0 ? 'WARN' : 'FAIL'),
+      score: pillar1Score,
+      max_score: 40,
+      details: pegRatio !== null
+        ? `PEG ratio of ${pegRatio}x (Yield-adjusted PEG: ${yieldAdjustedPegRatio !== null ? yieldAdjustedPegRatio + 'x' : 'N/A'})`
+        : 'Missing or negative P/E or earnings growth rate'
+    },
+    {
+      check: 'Earnings Growth Engine',
+      criterion: '5Y EPS CAGR ≥ 10.0% (Fast Grower ≥ 20.0%)',
+      value: epsGrowthRatePct !== null ? `${epsGrowthRatePct}%` : 'N/A',
+      status: epsGrowthRatePct !== null && epsGrowthRatePct >= 10.0 ? 'PASS' : (epsGrowthRatePct !== null && epsGrowthRatePct >= 5.0 ? 'WARN' : 'FAIL'),
+      score: pillar2Score,
+      max_score: 25,
+      details: epsGrowthRatePct !== null
+        ? `Annual EPS growth CAGR of ${epsGrowthRatePct}%`
+        : 'Historical EPS growth rate not established'
+    },
+    {
+      check: 'Operational Inventory Velocity',
+      criterion: 'Inventory Growth ≤ Sales Growth (Divergence ≤ 5%)',
+      value: hasNoInventory ? 'Zero Inventory (Asset-light)' : (inventoryDivergencePct !== null ? `${inventoryDivergencePct}%` : 'N/A'),
+      status: (hasNoInventory || (inventoryDivergencePct !== null && inventoryDivergencePct <= 5.0)) ? 'PASS' : (inventoryDivergencePct !== null && inventoryDivergencePct <= 10.0 ? 'WARN' : 'FAIL'),
+      score: pillar3Score,
+      max_score: 20,
+      details: hasNoInventory
+        ? 'Asset-light business model eliminates inventory channel-stuffing risk'
+        : (inventoryDivergencePct !== null
+          ? `Inventory vs sales growth divergence is ${inventoryDivergencePct}%`
+          : 'Inventory divergence metric unavailable')
+    },
+    {
+      check: 'Financial Leverage & Solvency',
+      criterion: 'Debt-to-Equity ≤ 0.50 (Max 1.0)',
+      value: debtToEquity !== null ? `${debtToEquity}x` : (totalDebt === 0 ? '0.00x' : 'N/A'),
+      status: debtToEquity !== null && debtToEquity <= 0.50 ? 'PASS' : (debtToEquity !== null && debtToEquity <= 1.0 ? 'WARN' : 'FAIL'),
+      score: pillar4Score,
+      max_score: 15,
+      details: debtToEquity !== null
+        ? `Debt-to-Equity of ${debtToEquity}x with total debt ${totalDebt}`
+        : 'Debt-to-Equity ratio not calculable'
+    }
+  ];
+
+  // 2. Positive Factors
+  const positive = [];
+  if (pegRatio !== null && pegRatio <= 0.50) {
+    positive.push(`Exceptional growth bargain: PEG ratio (${pegRatio}) is at screaming buy threshold (≤ 0.50).`);
+  } else if (pegRatio !== null && pegRatio <= 1.0) {
+    positive.push(`Attractive GARP valuation: PEG ratio of ${pegRatio} offers Growth at a Reasonable Price (≤ 1.0).`);
+  }
+  if (epsGrowthRatePct !== null && epsGrowthRatePct >= 20.0) {
+    positive.push(`High-growth compounder: 5-year EPS CAGR of ${epsGrowthRatePct}% qualifies as a classic Fast Grower.`);
+  } else if (epsGrowthRatePct !== null && epsGrowthRatePct >= 10.0) {
+    positive.push(`Solid earnings expansion: 5-year EPS CAGR of ${epsGrowthRatePct}% reflects dependable Stalwart growth.`);
+  }
+  if (hasNoInventory) {
+    positive.push('Asset-light operations: Zero inventory eliminates inventory obsolescence and channel-stuffing risks.');
+  } else if (inventoryDivergencePct !== null && inventoryDivergencePct <= 0.0) {
+    positive.push(`Healthy inventory velocity: Sales growth outpaces inventory accumulation by ${Math.abs(inventoryDivergencePct)}%.`);
+  }
+  if (debtToEquity !== null && debtToEquity <= 0.50) {
+    positive.push(`Conservative balance sheet: Low Debt-to-Equity ratio of ${debtToEquity}x.`);
+  } else if (totalDebt === 0) {
+    positive.push('Zero-debt balance sheet: Unencumbered operational balance sheet.');
+  }
+  if (dividendYieldPct !== null && dividendYieldPct > 0) {
+    positive.push(`Defensive capital return: Dividend yield of ${dividendYieldPct}% boosts yield-adjusted PEG.`);
+  }
+
+  // 3. Negative Factors
+  const negative = [];
+  if (pegRatio !== null && pegRatio > 2.0) {
+    negative.push(`Severe valuation multiple stretch: PEG ratio (${pegRatio}) significantly exceeds Peter Lynch 2.0 ceiling.`);
+  } else if (pegRatio !== null && pegRatio > 1.5) {
+    negative.push(`Moderate valuation stretch: PEG ratio (${pegRatio}) is above the 1.5 fair-value boundary.`);
+  }
+  if (pe !== null && pe > 50.0) {
+    negative.push(`Elevated P/E multiple: P/E of ${peRatio}x embeds steep market growth expectations.`);
+  }
+  if (epsGrowthRatePct !== null && epsGrowthRatePct < 5.0) {
+    negative.push(`Sluggish earnings expansion: 5-year EPS CAGR (${epsGrowthRatePct}%) lags Lynch minimum 5.0% threshold.`);
+  }
+  if (inventoryDivergencePct !== null && inventoryDivergencePct > 5.0) {
+    negative.push(`Inventory buildup risk: Inventory growth exceeds sales growth by ${inventoryDivergencePct}%.`);
+  }
+  if (debtToEquity !== null && debtToEquity > 1.0) {
+    negative.push(`Excessive financial leverage: Debt-to-Equity (${debtToEquity}x) exceeds conservative 1.0 ceiling.`);
+  }
+
+  // 4. Observations
+  const observations = [
+    `Peter Lynch Lifecycle Archetype: ${category}.`,
+    `Lynch Fair Value: ${lynchFairValue !== null ? lynchFairValue : 'N/A'}.`,
+    `Trailing P/E: ${peRatio !== null ? peRatio + 'x' : 'N/A'}, Yield-adjusted PEG: ${yieldAdjustedPegRatio !== null ? yieldAdjustedPegRatio : 'N/A'}.`,
+    `5-Year Historical EPS CAGR: ${epsGrowthRatePct !== null ? epsGrowthRatePct + '%' : 'N/A'}.`
+  ];
+
+  // 5. Warnings
+  const warnings = [...redFlags];
+
+  // 6. Verdict Container
+  const verdict = {
+    principle: 'lynch',
+    principle_title: 'Peter Lynch GARP Valuation',
+    ticker,
+    timestamp,
+    stance,
+    score: finalScore,
+    is_veto: false,
+    summary
+  };
+
+  const metrics = {
+    peg_ratio: pegRatio,
+    yield_adjusted_peg_ratio: yieldAdjustedPegRatio,
+    eps_growth_rate_pct: epsGrowthRatePct,
+    dividend_yield_pct: dividendYieldPct,
+    pe_ratio: peRatio,
+    lynch_fair_value: lynchFairValue,
+    inventory_divergence_pct: inventoryDivergencePct,
+    debt_to_equity: debtToEquity
+  };
+
   return {
     principle: 'lynch',
     ticker,
@@ -366,18 +536,15 @@ function evaluateLynchValuation(financials, options = {}) {
     score: finalScore,
     stance,
     is_veto: false,
-    metrics: {
-      peg_ratio: pegRatio,
-      yield_adjusted_peg_ratio: yieldAdjustedPegRatio,
-      eps_growth_rate_pct: epsGrowthRatePct,
-      dividend_yield_pct: dividendYieldPct,
-      pe_ratio: peRatio,
-      lynch_fair_value: lynchFairValue,
-      inventory_divergence_pct: inventoryDivergencePct,
-      debt_to_equity: debtToEquity
-    },
+    metrics,
     red_flags: redFlags,
-    summary
+    summary,
+    verdict,
+    audit,
+    positive,
+    negative,
+    observations,
+    warnings
   };
 }
 

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Benjamin Graham Valuation Audit · Defensive Valuation Engine</title>
-<meta name="description" content="Tier 3 Benjamin Graham Valuation Audit: Liquidation Floors, Graham Number, and Margin of Safety.">
+<title>Tier 3 Valuation Audit Dashboard · Modular Stock Framework</title>
+<meta name="description" content="Standardized Tier 3 Valuation Audit: Verdict, Metrics, Audit, Positive, Negative, Observations, Warnings.">
 <style>
 :root {
   --bg: #090d16;
@@ -25,6 +25,7 @@
   --amber-border: rgba(245, 158, 11, 0.3);
   --cyan: #38bdf8;
   --cyan-bg: rgba(56, 189, 248, 0.12);
+  --cyan-border: rgba(56, 189, 248, 0.3);
   --indigo: #6366f1;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -69,27 +70,24 @@ header {
   font-size: 0.8rem;
   font-weight: 600;
 }
-.badge-pillar { color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.1); }
+.badge-ticker { color: #f8fafc; border-color: rgba(255, 255, 255, 0.2); font-weight: 700; }
+.badge-pillar { color: #38bdf8; border-color: var(--cyan-border); background: var(--cyan-bg); }
 .badge-buy { color: var(--emerald); border-color: var(--emerald-border); background: var(--emerald-bg); }
 .badge-hold { color: var(--amber); border-color: var(--amber-border); background: var(--amber-bg); }
 .badge-sell { color: var(--rose); border-color: var(--rose-border); background: var(--rose-bg); }
 
-.net-net-banner {
-  background: rgba(245, 158, 11, 0.15);
-  border: 2px solid #f59e0b;
-  color: #fef3c7;
-  padding: 16px 20px;
-  border-radius: 12px;
-  margin-bottom: 24px;
+/* Section Header */
+.section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 28px 0 14px;
   display: flex;
   align-items: center;
-  gap: 14px;
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+  gap: 8px;
 }
-.net-net-banner svg { width: 30px; height: 30px; flex-shrink: 0; fill: #f59e0b; }
-.net-net-banner h3 { font-size: 1.1rem; font-weight: 800; color: #fff; margin-bottom: 2px; }
-.net-net-banner p { font-size: 0.9rem; color: #fde68a; }
 
+/* 1. Verdict Card */
 .scorecard {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -106,8 +104,8 @@ header {
 }
 .gauge-wrapper {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: 130px;
+  height: 130px;
 }
 .gauge-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .gauge-bg { fill: none; stroke: var(--surface-alt); stroke-width: 10; }
@@ -125,25 +123,17 @@ header {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 1.8rem;
+  font-size: 1.75rem;
   font-weight: 800;
   color: var(--text);
 }
-.scorecard-meta h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
-.scorecard-meta p.summary-text { font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; }
+.scorecard-meta h2 { font-size: 1.35rem; font-weight: 700; margin-bottom: 8px; }
+.scorecard-meta p.summary-text { font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; }
 
-.section-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+/* 2. Metrics KPI Grid */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 12px;
   margin-bottom: 24px;
 }
@@ -166,13 +156,13 @@ header {
   font-weight: 800;
   color: var(--text);
 }
-.kpi-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
 
+/* 3. Audit Breakdown Table */
 .audit-table-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;
   margin-bottom: 24px;
 }
 table {
@@ -193,63 +183,131 @@ th {
 td {
   padding: 12px 16px;
   border-bottom: 1px solid var(--border);
+  vertical-align: middle;
 }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: rgba(255, 255, 255, 0.02); }
 .metric-name { font-weight: 600; color: var(--text); }
-.metric-val { text-align: right; font-weight: 700; }
+.metric-val { text-align: right; }
 .status-pill {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 6px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
 }
-.pill-buy { background: var(--emerald-bg); color: var(--emerald); border: 1px solid var(--emerald-border); }
-.pill-hold { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
-.pill-sell { background: var(--rose-bg); color: var(--rose); border: 1px solid var(--rose-border); }
+.pill-pass { background: var(--emerald-bg); color: var(--emerald); border: 1px solid var(--emerald-border); }
+.pill-warn { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.pill-fail { background: var(--rose-bg); color: var(--rose); border: 1px solid var(--rose-border); }
 
-.red-flags-card {
+/* 4 & 5. Positive and Negative Factors Grid */
+.pos-neg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+@media (max-width: 768px) {
+  .pos-neg-grid { grid-template-columns: 1fr; }
+}
+.factor-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 18px 20px;
-  margin-bottom: 24px;
 }
-.flag-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-.flag-item {
+.factor-card-positive { border-left: 4px solid var(--emerald); }
+.factor-card-negative { border-left: 4px solid var(--rose); }
+.factor-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.factor-card-positive h3 { color: var(--emerald); }
+.factor-card-negative h3 { color: var(--rose); }
+.factor-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.factor-item {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  font-size: 0.9rem;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: var(--surface-alt);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  padding: 6px 0;
+}
+.factor-positive { color: #d1fae5; }
+.factor-negative { color: #fee2e2; }
+.factor-observation { color: #e2e8f0; }
+.factor-icon { flex-shrink: 0; font-weight: 800; font-size: 0.95rem; }
+.factor-empty { color: var(--text-muted); font-style: italic; }
+
+/* 6. Observations Card */
+.observations-card {
+  background: var(--surface);
   border: 1px solid var(--border);
+  border-left: 4px solid var(--cyan);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
 }
-.flag-item-warn {
-  background: var(--amber-bg);
-  border-color: var(--amber-border);
-  color: #fde68a;
-}
-.flag-item-netnet {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: rgba(56, 189, 248, 0.4);
-  color: #bae6fd;
-  font-weight: 600;
-}
-.clean-flags {
-  padding: 12px 16px;
-  background: var(--emerald-bg);
-  border: 1px solid var(--emerald-border);
-  color: var(--emerald);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
+.observations-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cyan);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* Portfolio Matrix View Styles */
-.matrix-filters {
+/* 7. Warnings Card */
+.warnings-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--amber);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 32px;
+}
+.warnings-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--amber);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.warning-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--rose-bg);
+  border: 1px solid var(--rose-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  font-size: 0.88rem;
+  color: #fca5a5;
+}
+.warning-item:last-child { margin-bottom: 0; }
+.clean-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--emerald-bg);
+  border: 1px solid var(--emerald-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: var(--emerald);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Batch Controls */
+.batch-controls {
   display: flex;
   gap: 8px;
   margin-bottom: 16px;
@@ -260,14 +318,16 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   border: 1px solid var(--border);
   color: var(--text-muted);
   padding: 6px 14px;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
-.filter-btn:hover { color: var(--text); border-color: var(--cyan); }
-.filter-btn.active { background: var(--cyan); color: #090d16; border-color: var(--cyan); }
+.filter-btn.active {
+  background: var(--cyan-bg);
+  border-color: var(--cyan-border);
+  color: var(--cyan);
+}
 
 footer {
   margin-top: 40px;
@@ -281,108 +341,113 @@ footer {
 </head>
 <body>
 <div class="container">
-  <header>
-    <div class="brand-header">
-      <h1 id="view-title">Benjamin Graham Valuation Audit</h1>
-      <p id="view-subtitle">Tier 3 Intrinsic Value Floors &amp; Liquidation Buffer Analysis</p>
-    </div>
-    <div class="header-badges">
-      <span class="badge badge-pillar">Graham Valuation</span>
-      <span class="badge" id="ticker-badge">TICKER</span>
-      <span class="badge" id="stance-badge">STANCE</span>
-    </div>
-  </header>
 
-  <!-- Net-Net Bargain Banner -->
-  <div id="net-net-banner-el" class="net-net-banner" style="display: none;">
-    <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-    <div>
-      <h3>GRAHAM NET-NET BARGAIN DETECTED</h3>
-      <p id="net-net-banner-desc">Security trades below Net-Net Working Capital per share. Rare liquidation margin of safety.</p>
-    </div>
-  </div>
-
-  <!-- Single Stock View -->
+  <!-- ================= SINGLE VIEW ================= -->
   <div id="single-view" style="display: none;">
+    <header>
+      <div class="brand-header">
+        <h1 id="view-title">Valuation Audit</h1>
+        <p id="view-subtitle">Modular Stock Portfolio & Analysis Framework</p>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-ticker" id="ticker-badge">TICKER</span>
+        <span class="badge badge-pillar" id="principle-badge">Principle</span>
+        <span class="badge badge-hold" id="stance-badge">HOLD</span>
+      </div>
+    </header>
+
+    <!-- 1. VERDICT -->
+    <div class="section-title">🎯 1. Verdict & Scoring</div>
     <div class="scorecard">
       <div class="gauge-wrapper">
         <svg class="gauge-svg" viewBox="0 0 100 100">
-          <circle class="gauge-bg" cx="50" cy="50" r="42" />
-          <circle id="gauge-circle" class="gauge-val" cx="50" cy="50" r="42" stroke-dasharray="263.89" stroke-dashoffset="263.89" />
+          <circle class="gauge-bg" cx="50" cy="50" r="42"></circle>
+          <circle class="gauge-val gauge-val-hold" id="gauge-circle" cx="50" cy="50" r="42" stroke-dasharray="263.89" stroke-dashoffset="131.95"></circle>
         </svg>
-        <div class="gauge-text" id="gauge-score">--</div>
+        <div class="gauge-text" id="gauge-score">50</div>
       </div>
       <div class="scorecard-meta">
-        <h2 id="company-name">Valuation Verdict</h2>
-        <p class="summary-text" id="verdict-summary">Evaluating classical Graham valuation metrics and liquidation floors...</p>
+        <h2 id="verdict-heading">Verdict Heading</h2>
+        <p class="summary-text" id="verdict-summary">Loading narrative summary...</p>
       </div>
     </div>
 
-    <!-- Graham Valuation Metrics Grid -->
-    <h3 class="section-title">Graham Valuation &amp; Liquidation Floors</h3>
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-label">Graham Number Floor</div>
-        <div class="kpi-value" id="kpi-graham-num">--</div>
-        <div class="kpi-sub">Floor: √(22.5 × EPS × BVPS)</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Margin of Safety %</div>
-        <div class="kpi-value" id="kpi-mos">--</div>
-        <div class="kpi-sub">Buffer vs Current Market Price</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">NNWC Per Share</div>
-        <div class="kpi-value" id="kpi-nnwc">--</div>
-        <div class="kpi-sub">Conservative Liquidation Value</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">NCAV Per Share</div>
-        <div class="kpi-value" id="kpi-ncav">--</div>
-        <div class="kpi-sub">Net Current Assets / Share</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Current Ratio</div>
-        <div class="kpi-value" id="kpi-current-ratio">--</div>
-        <div class="kpi-sub">Graham Standard: ≥ 2.0</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">P/E × P/B Product</div>
-        <div class="kpi-value" id="kpi-pe-x-pb">--</div>
-        <div class="kpi-sub">Graham Ceiling: ≤ 22.5</div>
-      </div>
+    <!-- 2. METRICS -->
+    <div class="section-title">📊 2. Key Valuation Metrics</div>
+    <div class="kpi-grid" id="metrics-grid">
+      <!-- Populated dynamically -->
     </div>
 
-    <!-- Defensive Investor 7-Point Checklist -->
+    <!-- 3. AUDIT -->
+    <div class="section-title">🔍 3. Audit Checks & Pillar Breakdown</div>
     <div class="audit-table-card">
       <table>
         <thead>
           <tr>
-            <th>Defensive Investor Rule</th>
-            <th>Standard Benchmark</th>
-            <th style="text-align: right;">Reported Value</th>
-            <th>Checklist Status</th>
+            <th>Check / Pillar</th>
+            <th>Criterion / Benchmark</th>
+            <th style="text-align: right;">Observed Value</th>
+            <th style="text-align: center;">Status</th>
+            <th style="text-align: right;">Score Contribution</th>
+            <th>Details</th>
           </tr>
         </thead>
-        <tbody id="checklist-body">
-          <!-- Rendered dynamically -->
+        <tbody id="audit-table-body">
+          <!-- Populated dynamically -->
         </tbody>
       </table>
     </div>
 
-    <!-- Observations & Red Flags -->
-    <div class="red-flags-card">
-      <h3 class="section-title">Valuation Observations &amp; Warning Flags</h3>
-      <ul class="flag-list" id="flags-list">
-        <!-- Rendered dynamically -->
+    <!-- 4 & 5. POSITIVE & NEGATIVE -->
+    <div class="section-title">⚖️ 4 & 5. Balance of Factors</div>
+    <div class="pos-neg-grid">
+      <div class="factor-card factor-card-positive">
+        <h3>🟢 Positive Findings & Strengths</h3>
+        <ul class="factor-list" id="positive-list">
+          <!-- Populated dynamically -->
+        </ul>
+      </div>
+      <div class="factor-card factor-card-negative">
+        <h3>🔴 Negative Findings & Deficits</h3>
+        <ul class="factor-list" id="negative-list">
+          <!-- Populated dynamically -->
+        </ul>
+      </div>
+    </div>
+
+    <!-- 6. OBSERVATIONS -->
+    <div class="section-title">📝 6. Qualitative Observations</div>
+    <div class="observations-card">
+      <h3>Contextual Commentary & Archetype Classification</h3>
+      <ul class="factor-list" id="observations-list">
+        <!-- Populated dynamically -->
       </ul>
+    </div>
+
+    <!-- 7. WARNINGS -->
+    <div class="section-title">⚠️ 7. Warnings & Risk Flags</div>
+    <div class="warnings-card">
+      <h3>Active Risk Alerts & Governance Cautions</h3>
+      <div id="warnings-list">
+        <!-- Populated dynamically -->
+      </div>
     </div>
   </div>
 
-  <!-- Portfolio Batch Matrix View -->
+  <!-- ================= BATCH VIEW ================= -->
   <div id="batch-view" style="display: none;">
-    <div class="matrix-filters">
-      <button class="filter-btn active" onclick="filterBatch('ALL', this)">All Holdings (<span id="count-all">0</span>)</button>
+    <header>
+      <div class="brand-header">
+        <h1 id="batch-title">Consolidated Valuation Portfolio Batch</h1>
+        <p id="batch-subtitle">Modular Stock Portfolio & Analysis Framework</p>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-pillar" id="batch-principle-badge">Principle</span>
+      </div>
+    </header>
+
+    <div class="batch-controls">
+      <button class="filter-btn active" onclick="filterBatch('ALL', this)">All (<span id="count-all">0</span>)</button>
       <button class="filter-btn" onclick="filterBatch('BUY', this)">Strong Buy / Buy (<span id="count-buy">0</span>)</button>
       <button class="filter-btn" onclick="filterBatch('HOLD', this)">Hold (<span id="count-hold">0</span>)</button>
       <button class="filter-btn" onclick="filterBatch('SELL', this)">Reduce / Sell (<span id="count-sell">0</span>)</button>
@@ -393,41 +458,48 @@ footer {
         <thead>
           <tr>
             <th>Ticker</th>
-            <th>Stance</th>
-            <th style="text-align: right;">Graham Score</th>
-            <th style="text-align: right;">Graham Number</th>
-            <th style="text-align: right;">Margin of Safety</th>
-            <th style="text-align: right;">NNWC / Share</th>
-            <th style="text-align: right;">P/E × P/B</th>
-            <th>Valuation Summary</th>
+            <th style="text-align: center;">Stance</th>
+            <th style="text-align: right;">Score</th>
+            <th>Primary Metrics</th>
+            <th>Summary Narrative</th>
           </tr>
         </thead>
         <tbody id="batch-table-body">
-          <!-- Rendered dynamically -->
+          <!-- Populated dynamically -->
         </tbody>
       </table>
     </div>
   </div>
 
   <footer>
-    <p>Tier 3 Benjamin Graham Valuation Engine · AID-BMAD-MODULAR-STOCK-V1 · Offline Self-Contained Verification</p>
+    <p>Tier 3 Valuation Engine · AID-BMAD-MODULAR-STOCK-V1 · Offline Self-Contained Verification</p>
   </footer>
 </div>
 
 <script>
 const DATA = /*__DATA__*/null;
+let batchVerdicts = [];
 
 function fmtNum(val, dec = 2) {
   if (val === null || val === undefined || isNaN(val)) return 'N/A';
-  return Number(val).toFixed(dec);
+  return Number(val).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: dec });
+}
+
+function formatLabel(key) {
+  return key
+    .replace(/_pct$/, ' (%)')
+    .replace(/_ratio$/, ' Ratio')
+    .replace(/_number$/, ' Number')
+    .replace(/_per_share$/, ' / Share')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
 }
 
 function init() {
   if (!DATA) {
-    document.getElementById('view-title').textContent = 'No Data Provided';
+    document.getElementById('view-title').textContent = 'No Verdict Data Available';
     return;
   }
-
   if (DATA.verdicts && Array.isArray(DATA.verdicts)) {
     renderBatchView(DATA);
   } else {
@@ -440,134 +512,167 @@ function renderSingleView(v) {
   document.getElementById('batch-view').style.display = 'none';
 
   const ticker = v.ticker || 'UNKNOWN';
+  const principle = v.principle || 'Valuation';
+  const principleTitle = (v.verdict && v.verdict.principle_title) || principle.toUpperCase().replace(/_/g, ' ');
+
+  // Header
   document.getElementById('ticker-badge').textContent = ticker;
-  document.getElementById('view-title').textContent = `${ticker} · Graham Valuation Audit`;
+  document.getElementById('principle-badge').textContent = principleTitle;
+  document.getElementById('view-title').textContent = `${ticker} · ${principleTitle} Audit`;
   document.getElementById('view-subtitle').textContent = `Evaluated: ${v.timestamp || 'N/A'}`;
 
+  // Stance badge
+  const stance = v.stance || 'HOLD';
   const stanceBadge = document.getElementById('stance-badge');
-  stanceBadge.textContent = v.stance;
-  if (v.stance === 'STRONG_BUY' || v.stance === 'BUY') {
-    stanceBadge.className = 'badge badge-buy';
-  } else if (v.stance === 'HOLD') {
-    stanceBadge.className = 'badge badge-hold';
-  } else {
-    stanceBadge.className = 'badge badge-sell';
-  }
+  stanceBadge.textContent = stance;
+  let stanceClass = 'badge-hold';
+  let gaugeClass = 'gauge-val-hold';
 
-  // Check Net-Net banner
-  const hasNetNet = (v.red_flags || []).some(f => f.includes('NET-NET'));
-  if (hasNetNet) {
-    document.getElementById('net-net-banner-el').style.display = 'flex';
+  if (stance === 'STRONG_BUY' || stance === 'BUY') {
+    stanceClass = 'badge-buy';
+    gaugeClass = 'gauge-val-buy';
+  } else if (stance === 'REDUCE' || stance === 'STRONG_SELL') {
+    stanceClass = 'badge-sell';
+    gaugeClass = 'gauge-val-sell';
   }
+  stanceBadge.className = `badge ${stanceClass}`;
 
-  // Score & Gauge
+  // 1. Verdict Scorecard & Gauge
   const score = Math.round(Number(v.score || 0));
   document.getElementById('gauge-score').textContent = score;
   const circle = document.getElementById('gauge-circle');
   const circumference = 263.89; // 2 * pi * 42
   const offset = circumference - (score / 100) * circumference;
   circle.style.strokeDashoffset = offset;
+  circle.className = `gauge-val ${gaugeClass}`;
 
-  if (v.stance === 'STRONG_BUY' || v.stance === 'BUY') {
-    circle.className = 'gauge-val gauge-val-buy';
-  } else if (v.stance === 'HOLD') {
-    circle.className = 'gauge-val gauge-val-hold';
-  } else {
-    circle.className = 'gauge-val gauge-val-sell';
+  document.getElementById('verdict-heading').textContent = `${ticker} Stance: ${stance}`;
+  document.getElementById('verdict-summary').textContent = v.summary || (v.verdict && v.verdict.summary) || 'No narrative summary provided.';
+
+  // 2. Metrics Grid
+  const metricsContainer = document.getElementById('metrics-grid');
+  metricsContainer.innerHTML = '';
+  const m = v.metrics || {};
+  for (const [k, val] of Object.entries(m)) {
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    const isPct = k.endsWith('_pct');
+    let displayVal = 'N/A';
+    if (val !== null && val !== undefined && !isNaN(val)) {
+      displayVal = isPct ? `${fmtNum(val)}%` : fmtNum(val);
+    }
+    card.innerHTML = `
+      <div class="kpi-label">${formatLabel(k)}</div>
+      <div class="kpi-value">${displayVal}</div>
+    `;
+    metricsContainer.appendChild(card);
   }
 
-  document.getElementById('company-name').textContent = `${ticker} Graham Valuation: ${v.stance}`;
-  document.getElementById('verdict-summary').textContent = v.summary;
-
-  // Metrics
-  const m = v.metrics || {};
-  document.getElementById('kpi-graham-num').textContent = m.graham_number !== null ? fmtNum(m.graham_number) : 'N/A';
-  document.getElementById('kpi-mos').textContent = m.margin_of_safety_pct !== null ? `${fmtNum(m.margin_of_safety_pct)}%` : 'N/A';
-  document.getElementById('kpi-nnwc').textContent = m.nnwc_per_share !== null ? fmtNum(m.nnwc_per_share) : 'N/A';
-  document.getElementById('kpi-ncav').textContent = m.ncav_per_share !== null ? fmtNum(m.ncav_per_share) : 'N/A';
-  document.getElementById('kpi-current-ratio').textContent = m.current_ratio !== null ? fmtNum(m.current_ratio) : 'N/A';
-  document.getElementById('kpi-pe-x-pb').textContent = m.pe_x_pb !== null ? fmtNum(m.pe_x_pb) : 'N/A';
-
-  // Checklist table
-  const checklist = [
-    {
-      rule: 'Current Ratio ≥ 2.0',
-      bench: '≥ 2.0x',
-      val: m.current_ratio !== null ? `${fmtNum(m.current_ratio)}x` : 'N/A',
-      pass: m.current_ratio !== null && m.current_ratio >= 2.0
-    },
-    {
-      rule: 'Conservative Valuation Multiples',
-      bench: 'P/E × P/B ≤ 22.5',
-      val: m.pe_x_pb !== null ? fmtNum(m.pe_x_pb) : 'N/A',
-      pass: m.pe_x_pb !== null && m.pe_x_pb <= 22.5
-    },
-    {
-      rule: 'Positive Graham Intrinsic Buffer',
-      bench: 'MoS > 0%',
-      val: m.margin_of_safety_pct !== null ? `${fmtNum(m.margin_of_safety_pct)}%` : 'N/A',
-      pass: m.margin_of_safety_pct !== null && m.margin_of_safety_pct > 0
-    },
-    {
-      rule: 'Liquidation NNWC Cushion',
-      bench: 'NNWC/sh > 0',
-      val: m.nnwc_per_share !== null ? fmtNum(m.nnwc_per_share) : 'N/A',
-      pass: m.nnwc_per_share !== null && m.nnwc_per_share > 0
-    }
-  ];
-
-  const tbody = document.getElementById('checklist-body');
-  tbody.innerHTML = '';
-  checklist.forEach(item => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="metric-name">${item.rule}</td>
-      <td style="color: var(--text-muted);">${item.bench}</td>
-      <td class="metric-val">${item.val}</td>
-      <td><span class="status-pill ${item.pass ? 'pill-buy' : 'pill-sell'}">${item.pass ? 'PASSED' : 'DEFICIENT'}</span></td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  // Observations
-  const flagsList = document.getElementById('flags-list');
-  flagsList.innerHTML = '';
-  if (!v.red_flags || v.red_flags.length === 0) {
-    flagsList.innerHTML = '<li class="clean-flags">✅ Robust valuation discipline and defensive balance sheet confirmed.</li>';
+  // 3. Audit Breakdown Table
+  const auditTbody = document.getElementById('audit-table-body');
+  auditTbody.innerHTML = '';
+  const auditItems = v.audit || [];
+  if (auditItems.length === 0) {
+    auditTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 18px;">No audit checks recorded.</td></tr>';
   } else {
-    v.red_flags.forEach(f => {
-      const isNetNet = f.includes('NET-NET');
+    auditItems.forEach(item => {
+      const tr = document.createElement('tr');
+      const st = (item.status || 'PASS').toUpperCase();
+      let itemPill = 'pill-pass';
+      if (st === 'WARN' || st === 'HOLD') itemPill = 'pill-warn';
+      else if (st === 'FAIL' || st === 'SELL') itemPill = 'pill-fail';
+
+      tr.innerHTML = `
+        <td class="metric-name">${item.check || 'Audit Check'}</td>
+        <td style="color: var(--text-muted); font-size: 0.85rem;">${item.criterion || '-'}</td>
+        <td class="metric-val"><strong>${item.value !== undefined ? item.value : '-'}</strong></td>
+        <td style="text-align: center;"><span class="status-pill ${itemPill}">${st}</span></td>
+        <td class="metric-val" style="font-weight: 700;">${item.score !== undefined ? `${item.score} / ${item.max_score || item.score} pts` : '-'}</td>
+        <td style="font-size: 0.85rem; color: var(--text-muted);">${item.details || '-'}</td>
+      `;
+      auditTbody.appendChild(tr);
+    });
+  }
+
+  // 4. Positive Factors
+  const posContainer = document.getElementById('positive-list');
+  posContainer.innerHTML = '';
+  const posItems = v.positive || [];
+  if (posItems.length === 0) {
+    posContainer.innerHTML = '<li class="factor-item factor-empty">None recorded.</li>';
+  } else {
+    posItems.forEach(p => {
       const li = document.createElement('li');
-      li.className = `flag-item ${isNetNet ? 'flag-item-netnet' : 'flag-item-warn'}`;
-      li.textContent = `${isNetNet ? '🌟 ' : '⚠️ '}${f}`;
-      flagsList.appendChild(li);
+      li.className = 'factor-item factor-positive';
+      li.innerHTML = `<span class="factor-icon">✔</span><span>${p}</span>`;
+      posContainer.appendChild(li);
+    });
+  }
+
+  // 5. Negative Factors
+  const negContainer = document.getElementById('negative-list');
+  negContainer.innerHTML = '';
+  const negItems = v.negative || [];
+  if (negItems.length === 0) {
+    negContainer.innerHTML = '<li class="factor-item factor-empty">None recorded.</li>';
+  } else {
+    negItems.forEach(n => {
+      const li = document.createElement('li');
+      li.className = 'factor-item factor-negative';
+      li.innerHTML = `<span class="factor-icon">✖</span><span>${n}</span>`;
+      negContainer.appendChild(li);
+    });
+  }
+
+  // 6. Observations
+  const obsContainer = document.getElementById('observations-list');
+  obsContainer.innerHTML = '';
+  const obsItems = v.observations || [];
+  if (obsItems.length === 0) {
+    obsContainer.innerHTML = '<li class="factor-item factor-empty">No additional qualitative observations recorded.</li>';
+  } else {
+    obsItems.forEach(o => {
+      const li = document.createElement('li');
+      li.className = 'factor-item factor-observation';
+      li.innerHTML = `<span class="factor-icon">ℹ</span><span>${o}</span>`;
+      obsContainer.appendChild(li);
+    });
+  }
+
+  // 7. Warnings
+  const warnContainer = document.getElementById('warnings-list');
+  warnContainer.innerHTML = '';
+  const warnItems = v.warnings || v.red_flags || [];
+  if (warnItems.length === 0) {
+    warnContainer.innerHTML = '<div class="clean-banner"><span>✅</span> Zero active warning flags or critical risks detected.</div>';
+  } else {
+    warnItems.forEach(w => {
+      const div = document.createElement('div');
+      div.className = 'warning-item';
+      div.innerHTML = `<span class="factor-icon">⚠️</span><span>${w}</span>`;
+      warnContainer.appendChild(div);
     });
   }
 }
 
-let batchVerdicts = [];
-function renderBatchView(batch) {
+function renderBatchView(data) {
   document.getElementById('single-view').style.display = 'none';
   document.getElementById('batch-view').style.display = 'block';
 
-  document.getElementById('ticker-badge').textContent = 'PORTFOLIO';
-  document.getElementById('stance-badge').textContent = 'BATCH VALUATION';
-  document.getElementById('view-title').textContent = 'Benjamin Graham Valuation Portfolio Matrix';
-  document.getElementById('view-subtitle').textContent = `Batch Timestamp: ${batch.timestamp || 'N/A'} · Principle: ${batch.principle}`;
+  const principle = data.principle || 'Valuation';
+  const principleTitle = principle.toUpperCase().replace(/_/g, ' ');
+  document.getElementById('batch-principle-badge').textContent = principleTitle;
+  document.getElementById('batch-title').textContent = `${principleTitle} · Consolidated Valuation Portfolio Batch`;
+  document.getElementById('batch-subtitle').textContent = `Batch Timestamp: ${data.timestamp || 'N/A'}`;
 
-  batchVerdicts = batch.verdicts || [];
+  const verdicts = data.verdicts || [];
+  batchVerdicts = verdicts;
 
-  let countBuy = 0;
-  let countHold = 0;
-  let countSell = 0;
+  const countBuy = verdicts.filter(v => v.stance === 'STRONG_BUY' || v.stance === 'BUY').length;
+  const countHold = verdicts.filter(v => v.stance === 'HOLD').length;
+  const countSell = verdicts.filter(v => v.stance === 'REDUCE' || v.stance === 'STRONG_SELL').length;
 
-  batchVerdicts.forEach(v => {
-    if (v.stance === 'STRONG_BUY' || v.stance === 'BUY') countBuy++;
-    else if (v.stance === 'HOLD') countHold++;
-    else countSell++;
-  });
-
-  document.getElementById('count-all').textContent = batchVerdicts.length;
+  document.getElementById('count-all').textContent = verdicts.length;
   document.getElementById('count-buy').textContent = countBuy;
   document.getElementById('count-hold').textContent = countHold;
   document.getElementById('count-sell').textContent = countSell;
@@ -580,27 +685,28 @@ function renderBatchRows(verdicts) {
   tbody.innerHTML = '';
 
   if (verdicts.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">No securities match the selected filter.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No securities match the selected filter.</td></tr>';
     return;
   }
 
   verdicts.forEach(v => {
     const tr = document.createElement('tr');
     const m = v.metrics || {};
+    let stancePillClass = 'pill-pass';
+    if (v.stance === 'HOLD') stancePillClass = 'pill-warn';
+    else if (v.stance === 'REDUCE' || v.stance === 'STRONG_SELL') stancePillClass = 'pill-fail';
 
-    let stancePillClass = 'pill-buy';
-    if (v.stance === 'HOLD') stancePillClass = 'pill-hold';
-    else if (v.stance === 'REDUCE' || v.stance === 'STRONG_SELL') stancePillClass = 'pill-sell';
+    const metricPairs = Object.entries(m).slice(0, 4).map(([k, val]) => {
+      const isPct = k.endsWith('_pct');
+      return `<span><strong>${formatLabel(k)}:</strong> ${val !== null && val !== undefined ? (isPct ? fmtNum(val) + '%' : fmtNum(val)) : '-'}</span>`;
+    }).join(' &bull; ');
 
     tr.innerHTML = `
-      <td class="metric-name">${v.ticker}</td>
-      <td><span class="status-pill ${stancePillClass}">${v.stance}</span></td>
-      <td class="metric-val" style="color: ${v.stance === 'STRONG_BUY' || v.stance === 'BUY' ? 'var(--emerald)' : (v.stance === 'HOLD' ? 'var(--amber)' : 'var(--rose)')}; font-size: 1.05rem;">${fmtNum(v.score, 1)}</td>
-      <td class="metric-val">${m.graham_number !== null ? fmtNum(m.graham_number) : '-'}</td>
-      <td class="metric-val">${m.margin_of_safety_pct !== null ? fmtNum(m.margin_of_safety_pct) + '%' : '-'}</td>
-      <td class="metric-val">${m.nnwc_per_share !== null ? fmtNum(m.nnwc_per_share) : '-'}</td>
-      <td class="metric-val">${m.pe_x_pb !== null ? fmtNum(m.pe_x_pb) : '-'}</td>
-      <td style="max-width: 320px; font-size: 0.85rem; color: var(--text-muted);">${v.summary}</td>
+      <td class="metric-name" style="font-size: 1.05rem;">${v.ticker}</td>
+      <td style="text-align: center;"><span class="status-pill ${stancePillClass}">${v.stance}</span></td>
+      <td class="metric-val" style="font-weight: 800; font-size: 1.05rem;">${fmtNum(v.score, 1)}</td>
+      <td style="font-size: 0.85rem; color: var(--text-muted);">${metricPairs}</td>
+      <td style="max-width: 320px; font-size: 0.85rem; color: var(--text-muted);">${v.summary || '-'}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -613,14 +719,11 @@ function filterBatch(filterType, btn) {
   if (filterType === 'ALL') {
     renderBatchRows(batchVerdicts);
   } else if (filterType === 'BUY') {
-    const filtered = batchVerdicts.filter(v => v.stance === 'STRONG_BUY' || v.stance === 'BUY');
-    renderBatchRows(filtered);
+    renderBatchRows(batchVerdicts.filter(v => v.stance === 'STRONG_BUY' || v.stance === 'BUY'));
   } else if (filterType === 'HOLD') {
-    const filtered = batchVerdicts.filter(v => v.stance === 'HOLD');
-    renderBatchRows(filtered);
+    renderBatchRows(batchVerdicts.filter(v => v.stance === 'HOLD'));
   } else {
-    const filtered = batchVerdicts.filter(v => v.stance === 'REDUCE' || v.stance === 'STRONG_SELL');
-    renderBatchRows(filtered);
+    renderBatchRows(batchVerdicts.filter(v => v.stance === 'REDUCE' || v.stance === 'STRONG_SELL'));
   }
 }
 
@@ -628,4 +731,3 @@ window.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
-

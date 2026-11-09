@@ -121,6 +121,7 @@ function evaluateGrahamValuation(financials, options = {}) {
   );
 
   if (isIndexEtf) {
+    const etfSummary = `Index ETF passive basket (${ticker}): Single-equity Graham liquidation floors and valuation multiples bypassed.`;
     return {
       principle: 'graham',
       ticker,
@@ -128,6 +129,7 @@ function evaluateGrahamValuation(financials, options = {}) {
       score: 100.0,
       stance: 'HOLD',
       is_veto: false,
+      summary: etfSummary,
       metrics: {
         graham_number: null,
         nnwc: null,
@@ -140,7 +142,35 @@ function evaluateGrahamValuation(financials, options = {}) {
         pe_x_pb: null
       },
       red_flags: [],
-      summary: `Index ETF passive basket (${ticker}): Single-equity Graham liquidation floors and valuation multiples bypassed.`
+      verdict: {
+        principle: 'graham',
+        principle_title: 'Benjamin Graham Deep Value',
+        ticker,
+        timestamp,
+        stance: 'HOLD',
+        score: 100.0,
+        is_veto: false,
+        summary: etfSummary
+      },
+      audit: [
+        {
+          check: 'Broad-Market Index Diversification',
+          criterion: 'Passive Index Basket',
+          value: 'Full Basket',
+          status: 'PASS',
+          score: 100.0,
+          max_score: 100.0,
+          details: 'Passive ETF automatically diversifies across constituent holdings'
+        }
+      ],
+      positive: [
+        'Broad market index diversification eliminates single-company insolvency risk.'
+      ],
+      negative: [],
+      observations: [
+        'Passive index fund is evaluated on asset diversification rather than individual balance sheet liquidation.'
+      ],
+      warnings: []
     };
   }
 
@@ -191,23 +221,24 @@ function evaluateGrahamValuation(financials, options = {}) {
   let score = 0.0;
   const redFlags = [];
 
+  let pillar1Score = 0.0;
   // Pillar 1: Margin of Safety vs Graham Number (max 40 pts)
   if (marginOfSafetyPct !== null) {
     if (marginOfSafetyPct >= 30.0) {
-      score += 40.0;
+      pillar1Score = 40.0;
     } else if (marginOfSafetyPct >= 10.0) {
-      score += 30.0;
+      pillar1Score = 30.0;
     } else if (marginOfSafetyPct >= -10.0) {
-      score += 20.0; // Fair value band
+      pillar1Score = 20.0; // Fair value band
     } else if (marginOfSafetyPct >= -30.0) {
-      score += 10.0;
+      pillar1Score = 10.0;
       redFlags.push(`Moderate valuation premium: CMP trades ${round2(Math.abs(marginOfSafetyPct))}% above Graham Number floor`);
     } else {
-      score += 0.0;
+      pillar1Score = 0.0;
       redFlags.push(`Substantial valuation stretch: CMP trades ${round2(Math.abs(marginOfSafetyPct))}% above Graham Number floor`);
     }
   } else {
-    score += 0.0;
+    pillar1Score = 0.0;
     if (eps === null || eps <= 0) {
       redFlags.push('Negative or zero EPS precludes Graham Number valuation');
     }
@@ -215,39 +246,43 @@ function evaluateGrahamValuation(financials, options = {}) {
       redFlags.push('Negative or zero Book Value per Share precludes Graham Number valuation');
     }
   }
+  score += pillar1Score;
 
+  let pillar2Score = 0.0;
   // Pillar 2: Multiples Discipline (max 25 pts)
   if (peXpb !== null) {
     if ((pe <= 15.0 && pb <= 1.5) || peXpb <= 22.5) {
-      score += 25.0;
+      pillar2Score = 25.0;
     } else if (peXpb <= 35.0) {
-      score += 15.0;
+      pillar2Score = 15.0;
     } else if (peXpb <= 50.0) {
-      score += 8.0;
+      pillar2Score = 8.0;
       redFlags.push(`Elevated multiples product: P/E × P/B of ${peXpb} exceeds classical 22.5 ceiling`);
     } else {
-      score += 0.0;
+      pillar2Score = 0.0;
       redFlags.push(`Aggressive valuation multiples: P/E × P/B of ${peXpb} significantly exceeds Graham ceiling (22.5)`);
     }
   } else {
-    score += 0.0;
+    pillar2Score = 0.0;
     if (pe !== null && pe > 50.0) {
       redFlags.push(`Excessive P/E multiple (${pe} > 50.0)`);
     }
   }
+  score += pillar2Score;
 
+  let pillar3Score = 0.0;
   // Pillar 3: Balance Sheet Liquidity & Solvency (max 20 pts)
   // Current Ratio (10 pts)
   if (currentRatio !== null) {
     if (currentRatio >= 2.0) {
-      score += 10.0;
+      pillar3Score += 10.0;
     } else if (currentRatio >= 1.5) {
-      score += 6.0;
+      pillar3Score += 6.0;
     } else if (currentRatio >= 1.0) {
-      score += 3.0;
+      pillar3Score += 3.0;
       redFlags.push(`Sub-optimal working capital: Current ratio ${currentRatio} is below Graham 2.0 standard`);
     } else {
-      score += 0.0;
+      pillar3Score += 0.0;
       redFlags.push(`Deficient liquidity: Current ratio ${currentRatio} < 1.0 indicates working capital shortfall`);
     }
   }
@@ -255,24 +290,27 @@ function evaluateGrahamValuation(financials, options = {}) {
   // Debt vs Net Current Assets (10 pts)
   if (ncav !== null) {
     if (totalDebt <= ncav && ncav > 0) {
-      score += 10.0;
+      pillar3Score += 10.0;
     } else {
-      score += 0.0;
+      pillar3Score += 0.0;
       redFlags.push(`High leverage: Total debt (${totalDebt}) exceeds Net Current Assets (${ncav})`);
     }
   }
+  score += pillar3Score;
 
+  let pillar4Score = 0.0;
   // Pillar 4: Earnings Stability & Dividends (max 15 pts)
   if (netIncome !== null && netIncome > 0) {
-    score += 10.0;
+    pillar4Score += 10.0;
   } else {
-    score += 0.0;
+    pillar4Score += 0.0;
     redFlags.push('Unprofitable operations: negative or missing net income breaches Graham earnings stability rule');
   }
 
   if (divYield !== null && divYield > 0.0) {
-    score += 5.0;
+    pillar4Score += 5.0;
   }
+  score += pillar4Score;
 
   // Net-Net Special Condition Bonus
   const isNetNetBargain = Boolean(
@@ -314,6 +352,140 @@ function evaluateGrahamValuation(financials, options = {}) {
     summary = `${stance}: Extended valuation multiples and insufficient margin of safety. CMP (${cmp}) exceeds Graham Number floor (${grahamNumber || 'N/A'}) by ${marginOfSafetyPct ? Math.abs(marginOfSafetyPct) + '%' : 'wide margin'}.`;
   }
 
+  // 1. Audit Checks
+  const audit = [
+    {
+      check: 'Net-Net Liquidation Floor (NNWC)',
+      criterion: 'CMP <= NNWC/share (Deep Liquidation Bargain)',
+      value: nnwcPerShare !== null ? `NNWC: ${nnwcPerShare}, CMP: ${cmp}` : 'N/A',
+      status: isNetNetBargain ? 'PASS' : (ncavPerShare !== null && cmp <= ncavPerShare ? 'WARN' : 'FAIL'),
+      score: isNetNetBargain ? 40 : (ncavPerShare !== null && cmp <= ncavPerShare ? 20 : 0),
+      max_score: 40,
+      details: isNetNetBargain
+        ? 'Trades below conservative Net-Net Working Capital liquidation floor'
+        : (ncavPerShare !== null && cmp <= ncavPerShare ? 'Trades below NCAV but above NNWC' : 'Market price trades above liquidation floor')
+    },
+    {
+      check: 'Classical Graham Margin of Safety',
+      criterion: 'Graham Number Floor >= CMP (≥ 0% Margin of Safety)',
+      value: grahamNumber !== null ? `Graham No: ${grahamNumber}, MoS: ${marginOfSafetyPct !== null ? marginOfSafetyPct + '%' : 'N/A'}` : 'N/A',
+      status: marginOfSafetyPct !== null && marginOfSafetyPct >= 10 ? 'PASS' : (marginOfSafetyPct !== null && marginOfSafetyPct >= -25 ? 'WARN' : 'FAIL'),
+      score: pillar1Score,
+      max_score: 40,
+      details: marginOfSafetyPct !== null
+        ? (marginOfSafetyPct >= 0 ? `Positive margin of safety: ${marginOfSafetyPct}% buffer` : `Trades at a ${round2(Math.abs(marginOfSafetyPct))}% premium to Graham floor`)
+        : 'Negative or zero earnings/book value precludes calculation'
+    },
+    {
+      check: 'Conservative Valuation Multiples',
+      criterion: 'P/E <= 15.0 & P/B <= 1.5 (P/E × P/B <= 22.5)',
+      value: peXpb !== null ? `P/E: ${pe}, P/B: ${pb}, P/E×P/B: ${peXpb}` : 'N/A',
+      status: peXpb !== null && peXpb <= 22.5 ? 'PASS' : (peXpb !== null && peXpb <= 35 ? 'WARN' : 'FAIL'),
+      score: pillar2Score,
+      max_score: 25,
+      details: peXpb !== null
+        ? (peXpb <= 22.5 ? 'Multiples product complies with defensive investor ceiling (≤ 22.5)' : `Multiples product of ${peXpb} exceeds Graham 22.5 ceiling`)
+        : 'Missing or negative P/E or P/B multiple'
+    },
+    {
+      check: 'Financial Strength & Balance Sheet Liquidity',
+      criterion: 'Current Ratio >= 2.0x & Total Debt <= NCAV',
+      value: `Current Ratio: ${currentRatio !== null ? currentRatio + 'x' : 'N/A'}, Debt: ${totalDebt}`,
+      status: (currentRatio !== null && currentRatio >= 2.0 && totalDebt <= (ncav || 0)) ? 'PASS' : (currentRatio !== null && currentRatio >= 1.2 ? 'WARN' : 'FAIL'),
+      score: pillar3Score,
+      max_score: 20,
+      details: currentRatio !== null && currentRatio >= 2.0
+        ? `Current ratio of ${currentRatio}x meets Graham 2.0x safety standard`
+        : `Current ratio (${currentRatio !== null ? currentRatio + 'x' : 'N/A'}) falls below 2.0x benchmark`
+    }
+  ];
+
+  // 2. Positive Factors
+  const positive = [];
+  if (isNetNetBargain) {
+    positive.push(`Rare Net-Net liquidation bargain: CMP (${cmp}) is at or below Net-Net Working Capital per share (${nnwcPerShare}).`);
+  }
+  if (marginOfSafetyPct !== null && marginOfSafetyPct > 0) {
+    positive.push(`Positive Margin of Safety: Graham Number intrinsic floor offers a ${marginOfSafetyPct}% buffer above CMP.`);
+  }
+  if (peXpb !== null && peXpb <= 22.5) {
+    positive.push(`Conservative valuation multiples: P/E × P/B (${peXpb}) meets defensive investor ceiling (≤ 22.5).`);
+  }
+  if (currentRatio !== null && currentRatio >= 2.0) {
+    positive.push(`Robust working capital liquidity: Current ratio of ${currentRatio}x meets Graham 2.0x threshold.`);
+  }
+  if (totalDebt === 0) {
+    positive.push('Fortress balance sheet: Zero interest-bearing debt obligations.');
+  } else if (ncav !== null && totalDebt <= ncav && ncav > 0) {
+    positive.push(`Manageable leverage: Total debt (${totalDebt}) is fully covered by Net Current Assets (${ncav}).`);
+  }
+  if (netIncome !== null && netIncome > 0) {
+    positive.push('Profitable operations: Stable net income satisfies Graham earnings stability rule.');
+  }
+  if (divYield > 0) {
+    positive.push(`Active capital return: Dividend yield of ${divYield}% provides defensive income.`);
+  }
+
+  // 3. Negative Factors
+  const negative = [];
+  if (marginOfSafetyPct !== null && marginOfSafetyPct < 0) {
+    negative.push(`Negative Margin of Safety: CMP trades at a ${round2(Math.abs(marginOfSafetyPct))}% premium above Graham Number floor (${grahamNumber}).`);
+  }
+  if (peXpb !== null && peXpb > 22.5) {
+    negative.push(`Extended multiples product: P/E × P/B (${peXpb}) exceeds Graham defensive limit (22.5).`);
+  }
+  if (currentRatio !== null && currentRatio < 2.0) {
+    negative.push(`Working capital cushion: Current ratio (${currentRatio}x) is below Graham 2.0x standard.`);
+  }
+  if (ncav !== null && totalDebt > ncav) {
+    negative.push(`Debt exceeds net current assets: Total debt (${totalDebt}) > NCAV (${ncav}).`);
+  }
+  if (netIncome !== null && netIncome <= 0) {
+    negative.push('Unprofitable operations: Negative net income violates Graham earnings continuity rule.');
+  }
+
+  // 4. Observations
+  const observations = [];
+  if (isNetNetBargain) {
+    observations.push('Deep value classification: Net-Net Bargain (trading below liquidating working capital).');
+  } else if (stance === 'STRONG_BUY' || stance === 'BUY') {
+    observations.push('Deep value classification: Defensive Graham Investor Candidate.');
+  } else if (stance === 'HOLD') {
+    observations.push('Deep value classification: Enterprising / Fairly Valued Graham Candidate.');
+  } else {
+    observations.push('Deep value classification: Extended Valuation Multiples (insufficient classical margin of safety).');
+  }
+  if (eps !== null) observations.push(`Trailing Twelve Months EPS: ${eps}`);
+  if (bvps !== null) observations.push(`Book Value Per Share: ${bvps}`);
+  if (ncavPerShare !== null) observations.push(`Net Current Asset Value (NCAV) per Share: ${ncavPerShare}`);
+
+  // 5. Warnings
+  const warnings = [...redFlags];
+
+  // 6. Verdict Container
+  const verdict = {
+    principle: 'graham',
+    principle_title: 'Benjamin Graham Deep Value',
+    ticker,
+    timestamp,
+    stance,
+    score: finalScore,
+    is_veto: false,
+    summary
+  };
+
+  const metrics = {
+    graham_number: grahamNumber,
+    nnwc: isFiniteNumber(nnwc) ? nnwc : null,
+    nnwc_per_share: nnwcPerShare,
+    ncav_per_share: ncavPerShare,
+    margin_of_safety_pct: marginOfSafetyPct,
+    current_ratio: currentRatio,
+    pe_ratio: pe,
+    pb_ratio: pb,
+    pe_x_pb: peXpb
+  };
+
   return {
     principle: 'graham',
     ticker,
@@ -321,19 +493,15 @@ function evaluateGrahamValuation(financials, options = {}) {
     score: finalScore,
     stance,
     is_veto: false,
-    metrics: {
-      graham_number: grahamNumber,
-      nnwc: isFiniteNumber(nnwc) ? nnwc : null,
-      nnwc_per_share: nnwcPerShare,
-      ncav_per_share: ncavPerShare,
-      margin_of_safety_pct: marginOfSafetyPct,
-      current_ratio: currentRatio,
-      pe_ratio: pe,
-      pb_ratio: pb,
-      pe_x_pb: peXpb
-    },
+    metrics,
     red_flags: redFlags,
-    summary
+    summary,
+    verdict,
+    audit,
+    positive,
+    negative,
+    observations,
+    warnings
   };
 }
 
