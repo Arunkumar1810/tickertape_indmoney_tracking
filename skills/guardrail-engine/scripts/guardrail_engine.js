@@ -434,6 +434,7 @@ function parseArgs(argv = process.argv.slice(2)) {
     verdictPaths: [],
     blendedPath: null,
     wayId: null,
+    ticker: null,
     manifestPath: DEFAULT_MANIFEST_PATH,
     outDir: DEFAULT_REPORTS_DIR,
     jsonOutput: false
@@ -447,6 +448,10 @@ function parseArgs(argv = process.argv.slice(2)) {
       options.wayId = argv[++i];
     } else if (arg.startsWith('--way=')) {
       options.wayId = arg.slice('--way='.length);
+    } else if (arg === '--ticker' && i + 1 < argv.length) {
+      options.ticker = argv[++i].toUpperCase();
+    } else if (arg.startsWith('--ticker=')) {
+      options.ticker = arg.slice('--ticker='.length).toUpperCase();
     } else if (arg === '--blended' && i + 1 < argv.length) {
       options.blendedPath = argv[++i];
     } else if (arg.startsWith('--blended=')) {
@@ -463,6 +468,8 @@ function parseArgs(argv = process.argv.slice(2)) {
       while (i + 1 < argv.length && !argv[i + 1].startsWith('--')) {
         options.verdictPaths.push(argv[++i]);
       }
+    } else if (!arg.startsWith('--') && !options.ticker && !options.wayId) {
+      options.ticker = arg.toUpperCase();
     }
   }
 
@@ -484,13 +491,48 @@ function runCli(argv = process.argv.slice(2)) {
         manifestPath: options.manifestPath,
         outDir: options.outDir
       });
-    } else if (options.verdictPaths.length > 0) {
-      result = processVerdicts(options.verdictPaths, options.blendedPath, {
-        outDir: options.outDir
-      });
     } else {
-      process.stderr.write('Error: Must specify either --way <way_id> or --verdicts <path...>\n');
-      return 1;
+      if (options.ticker && options.verdictPaths.length === 0) {
+        const verdictsDir = path.join(REPO_ROOT, 'reports', 'verdicts');
+        if (fs.existsSync(verdictsDir)) {
+          const files = fs.readdirSync(verdictsDir);
+          const prefix = `${options.ticker}_`;
+          for (const file of files) {
+            if (file.startsWith(prefix) && file.endsWith('.json')) {
+              options.verdictPaths.push(path.join(verdictsDir, file));
+            }
+          }
+        }
+        if (options.verdictPaths.length === 0) {
+          throw new Error(`No verdict files found for ticker "${options.ticker}" in ${verdictsDir}`);
+        }
+      }
+
+      if (options.verdictPaths.length > 0) {
+        let manifestWeights = {};
+        if (fs.existsSync(options.manifestPath)) {
+          try {
+            const manifest = loadManifestFile(options.manifestPath);
+            const ways = (manifest && manifest.investment_ways) || {};
+            const way = Array.isArray(ways)
+              ? ways.find(w => w.id === 'fundamental_lts')
+              : (ways['fundamental_lts'] || Object.values(ways)[0]);
+            if (way && way.weights) {
+              manifestWeights = way.weights;
+            }
+          } catch (e) {
+            // fallback to empty weights
+          }
+        }
+
+        result = processVerdicts(options.verdictPaths, options.blendedPath, {
+          outDir: options.outDir,
+          manifestWeights
+        });
+      } else {
+        process.stderr.write('Error: Must specify either --way <way_id>, --ticker <ticker>, or --verdicts <path...>\n');
+        return 1;
+      }
     }
 
     if (options.jsonOutput) {
@@ -500,6 +542,27 @@ function runCli(argv = process.argv.slice(2)) {
       process.stdout.write(`   Portfolio Health Score: ${result.synthesis.summary.portfolio_health_score} / 100\n`);
       process.stdout.write(`   Positions: ${result.synthesis.summary.total_positions} (Disqualified: ${result.synthesis.summary.disqualified_count}, Review: ${result.synthesis.summary.needs_review_count}, Approved: ${result.synthesis.summary.approved_count})\n`);
       process.stdout.write(`   Capital at Risk: ${result.synthesis.summary.capital_at_risk.toLocaleString()}\n`);
+
+      if (result.synthesis.portfolio_verdicts.length === 1) {
+        const pv = result.synthesis.portfolio_verdicts[0];
+        process.stdout.write(`\n   Security: ${pv.ticker} (${pv.name})\n`);
+        process.stdout.write(`   Synthesized Stance: ${pv.synthesized_stance}\n`);
+        process.stdout.write(`   Synthesized Score:  ${pv.synthesized_score} / 100\n`);
+        process.stdout.write(`   Disqualified:       ${pv.is_disqualified ? 'YES' : 'NO'}\n`);
+        process.stdout.write(`   Guardrail Trigger:  ${pv.guardrail_triggered ? 'YES' : 'NO'}\n`);
+        if (pv.notes.length > 0) {
+          process.stdout.write(`   Notes:\n`);
+          for (const note of pv.notes) {
+            process.stdout.write(`     • ${note}\n`);
+          }
+        }
+        process.stdout.write(`   Pillars Evaluated:\n`);
+        for (const [pName, pData] of Object.entries(pv.pillar_verdicts)) {
+          process.stdout.write(`     • ${pName}: Stance ${pData.stance}, Score ${pData.score}, Weight ${(pData.weight * 100).toFixed(0)}%, Weighted Score ${pData.weighted_score}\n`);
+        }
+        process.stdout.write('\n');
+      }
+
       process.stdout.write(`   JSON Artifact: ${result.jsonPath}\n`);
       process.stdout.write(`   HTML Dashboard: ${result.htmlPath}\n`);
       process.stdout.write('   ✅ Universal Verification Harness Passed (Zero External Leaks)\n\n');
