@@ -19,11 +19,14 @@ const {
 } = require('../../../scripts/framework');
 
 let createIndmoneyClient;
+let performIndmoneyOAuthLogin;
 try {
   const sharedIndmoney = require('../../../scripts/indmoney');
   createIndmoneyClient = sharedIndmoney.createIndmoneyClient;
+  performIndmoneyOAuthLogin = sharedIndmoney.performIndmoneyOAuthLogin;
 } catch {
   createIndmoneyClient = null;
+  performIndmoneyOAuthLogin = null;
 }
 
 const SKILL_ROOT = path.resolve(__dirname, '..');
@@ -119,6 +122,9 @@ function parseArgs(argv = process.argv.slice(2)) {
     broker: 'indmoney',
     out: null,
     refresh: false,
+    login: false,
+    noBrowser: false,
+    authOnly: false,
     only: null,
     jsonOutput: false,
     cacheDir: DEFAULT_CACHE_DIR,
@@ -139,6 +145,9 @@ function parseArgs(argv = process.argv.slice(2)) {
     else if (k === '--out') args.out = next();
     else if (k === '--only') args.only = next().toUpperCase();
     else if (k === '--refresh') args.refresh = true;
+    else if (k === '--login' || k === '--auth') args.login = true;
+    else if (k === '--no-browser') args.noBrowser = true;
+    else if (k === '--auth-only') args.authOnly = true;
     else if (k === '--json-output' || k === '--json') args.jsonOutput = true;
     else if (k === '--cache-dir') args.cacheDir = next();
     else if (k === '--mock-data') args.mockData = next();
@@ -149,7 +158,7 @@ function parseArgs(argv = process.argv.slice(2)) {
   return args;
 }
 
-const USAGE = `Usage: node scripts/fetch_indmoney_us.js [--broker indmoney] [--out DIR] [--refresh] [--only TICKER] [--mock-data PATH] [--json-output]`;
+const USAGE = `Usage: node scripts/fetch_indmoney_us.js [--broker indmoney] [--out DIR] [--refresh] [--login] [--no-browser] [--auth-only] [--only TICKER] [--mock-data PATH] [--json-output]`;
 
 /**
  * Fetch raw INDmoney US holdings, cash balance, and USD/INR rate from MCP, cache, or mock fixture.
@@ -400,6 +409,26 @@ async function main(argv = process.argv.slice(2)) {
 
   if (args.broker !== 'indmoney') {
     throw new Error(`Unsupported broker "${args.broker}". fetch-indmoney-us only supports "indmoney".`);
+  }
+
+  if (args.login) {
+    if (typeof performIndmoneyOAuthLogin !== 'function') {
+      throw new Error('INDmoney OAuth login helper is not available. Please ensure scripts/indmoney/oauth.js exists.');
+    }
+    const loginRes = await performIndmoneyOAuthLogin({
+      openBrowser: !args.noBrowser
+    });
+    if (!loginRes || !loginRes.ok) {
+      throw new Error('INDmoney OAuth authentication failed.');
+    }
+    if (args.authOnly) {
+      if (args.jsonOutput) {
+        process.stdout.write(JSON.stringify({ ok: true, access_token: loginRes.access_token, updatedFiles: loginRes.updatedFiles }, null, 2) + '\n');
+      }
+      return { ok: true, access_token: loginRes.access_token };
+    }
+    // Automatically force refresh so live holdings are fetched using the fresh token
+    args.refresh = true;
   }
 
   const outDir = path.resolve(args.out || DEFAULT_REPORTS_DIR);

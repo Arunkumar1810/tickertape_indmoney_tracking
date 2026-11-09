@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const IndmoneyMcpClient = require('./client');
+const oauth = require('./oauth');
 
 const REPO_ROOT = fs.existsSync(path.join(__dirname, '..', '..', 'package.json'))
   ? path.resolve(__dirname, '..', '..')
@@ -52,6 +53,8 @@ function createIndmoneyClient(overrides = {}) {
 module.exports = {
   createIndmoneyClient,
   IndmoneyMcpClient,
+  performIndmoneyOAuthLogin: oauth.performIndmoneyOAuthLogin,
+  oauth,
   loadConfig,
   loadEnvFile,
   CONFIG_PATH,

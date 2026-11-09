@@ -31,6 +31,8 @@ function parseArgs(argv = process.argv.slice(2)) {
     refreshToken: null,
     envPath: null,
     tokensPath: null,
+    login: false,
+    noBrowser: false,
     nonInteractive: false,
     help: false
   };
@@ -54,6 +56,8 @@ function parseArgs(argv = process.argv.slice(2)) {
     else if (k === '--refresh-token') args.refreshToken = next();
     else if (k === '--env') args.envPath = next();
     else if (k === '--tokens-path') args.tokensPath = next();
+    else if (k === '--login' || k === '--oauth') args.login = true;
+    else if (k === '--no-browser') args.noBrowser = true;
     else if (k === '--non-interactive') args.nonInteractive = true;
     else if (k === '-h' || k === '--help') args.help = true;
     else throw new Error(`Unknown option: ${k}`);
@@ -77,6 +81,8 @@ Options:
   --refresh-token     Tickertape OAuth refresh token
   --env               Path to destination .env file (default: repo root .env)
   --tokens-path       Path to Tickertape tokens.json (default: config/tokens.json)
+  --login, --oauth    Launch browser OAuth login for services supporting PKCE (indmoney)
+  --no-browser        Disable automatic browser launch during OAuth
   --non-interactive   Disable interactive prompts
   -h, --help          Show this help message
 `;
@@ -119,6 +125,21 @@ async function main(argv = process.argv.slice(2)) {
   } else if (s === 'tickertape') {
     if (args.token) directCreds.access_token = args.token;
     if (args.refreshToken) directCreds.refresh_token = args.refreshToken;
+  }
+
+  if (s === 'indmoney' && args.login) {
+    try {
+      const { performIndmoneyOAuthLogin } = require('../indmoney/oauth');
+      const res = await performIndmoneyOAuthLogin({
+        envPath: args.envPath,
+        openBrowser: !args.noBrowser
+      });
+      process.stdout.write(`\n[SUCCESS] Credentials for "indmoney" updated successfully via OAuth.\nDestination: ${res.updatedFiles.join(', ')}\n\n`);
+      return;
+    } catch (err) {
+      process.stderr.write(`\n[ERROR] Failed to renew INDmoney token via OAuth: ${err.message}\n\n`);
+      process.exit(1);
+    }
   }
 
   const hasDirectCreds = Object.keys(directCreds).length > 0;

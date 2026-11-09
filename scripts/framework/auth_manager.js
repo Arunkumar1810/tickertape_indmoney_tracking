@@ -114,11 +114,13 @@ Steps to renew:
 INDmoney MCP session token has expired or is missing.
 
 Steps to renew:
-1. Log in to your INDmoney account via web browser or mobile app.
-2. Obtain your fresh session Bearer token from network inspect or MCP auth helper.
-3. Update INDMONEY_MCP_TOKEN in the repository root .env file:
+1. Run interactive OAuth browser login directly via the skill:
+   node skills/fetch-indmoney-us/scripts/fetch_indmoney_us.js --login
+   # Or via renewal helper:
+   node scripts/framework/renew_token.js --service indmoney --login
+2. Or manually update INDMONEY_MCP_TOKEN in the repository root .env file:
    INDMONEY_MCP_TOKEN=<fresh_token>
-4. Or run the renewal utility:
+   # Or run:
    node scripts/framework/renew_token.js --service indmoney --token <YOUR_TOKEN>
 =======================================================\n`;
   }
@@ -343,8 +345,34 @@ async function promptTokenRenewal(service, options = {}) {
       const totp = await ask('Enter Angel One TOTP Secret Key (or leave blank to keep existing): ');
       if (totp.trim()) collected.ANGELONE_TOTP_KEY = totp.trim();
     } else if (s === 'indmoney') {
-      const token = await ask('Enter fresh INDmoney MCP Token: ');
-      if (token.trim()) collected.token = token.trim();
+      const mode = (await ask('Renew INDmoney token via: [1] Browser OAuth login (Recommended) or [2] Manual token input? [1]: ')).trim();
+      if (mode === '2') {
+        const token = await ask('Enter fresh INDmoney MCP Token: ');
+        if (token.trim()) collected.token = token.trim();
+      } else {
+        rl.close();
+        let oauthHelper;
+        try {
+          oauthHelper = require('../indmoney/oauth');
+        } catch {
+          oauthHelper = null;
+        }
+        if (oauthHelper && typeof oauthHelper.performIndmoneyOAuthLogin === 'function') {
+          const oauthRes = await oauthHelper.performIndmoneyOAuthLogin({ envPath: options.envPath });
+          return {
+            success: Boolean(oauthRes && oauthRes.ok),
+            service: s,
+            updatedKeys: ['INDMONEY_MCP_TOKEN'],
+            promptAvailable: true,
+            destination: options.envPath || DEFAULT_ENV_PATH
+          };
+        } else {
+          const fallbackRl = readline.createInterface({ input: process.stdin, output: process.stdout });
+          const token = await new Promise(r => fallbackRl.question('Enter fresh INDmoney MCP Token: ', r));
+          fallbackRl.close();
+          if (token.trim()) collected.token = token.trim();
+        }
+      }
     } else if (s === 'tickertape') {
       const token = await ask('Enter fresh Tickertape Pro Access Token: ');
       if (token.trim()) collected.access_token = token.trim();

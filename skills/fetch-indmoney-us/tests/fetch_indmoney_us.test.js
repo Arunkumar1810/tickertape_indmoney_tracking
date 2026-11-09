@@ -30,6 +30,9 @@ test('fetch_indmoney_us: parseArgs defaults and CLI options', () => {
   const defaults = parseArgs([]);
   assert.equal(defaults.broker, 'indmoney');
   assert.equal(defaults.refresh, false);
+  assert.equal(defaults.login, false);
+  assert.equal(defaults.noBrowser, false);
+  assert.equal(defaults.authOnly, false);
   assert.equal(defaults.only, null);
   assert.equal(defaults.jsonOutput, false);
 
@@ -38,6 +41,9 @@ test('fetch_indmoney_us: parseArgs defaults and CLI options', () => {
     '--out', './tmp_reports',
     '--only', 'aapl',
     '--refresh',
+    '--login',
+    '--no-browser',
+    '--auth-only',
     '--mock-data', './mock.json',
     '--json-output'
   ]);
@@ -45,6 +51,9 @@ test('fetch_indmoney_us: parseArgs defaults and CLI options', () => {
   assert.equal(custom.out, './tmp_reports');
   assert.equal(custom.only, 'AAPL');
   assert.equal(custom.refresh, true);
+  assert.equal(custom.login, true);
+  assert.equal(custom.noBrowser, true);
+  assert.equal(custom.authOnly, true);
   assert.equal(custom.mockData, './mock.json');
   assert.equal(custom.jsonOutput, true);
 });

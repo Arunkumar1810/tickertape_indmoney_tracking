@@ -12,7 +12,7 @@ Fetches live US stock holdings, fractional share quantities, volume-weighted ave
 ## Run
 
 ```bash
-node .agents/skills/fetch-indmoney-us/scripts/fetch_indmoney_us.js
+node skills/fetch-indmoney-us/scripts/fetch_indmoney_us.js
 ```
 
 | Flag | Meaning |
@@ -20,9 +20,25 @@ node .agents/skills/fetch-indmoney-us/scripts/fetch_indmoney_us.js
 | `--broker indmoney` | Broker identifier (default `indmoney`) |
 | `--out DIR` | Output directory (default `reports/`) |
 | `--refresh` | Bypass local cache and fetch live holdings from INDmoney MCP |
+| `--login`, `--auth` | Launch interactive browser OAuth login (PKCE) on `http://localhost:3000/callback` to refresh token and fetch live |
+| `--auth-only` | Run OAuth login and update `.env` without generating portfolio reports |
+| `--no-browser` | Prevent auto-opening browser (prints authorization URL to terminal) |
 | `--only TICKER` | Filter to a single US equity ticker (e.g. `AAPL`, `MSFT`) |
 | `--mock-data PATH` | Load raw holdings from a mock JSON fixture for testing |
 | `--json-output` | Output execution result as JSON |
 
 Outputs: `accounts/indmoney_us.json` and `accounts/indmoney_us.html`.
+
+### OAuth Authentication & Token Renewal
+
+When session tokens expire (HTTP 401/403):
+1. Run with `--login` to initiate the local PKCE OAuth server:
+   ```bash
+   node skills/fetch-indmoney-us/scripts/fetch_indmoney_us.js --login
+   # Or via slash command:
+   /fetch-indmoney-us --login
+   ```
+2. The browser automatically navigates to `https://mcp.indmoney.com/authorize`.
+3. Upon approval, the local server at `http://localhost:3000/callback` exchanges the code for a Bearer token and updates `INDMONEY_MCP_TOKEN` in `config/.env` and `.env`.
+4. The skill immediately completes live portfolio fetching and generates verified artifacts.
 
