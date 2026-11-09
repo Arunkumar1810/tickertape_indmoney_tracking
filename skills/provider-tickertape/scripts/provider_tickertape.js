@@ -82,6 +82,7 @@ function parseArgs(argv = process.argv.slice(2)) {
     out: null,
     refresh: false,
     mockData: null,
+    allowFixtures: false,
     cacheDir: DEFAULT_CACHE_DIR,
     jsonOutput: false,
     help: false
@@ -102,6 +103,7 @@ function parseArgs(argv = process.argv.slice(2)) {
     else if (k === '--out') args.out = next();
     else if (k === '--refresh') args.refresh = true;
     else if (k === '--mock-data') args.mockData = next();
+    else if (k === '--allow-fixtures') args.allowFixtures = true;
     else if (k === '--cache-dir') args.cacheDir = next();
     else if (k === '--json-output' || k === '--json') args.jsonOutput = true;
     else if (k === '-h' || k === '--help') args.help = true;
@@ -111,7 +113,7 @@ function parseArgs(argv = process.argv.slice(2)) {
   return args;
 }
 
-const USAGE = `Usage: node scripts/provider_tickertape.js [--ticker SYMBOL] [--market IN|US] [--holdings PATH] [--out DIR] [--refresh] [--mock-data PATH] [--json-output]`;
+const USAGE = `Usage: node scripts/provider_tickertape.js [--ticker SYMBOL] [--market IN|US] [--holdings PATH] [--out DIR] [--refresh] [--mock-data PATH] [--allow-fixtures] [--json-output]`;
 
 function inferMarket(ticker, explicitMarket) {
   if (explicitMarket && (explicitMarket === 'IN' || explicitMarket === 'US')) {
@@ -124,11 +126,424 @@ function inferMarket(ticker, explicitMarket) {
   return 'IN';
 }
 
+/** Finite number or null (never fabricates a value). */
+function num(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** a / b, or null when either side is missing or b is zero. */
+function ratio(a, b) {
+  const x = num(a);
+  const y = num(b);
+  return x === null || y === null || y === 0 ? null : x / y;
+}
+
+/** Compound annual growth (%) between the first and last of `values` (oldest first), or null. */
+function cagrPct(values, years) {
+  if (!Array.isArray(values) || values.length < years + 1) return null;
+  const window = values.slice(-(years + 1));
+  const first = num(window[0]);
+  const last = num(window[window.length - 1]);
+  if (first === null || last === null || first <= 0 || last <= 0) return null;
+  return (Math.pow(last / first, 1 / years) - 1) * 100;
+}
+
+/** Sort statement rows oldest-first and drop the TTM row (its period is blank). */
+function annualRows(rows) {
+  return (Array.isArray(rows) ? rows : [])
+    .filter((r) => r && r.displayPeriod !== 'TTM' && r.endDate)
+    .sort((a, b) => String(a.endDate).localeCompare(String(b.endDate)));
+}
+
+/** Sloan accrual ratio: (net income - operating cash flow) / average total assets. */
+function sloanRatio(netIncome, cfo, assetsNow, assetsPrev) {
+  const avgAssets = num(assetsPrev) === null ? num(assetsNow) : (num(assetsNow) + num(assetsPrev)) / 2;
+  const numerator = num(netIncome) !== null && num(cfo) !== null ? num(netIncome) - num(cfo) : null;
+  return ratio(numerator, avgAssets);
+}
+
+/**
+ * Live Tickertape MCP fetch for an Indian (NSE/BSE) equity. Values are in INR crores.
+ * Fields the vendor does not publish are left null rather than estimated.
+ */
+async function fetchLiveIndianEquity(client, ticker) {
+  let sid = null;
+  for (const exchange of ['NSE', 'BSE']) {
+    let resolved;
+    try {
+      resolved = await client.call('in_resolve_sid_read', {
+        identifiers: [{ ticker }],
+        assetType: 'stock',
+        exchange
+      });
+    } catch (err) {
+      if (/\b404\b|not.?found/i.test(err.message)) continue; // not listed on this exchange
+      throw err;
+    }
+    const m = /(?:^|\n)id:([^|\n]+)\|/.exec(typeof resolved === 'string' ? resolved : JSON.stringify(resolved));
+    if (m) {
+      sid = m[1];
+      break;
+    }
+  }
+  if (!sid) throw new Error(`Tickertape could not resolve "${ticker}" to an Indian stock SID`);
+
+  const fin = (type, extra = {}) =>
+    client.call('in_stock_financials_read', { type, [type]: { sid, ...extra } });
+  const [overview, income, balance, cashflow, ratios, ownership, analysis] = await Promise.all([
+    client.call('in_stock_overview_read', { sids: [sid] }),
+    fin('income', { period: 'annual', count: 8 }),
+    fin('balance', { count: 3 }),
+    fin('cashflow', { count: 3 }),
+    fin('ratios'),
+    client.call('in_stock_ownership_read', { sid, sections: ['holdings'] }),
+    client.call('in_stock_analysis_read', { sid, sections: ['scorecard'] }).catch(() => null)
+  ]);
+
+  const profile = (overview && overview.profile) || {};
+  const quote = (overview && overview.quotes && overview.quotes[0]) || {};
+  const cmp = num(quote.price);
+  if (cmp === null || cmp <= 0) throw new Error(`Tickertape returned no live price for ${ticker}`);
+
+  const incRows = annualRows(income);
+  const balRows = annualRows(balance);
+  const cfRows = annualRows(cashflow);
+  if (!incRows.length || !balRows.length || !cfRows.length) {
+    throw new Error(`Tickertape returned incomplete statements for ${ticker}`);
+  }
+  const ttm = (Array.isArray(income) ? income : []).find((r) => r && r.displayPeriod === 'TTM') || {};
+  const inc = incRows[incRows.length - 1];
+  const bal = balRows[balRows.length - 1];
+  const balPrev = balRows.length > 1 ? balRows[balRows.length - 2] : {};
+  const incPrev = incRows.length > 1 ? incRows[incRows.length - 2] : {};
+  const cf = cfRows[cfRows.length - 1];
+  const ratioMap = {};
+  for (const r of Array.isArray(ratios) ? ratios : []) ratioMap[r.backL] = num(r.value);
+
+  const shares = num(bal.balTcso); // crore shares, same scale as market cap in crores
+  const marketCap = shares !== null ? cmp * shares : null;
+  const epsTtm = num(ttm.incEps) !== null ? num(ttm.incEps) : num(inc.incEps);
+  const bvps = ratio(bal.balTeq, shares);
+  const totalDebt = num(bal.balTdeb);
+  const ltDebt = num(bal.balTltd);
+  const ebitda = num(inc.incEbi);
+  const ev = marketCap !== null ? marketCap + (totalDebt || 0) - (num(bal.balCsti) || 0) : null;
+
+  const holdingsRows = ((ownership && ownership.holdings) || [])
+    .filter((h) => h && h.data && h.date)
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  const latestHold = holdingsRows.length ? holdingsRows[holdingsRows.length - 1].data : null;
+  const prevHold = holdingsRows.length > 1 ? holdingsRows[holdingsRows.length - 2].data : null;
+
+  const flags = [];
+  const redFlags = ((analysis && analysis.scorecard) || []).find((s) => s && s.type === 'redFlag');
+  if (redFlags && Array.isArray(redFlags.elements)) {
+    for (const el of redFlags.elements) {
+      if ((el.title === 'ASM' || el.title === 'GSM') && !/not in/i.test(el.description || '')) flags.push(el.title);
+    }
+  }
+
+  const dsoNow = ratio(bal.balTrec, inc.incTrev);
+  const dsoPrev = ratio(balPrev.balTrec, incPrev.incTrev);
+  const invGrowth = num(balPrev.balTinv) > 0 ? ratio(bal.balTinv, balPrev.balTinv) : null;
+  const salesGrowth = ratio(inc.incTrev, incPrev.incTrev);
+
+  return {
+    name: (profile.info && profile.info.name) || ticker,
+    exchange: (profile.info && profile.info.exchange) || 'NSE',
+    sector: (profile.gic && profile.gic.sector) || (profile.info && profile.info.sector) || null,
+    industry: (profile.gic && profile.gic.industry) || null,
+    currency: 'INR',
+    unit_scale: 'CRORES',
+    is_index_etf: false,
+    market_data: {
+      cmp,
+      market_cap: marketCap,
+      shares_outstanding: shares,
+      eps_ttm: epsTtm,
+      bvps,
+      pe_ttm: ratio(cmp, epsTtm),
+      pb_ttm: ratioMap.pbr !== undefined ? ratioMap.pbr : ratio(cmp, bvps),
+      ev_ebitda: ratio(ev, ebitda),
+      dividend_yield_pct: ratioMap.divYield !== undefined ? ratioMap.divYield : null,
+      beta: null,
+      historical_pe_5y_median: null,
+      historical_pb_5y_median: null,
+      eps_growth_5y_cagr_pct: cagrPct(incRows.map((r) => r.incEps), 5),
+      revenue_growth_5y_cagr_pct: cagrPct(incRows.map((r) => r.incTrev), 5)
+    },
+    income_statement: {
+      revenue: num(inc.incTrev),
+      ebitda,
+      ebit: num(inc.incPbi),
+      interest_expense: num(inc.incIoi),
+      ebt: num(inc.incPbt),
+      tax_expense: num(inc.incToi),
+      net_income: num(inc.incNinc),
+      eps: num(inc.incEps)
+    },
+    balance_sheet: {
+      cash_and_equivalents: num(bal.balCsti),
+      accounts_receivable: num(bal.balTrec),
+      inventory: num(bal.balTinv),
+      total_current_assets: num(bal.balTca),
+      // Tickertape reports goodwill and intangibles as a single line (balGint).
+      goodwill: num(bal.balGint),
+      intangible_assets: null,
+      total_assets: num(bal.balTota),
+      short_term_debt: totalDebt !== null && ltDebt !== null ? totalDebt - ltDebt : null,
+      long_term_debt: ltDebt,
+      total_debt: totalDebt,
+      debt_maturing_24m: null,
+      total_current_liabilities: num(bal.balTcl),
+      total_liabilities: num(bal.balTotl),
+      retained_earnings: num(bal.balRtne),
+      total_equity: num(bal.balTeq)
+    },
+    cash_flow: {
+      operating_cash_flow: num(cf.cafCfoa),
+      capital_expenditure: num(cf.cafCexp),
+      maintenance_capex: null,
+      free_cash_flow: num(cf.cafFcf),
+      stock_based_compensation: null,
+      dividends_paid: num(cf.cafTcdp),
+      share_repurchases: null
+    },
+    forensics: {
+      promoter_holding_pct: latestHold ? num(latestHold.pmPctT) : null,
+      // pmPctP: share of promoter holding that is pledged.
+      promoter_pledge_pct: latestHold ? num(latestHold.pmPctP) : null,
+      promoter_holding_qoq_delta_pct:
+        latestHold && prevHold && num(latestHold.pmPctT) !== null && num(prevHold.pmPctT) !== null
+          ? num(latestHold.pmPctT) - num(prevHold.pmPctT)
+          : null,
+      related_party_transactions_pct: null,
+      beneish_m_score: null,
+      sloan_accrual_ratio: sloanRatio(inc.incNinc, cf.cafCfoa, bal.balTota, balPrev.balTota),
+      dso_yoy_expansion_pct: dsoNow !== null && dsoPrev ? (dsoNow / dsoPrev - 1) * 100 : null,
+      inventory_growth_vs_sales_delta_pct:
+        num(bal.balTinv) === 0 && num(balPrev.balTinv) === 0
+          ? 0
+          : invGrowth !== null && salesGrowth !== null
+            ? (invGrowth - salesGrowth) * 100
+            : null,
+      surveillance_stage: flags.length ? flags.join(',') : 'NONE'
+    }
+  };
+}
+
+/**
+ * Live Tickertape MCP fetch for a US-listed stock or ETF. Statement values are
+ * converted from absolute USD to millions. Fields the vendor does not publish
+ * for US assets (EBITDA, capex, debt, etc.) are left null.
+ */
+async function fetchLiveUsAsset(client, ticker) {
+  const isEtf = INDEX_ETF_TICKERS.has(ticker);
+  const assetType = isEtf ? 'etfs' : 'stocks';
+  const [overview, quoteCsv] = await Promise.all([
+    client.call('us_assets_get_overview_read', { market: 'US', assetType, ticker }),
+    client.call('us_quotes_get_latest_read', { market: 'US', ticker })
+  ]);
+
+  // Quote payload is a CSV: "t,p,lcp,v,s,pre,post\n<epoch_ms>,<price>,..."
+  const lines = String(quoteCsv || '').trim().split('\n');
+  const header = (lines[0] || '').split(',');
+  const row = (lines[1] || '').split(',');
+  const cmp = num(row[header.indexOf('p')]);
+  if (cmp === null || cmp <= 0) throw new Error(`Tickertape returned no live price for ${ticker}`);
+
+  const m = (overview && overview.metrics) || {};
+  const base = {
+    name: (overview && overview.name) || ticker,
+    exchange: (overview && overview.exchange) || null,
+    sector: (overview && overview.sector) || null,
+    industry: (overview && overview.industry) || null,
+    currency: 'USD',
+    unit_scale: 'MILLIONS',
+    is_index_etf: isEtf
+  };
+
+  const marketCap = num(m.marketCapitalization); // already in USD millions
+  if (isEtf) {
+    return {
+      ...base,
+      sector: 'Index ETF',
+      industry: 'Broad Market Index Basket',
+      market_data: {
+        cmp,
+        market_cap: marketCap,
+        shares_outstanding: null,
+        eps_ttm: null,
+        bvps: null,
+        pe_ttm: num(m.priceEarningsTtm),
+        pb_ttm: num(m.priceBook),
+        ev_ebitda: null,
+        dividend_yield_pct: num(m.dividendYieldPercent),
+        beta: num(m.beta),
+        historical_pe_5y_median: null,
+        historical_pb_5y_median: null,
+        eps_growth_5y_cagr_pct: null,
+        revenue_growth_5y_cagr_pct: null
+      },
+      income_statement: null,
+      balance_sheet: null,
+      cash_flow: null,
+      forensics: null
+    };
+  }
+
+  const stmt = (type) =>
+    client.call('us_assets_get_financials_read', { market: 'US', assetType, ticker, type, count: 10 });
+  const [incRaw, balRaw, cfRaw] = await Promise.all([stmt('income'), stmt('balancesheet'), stmt('cashflow')]);
+  const yearly = (raw, key) =>
+    ((raw && raw.financials && raw.financials.yearly) || [])
+      .filter((r) => r && r.date && r[key])
+      .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  const incRows = yearly(incRaw, 'incomeStatement');
+  const balRows = yearly(balRaw, 'balanceSheet');
+  const cfRows = yearly(cfRaw, 'cashFlow');
+  if (!incRows.length || !balRows.length || !cfRows.length) {
+    throw new Error(`Tickertape returned incomplete statements for ${ticker}`);
+  }
+  const inc = incRows[incRows.length - 1].incomeStatement;
+  const bal = balRows[balRows.length - 1].balanceSheet;
+  const balPrev = balRows.length > 1 ? balRows[balRows.length - 2].balanceSheet : {};
+  const cf = cfRows[cfRows.length - 1].cashFlow;
+  const toM = (v) => (num(v) === null ? null : num(v) / 1e6);
+
+  const totalAssets = toM(bal.totalAssets);
+  const totalLiab = toM(bal.totalLiab);
+  const equity = totalAssets !== null && totalLiab !== null ? totalAssets - totalLiab : null;
+  const shares = ratio(marketCap, cmp); // millions of shares, derived from market cap / price
+
+  return {
+    ...base,
+    market_data: {
+      cmp,
+      market_cap: marketCap,
+      shares_outstanding: shares,
+      eps_ttm: num(m.earningsPerShareTtm),
+      bvps: ratio(equity, shares),
+      pe_ttm: num(m.priceEarningsTtm),
+      pb_ttm: num(m.priceBook),
+      ev_ebitda: null,
+      dividend_yield_pct: num(m.dividendYieldPercent),
+      beta: num(m.beta),
+      historical_pe_5y_median: null,
+      historical_pb_5y_median: null,
+      eps_growth_5y_cagr_pct: null,
+      revenue_growth_5y_cagr_pct: cagrPct(incRows.map((r) => r.incomeStatement.totalRevenue), 5)
+    },
+    income_statement: {
+      revenue: toM(inc.totalRevenue),
+      ebitda: null,
+      ebit: null,
+      interest_expense: null,
+      ebt: null,
+      tax_expense: null,
+      net_income: toM(inc.netIncome),
+      eps: null
+    },
+    balance_sheet: {
+      cash_and_equivalents: null,
+      accounts_receivable: null,
+      inventory: null,
+      total_current_assets: null,
+      goodwill: null,
+      intangible_assets: null,
+      total_assets: totalAssets,
+      short_term_debt: null,
+      long_term_debt: null,
+      total_debt: null,
+      debt_maturing_24m: null,
+      total_current_liabilities: null,
+      total_liabilities: totalLiab,
+      retained_earnings: null,
+      total_equity: equity
+    },
+    cash_flow: {
+      operating_cash_flow: toM(cf.totalCashFromOperatingActivities),
+      capital_expenditure: null,
+      maintenance_capex: null,
+      free_cash_flow: null,
+      stock_based_compensation: null,
+      dividends_paid: null,
+      share_repurchases: null
+    },
+    forensics: {
+      promoter_holding_pct: null,
+      promoter_pledge_pct: null,
+      promoter_holding_qoq_delta_pct: null,
+      related_party_transactions_pct: null,
+      beneish_m_score: null,
+      sloan_accrual_ratio: sloanRatio(inc.netIncome, cf.totalCashFromOperatingActivities, bal.totalAssets, balPrev.totalAssets),
+      dso_yoy_expansion_pct: null,
+      inventory_growth_vs_sales_delta_pct: null,
+      surveillance_stage: 'NONE'
+    }
+  };
+}
+
+/**
+ * Fetch live data through the Tickertape MCP tool surface and return it already
+ * in NormalizedCompanyFinancials shape (plus `_live: true`).
+ */
+async function fetchLiveTickertape(client, ticker, market) {
+  let data;
+  if (market === 'US') {
+    data = await fetchLiveUsAsset(client, ticker);
+  } else if (INDEX_ETF_TICKERS.has(ticker)) {
+    throw new Error(`Live fetch for Indian ETF "${ticker}" is not supported yet`);
+  } else {
+    data = await fetchLiveIndianEquity(client, ticker);
+  }
+
+  // Trim float noise: 2 decimals for statements, 4 for the small forensic ratios.
+  const roundSection = (section, places) => {
+    if (!section) return section;
+    const f = Math.pow(10, places);
+    const out = {};
+    for (const [k, v] of Object.entries(section)) {
+      out[k] = typeof v === 'number' ? Math.round((v + Number.EPSILON) * f) / f : v;
+    }
+    return out;
+  };
+  return {
+    ...data,
+    income_statement: roundSection(data.income_statement, 2),
+    balance_sheet: roundSection(data.balance_sheet, 2),
+    cash_flow: roundSection(data.cash_flow, 2),
+    forensics: roundSection(data.forensics, 4),
+    _live: true
+  };
+}
+
+/**
+ * Wrap a Tickertape client so calls rejected with `rate_limit_exceeded` are
+ * retried with exponential backoff (1s, 2s, 4s, 8s) instead of failing the ticker.
+ */
+function withRateLimitRetry(client, maxRetries = 4) {
+  return {
+    async call(name, args) {
+      for (let attempt = 0; ; attempt++) {
+        try {
+          return await client.call(name, args);
+        } catch (err) {
+          if (attempt >= maxRetries || !/rate_limit_exceeded|\b429\b/i.test(err.message)) throw err;
+          await new Promise((resolve) => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+        }
+      }
+    }
+  };
+}
+
 /**
  * Fetch raw market and statement data from mock, cache, or live vendor client.
  */
 async function fetchRawFinancials(ticker, market, options = {}) {
-  const { refresh = false, cacheDir = DEFAULT_CACHE_DIR, mockData = null } = options;
+  const { refresh = false, cacheDir = DEFAULT_CACHE_DIR, mockData = null, allowFixtures = false } = options;
 
   // 1. Mock data override
   if (mockData) {
@@ -173,7 +588,7 @@ async function fetchRawFinancials(ticker, market, options = {}) {
           _is_cached: isFallback,
           _cached_at: ts
         };
-      } catch {}
+      } catch { }
     }
 
     // Check historical caches
@@ -187,7 +602,7 @@ async function fetchRawFinancials(ticker, market, options = {}) {
         const ts = c.timestamp || fs.statSync(histPath).mtime.toISOString();
         try {
           fs.writeFileSync(cacheFile, JSON.stringify(c, null, 2), 'utf8');
-        } catch {}
+        } catch { }
         if (isFallback) {
           process.stderr.write(`[WARNING] Cached Snapshot Active for ${ticker}: Data as of ${ts}. ${fallbackReason}\n`);
         }
@@ -196,7 +611,7 @@ async function fetchRawFinancials(ticker, market, options = {}) {
           _is_cached: isFallback,
           _cached_at: ts
         };
-      } catch {}
+      } catch { }
     }
 
     return null;
@@ -209,11 +624,12 @@ async function fetchRawFinancials(ticker, market, options = {}) {
   }
 
   // 3. Live Tickertape client call
+  let liveError = null;
   if (typeof createTickertapeClient === 'function') {
     try {
-      const client = createTickertapeClient();
+      const client = withRateLimitRetry(createTickertapeClient());
       if (client && typeof client.call === 'function') {
-        const res = await client.call('get_stock_fundamentals', { ticker, market });
+        const res = await fetchLiveTickertape(client, ticker, market);
         if (res) {
           const withMeta = {
             ...res,
@@ -242,103 +658,133 @@ async function fetchRawFinancials(ticker, market, options = {}) {
       if (cachedFallback) {
         return cachedFallback;
       }
-      process.stderr.write(`[WARN] Live Tickertape query unavailable for ${ticker} (${err.message}). Checking fixtures.\n`);
+      liveError = err;
     }
   }
 
-  // 4. Test fixtures fallback
-  const fixtureName = INDEX_ETF_TICKERS.has(ticker)
-    ? 'sample_etf_financials.json'
-    : market === 'IN'
-    ? 'sample_in_financials.json'
-    : 'sample_us_financials.json';
-  const fixturePath = path.resolve(__dirname, '../tests/fixtures', fixtureName);
-  if (fs.existsSync(fixturePath)) {
-    return JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
+    // 4. Generic sample fixtures are NOT real data for any ticker. They are only
+    // used when explicitly requested with --allow-fixtures (e.g. offline demos).
+    if (allowFixtures) {
+      const fixtureName = INDEX_ETF_TICKERS.has(ticker)
+        ? 'sample_etf_financials.json'
+        : market === 'IN'
+          ? 'sample_in_financials.json'
+          : 'sample_us_financials.json';
+      const fixturePath = path.resolve(__dirname, '../tests/fixtures', fixtureName);
+      if (fs.existsSync(fixturePath)) {
+        process.stderr.write(`[WARN] Using generic SAMPLE fixture for ${ticker}; values are not real ${ticker} data.\n`);
+        return { ...JSON.parse(fs.readFileSync(fixturePath, 'utf8')), _is_cached: true, _cached_at: 'sample-fixture' };
+      }
+    }
+
+    const detail = liveError ? liveError.message : 'Tickertape client unavailable';
+    throw new Error(`No live or cached data for ${ticker} (${market}): ${detail}`);
   }
 
-  return { ticker, market, market_data: { cmp: 100 } };
-}
+  /**
+   * Transform raw vendor data into canonical NormalizedCompanyFinancials.
+   */
+  function normalizeFinancials(rawData, ticker, market) {
+    const isIndexEtf = INDEX_ETF_TICKERS.has(ticker) || rawData.is_index_etf === true || rawData.sector === 'Index ETF';
+    const meta = KNOWN_COMPANY_METADATA[ticker] || {};
 
-/**
- * Transform raw vendor data into canonical NormalizedCompanyFinancials.
- */
-function normalizeFinancials(rawData, ticker, market) {
-  const isIndexEtf = INDEX_ETF_TICKERS.has(ticker) || rawData.is_index_etf === true || rawData.sector === 'Index ETF';
-  const meta = KNOWN_COMPANY_METADATA[ticker] || {};
+    const currency = market === 'IN' ? 'INR' : 'USD';
+    const unitScale = market === 'IN' ? 'CRORES' : 'MILLIONS';
+    const name = meta.name || rawData.name || (rawData.profile && rawData.profile.info && rawData.profile.info.name) || ticker;
+    const exchange = meta.exchange || rawData.exchange || (rawData.profile && rawData.profile.info && rawData.profile.info.exchange) || (market === 'IN' ? 'NSE' : 'NASDAQ');
+    const sector = meta.sector || rawData.sector || (rawData.profile && rawData.profile.info && rawData.profile.info.sector) || null;
+    const industry = meta.industry || rawData.industry || (rawData.profile && rawData.profile.gic && rawData.profile.gic.industry) || null;
 
-  const currency = market === 'IN' ? 'INR' : 'USD';
-  const unitScale = market === 'IN' ? 'CRORES' : 'MILLIONS';
-  const name = meta.name || rawData.name || (rawData.profile && rawData.profile.info && rawData.profile.info.name) || ticker;
-  const exchange = meta.exchange || rawData.exchange || (rawData.profile && rawData.profile.info && rawData.profile.info.exchange) || (market === 'IN' ? 'NSE' : 'NASDAQ');
-  const sector = meta.sector || rawData.sector || (rawData.profile && rawData.profile.info && rawData.profile.info.sector) || null;
-  const industry = meta.industry || rawData.industry || (rawData.profile && rawData.profile.gic && rawData.profile.gic.industry) || null;
+    // If input is already in NormalizedCompanyFinancials shape, validate & return
+    if (rawData.market_data && rawData.currency && (rawData.income_statement !== undefined || isIndexEtf)) {
+      return {
+        ticker,
+        name,
+        exchange,
+        market,
+        currency,
+        unit_scale: rawData.unit_scale || unitScale,
+        sector,
+        industry,
+        timestamp: rawData.timestamp || new Date().toISOString(),
+        is_index_etf: isIndexEtf,
+        source_provider: 'tickertape',
+        market_data: {
+          cmp: round2(rawData.market_data.cmp) || 100.0,
+          market_cap: round2(rawData.market_data.market_cap),
+          shares_outstanding: round2(rawData.market_data.shares_outstanding),
+          eps_ttm: round2(rawData.market_data.eps_ttm),
+          bvps: round2(rawData.market_data.bvps),
+          pe_ttm: round2(rawData.market_data.pe_ttm),
+          pb_ttm: round2(rawData.market_data.pb_ttm),
+          ev_ebitda: round2(rawData.market_data.ev_ebitda),
+          dividend_yield_pct: round2(rawData.market_data.dividend_yield_pct),
+          beta: round2(rawData.market_data.beta),
+          historical_pe_5y_median: round2(rawData.market_data.historical_pe_5y_median),
+          historical_pb_5y_median: round2(rawData.market_data.historical_pb_5y_median),
+          eps_growth_5y_cagr_pct: round2(rawData.market_data.eps_growth_5y_cagr_pct),
+          revenue_growth_5y_cagr_pct: round2(rawData.market_data.revenue_growth_5y_cagr_pct)
+        },
+        income_statement: isIndexEtf ? null : rawData.income_statement,
+        balance_sheet: isIndexEtf ? null : rawData.balance_sheet,
+        cash_flow: isIndexEtf ? null : rawData.cash_flow,
+        forensics: isIndexEtf ? null : rawData.forensics
+      };
+    }
 
-  // If input is already in NormalizedCompanyFinancials shape, validate & return
-  if (rawData.market_data && rawData.currency && (rawData.income_statement !== undefined || isIndexEtf)) {
-    return {
-      ticker,
-      name,
-      exchange,
-      market,
-      currency,
-      unit_scale: rawData.unit_scale || unitScale,
-      sector,
-      industry,
-      timestamp: rawData.timestamp || new Date().toISOString(),
-      is_index_etf: isIndexEtf,
-      source_provider: 'tickertape',
-      market_data: {
-        cmp: round2(rawData.market_data.cmp) || 100.0,
-        market_cap: round2(rawData.market_data.market_cap),
-        shares_outstanding: round2(rawData.market_data.shares_outstanding),
-        eps_ttm: round2(rawData.market_data.eps_ttm),
-        bvps: round2(rawData.market_data.bvps),
-        pe_ttm: round2(rawData.market_data.pe_ttm),
-        pb_ttm: round2(rawData.market_data.pb_ttm),
-        ev_ebitda: round2(rawData.market_data.ev_ebitda),
-        dividend_yield_pct: round2(rawData.market_data.dividend_yield_pct),
-        beta: round2(rawData.market_data.beta),
-        historical_pe_5y_median: round2(rawData.market_data.historical_pe_5y_median),
-        historical_pb_5y_median: round2(rawData.market_data.historical_pb_5y_median),
-        eps_growth_5y_cagr_pct: round2(rawData.market_data.eps_growth_5y_cagr_pct),
-        revenue_growth_5y_cagr_pct: round2(rawData.market_data.revenue_growth_5y_cagr_pct)
-      },
-      income_statement: isIndexEtf ? null : rawData.income_statement,
-      balance_sheet: isIndexEtf ? null : rawData.balance_sheet,
-      cash_flow: isIndexEtf ? null : rawData.cash_flow,
-      forensics: isIndexEtf ? null : rawData.forensics
+    // Extract from Tickertape raw shapes
+    const quote = rawData.quote || {};
+    const mData = rawData.marketData || {};
+    const cmp = Number(quote.price || mData.cmp || rawData.cmp || 100.0);
+    const mcap = Number(mData.marketCap || rawData.marketCap || (cmp * (mData.shares || 100)));
+    const pe = Number(mData.pe || rawData.pe || null);
+    const pb = Number(mData.pb || rawData.pb || null);
+    const eps = Number(mData.eps || rawData.eps || null);
+    const bvps = Number(mData.bvps || rawData.bvps || null);
+
+    const marketData = {
+      cmp: round2(cmp),
+      market_cap: round2(mcap),
+      shares_outstanding: round2(mData.shares || rawData.shares || (mcap && cmp ? mcap / cmp : 100)),
+      eps_ttm: round2(eps),
+      bvps: round2(bvps),
+      pe_ttm: round2(pe),
+      pb_ttm: round2(pb),
+      ev_ebitda: round2(mData.evEbitda || rawData.evEbitda || null),
+      dividend_yield_pct: round2(mData.dividendYieldPct || rawData.dividendYield || null),
+      beta: round2(mData.beta || rawData.beta || 1.0),
+      historical_pe_5y_median: round2(rawData.historical_pe_5y_median || pe || 20.0),
+      historical_pb_5y_median: round2(rawData.historical_pb_5y_median || pb || 3.0),
+      eps_growth_5y_cagr_pct: round2(rawData.eps_growth_5y_cagr_pct || 10.0),
+      revenue_growth_5y_cagr_pct: round2(rawData.revenue_growth_5y_cagr_pct || 8.0)
     };
-  }
 
-  // Extract from Tickertape raw shapes
-  const quote = rawData.quote || {};
-  const mData = rawData.marketData || {};
-  const cmp = Number(quote.price || mData.cmp || rawData.cmp || 100.0);
-  const mcap = Number(mData.marketCap || rawData.marketCap || (cmp * (mData.shares || 100)));
-  const pe = Number(mData.pe || rawData.pe || null);
-  const pb = Number(mData.pb || rawData.pb || null);
-  const eps = Number(mData.eps || rawData.eps || null);
-  const bvps = Number(mData.bvps || rawData.bvps || null);
+    if (isIndexEtf) {
+      return {
+        ticker,
+        name,
+        exchange,
+        market,
+        currency,
+        unit_scale: unitScale,
+        sector: 'Index ETF',
+        industry: 'Broad Market Index Basket',
+        timestamp: new Date().toISOString(),
+        is_index_etf: true,
+        source_provider: 'tickertape',
+        market_data: marketData,
+        income_statement: null,
+        balance_sheet: null,
+        cash_flow: null,
+        forensics: null
+      };
+    }
 
-  const marketData = {
-    cmp: round2(cmp),
-    market_cap: round2(mcap),
-    shares_outstanding: round2(mData.shares || rawData.shares || (mcap && cmp ? mcap / cmp : 100)),
-    eps_ttm: round2(eps),
-    bvps: round2(bvps),
-    pe_ttm: round2(pe),
-    pb_ttm: round2(pb),
-    ev_ebitda: round2(mData.evEbitda || rawData.evEbitda || null),
-    dividend_yield_pct: round2(mData.dividendYieldPct || rawData.dividendYield || null),
-    beta: round2(mData.beta || rawData.beta || 1.0),
-    historical_pe_5y_median: round2(rawData.historical_pe_5y_median || pe || 20.0),
-    historical_pb_5y_median: round2(rawData.historical_pb_5y_median || pb || 3.0),
-    eps_growth_5y_cagr_pct: round2(rawData.eps_growth_5y_cagr_pct || 10.0),
-    revenue_growth_5y_cagr_pct: round2(rawData.revenue_growth_5y_cagr_pct || 8.0)
-  };
+    const inc = rawData.income_statement || rawData.income || {};
+    const bal = rawData.balance_sheet || rawData.balance || {};
+    const cf = rawData.cash_flow || rawData.cashflow || {};
+    const forn = rawData.forensics || {};
 
-  if (isIndexEtf) {
     return {
       ticker,
       name,
@@ -346,249 +792,240 @@ function normalizeFinancials(rawData, ticker, market) {
       market,
       currency,
       unit_scale: unitScale,
-      sector: 'Index ETF',
-      industry: 'Broad Market Index Basket',
+      sector,
+      industry,
       timestamp: new Date().toISOString(),
-      is_index_etf: true,
+      is_index_etf: false,
       source_provider: 'tickertape',
       market_data: marketData,
-      income_statement: null,
-      balance_sheet: null,
-      cash_flow: null,
-      forensics: null
-    };
-  }
-
-  const inc = rawData.income_statement || rawData.income || {};
-  const bal = rawData.balance_sheet || rawData.balance || {};
-  const cf = rawData.cash_flow || rawData.cashflow || {};
-  const forn = rawData.forensics || {};
-
-  return {
-    ticker,
-    name,
-    exchange,
-    market,
-    currency,
-    unit_scale: unitScale,
-    sector,
-    industry,
-    timestamp: new Date().toISOString(),
-    is_index_etf: false,
-    source_provider: 'tickertape',
-    market_data: marketData,
-    income_statement: {
-      revenue: round2(inc.revenue || inc.incTrev || 10000),
-      ebitda: round2(inc.ebitda || inc.incEbi || 2500),
-      ebit: round2(inc.ebit || inc.incPbi || 2000),
-      interest_expense: round2(inc.interest_expense || inc.incIoi || 50),
-      ebt: round2(inc.ebt || inc.incPbt || 1950),
-      tax_expense: round2(inc.tax_expense || inc.incToi || 450),
-      net_income: round2(inc.net_income || inc.incNinc || 1500),
-      eps: round2(inc.eps || inc.incEps || eps || 15.0)
-    },
-    balance_sheet: {
-      cash_and_equivalents: round2(bal.cash_and_equivalents || bal.balCash || 1500),
-      accounts_receivable: round2(bal.accounts_receivable || bal.balRec || 2000),
-      inventory: round2(bal.inventory || bal.balInv || 0),
-      total_current_assets: round2(bal.total_current_assets || bal.balTca || 5000),
-      goodwill: round2(bal.goodwill || 0),
-      intangible_assets: round2(bal.intangible_assets || 0),
-      total_assets: round2(bal.total_assets || bal.balTot || 10000),
-      short_term_debt: round2(bal.short_term_debt || 0),
-      long_term_debt: round2(bal.long_term_debt || 0),
-      total_debt: round2(bal.total_debt || 0),
-      debt_maturing_24m: round2(bal.debt_maturing_24m || 0),
-      total_current_liabilities: round2(bal.total_current_liabilities || bal.balTcl || 2000),
-      total_liabilities: round2(bal.total_liabilities || bal.balTotl || 3000),
-      retained_earnings: round2(bal.retained_earnings || 6000),
-      total_equity: round2(bal.total_equity || bal.balEq || 7000)
-    },
-    cash_flow: {
-      operating_cash_flow: round2(cf.operating_cash_flow || cf.cflOcf || 2200),
-      capital_expenditure: round2(cf.capital_expenditure || cf.cflCapex || 300),
-      maintenance_capex: round2(cf.maintenance_capex || 200),
-      free_cash_flow: round2(cf.free_cash_flow || cf.cflFcf || 1900),
-      stock_based_compensation: round2(cf.stock_based_compensation || 50),
-      dividends_paid: round2(cf.dividends_paid || cf.cflDiv || 800),
-      share_repurchases: round2(cf.share_repurchases || 0)
-    },
-    forensics: {
-      promoter_holding_pct: market === 'IN' ? round2(forn.promoter_holding_pct || 25.0) : null,
-      promoter_pledge_pct: market === 'IN' ? round2(forn.promoter_pledge_pct || 0.0) : null,
-      promoter_holding_qoq_delta_pct: market === 'IN' ? round2(forn.promoter_holding_qoq_delta_pct || 0.0) : null,
-      related_party_transactions_pct: round2(forn.related_party_transactions_pct || null),
-      auditor_resignation_flag: forn.auditor_resignation_flag === true,
-      qualified_opinion_flag: forn.qualified_opinion_flag === true,
-      beneish_m_score: round2(forn.beneish_m_score || -2.60),
-      sloan_accrual_ratio: round2(forn.sloan_accrual_ratio || 0.04),
-      dso_yoy_expansion_pct: round2(forn.dso_yoy_expansion_pct || 1.5),
-      inventory_growth_vs_sales_delta_pct: round2(forn.inventory_growth_vs_sales_delta_pct || 0.0),
-      surveillance_stage: forn.surveillance_stage || 'NONE'
-    }
-  };
-}
-
-/**
- * Process a single ticker and write verified JSON & HTML artifacts.
- */
-async function processTicker(ticker, market, options = {}) {
-  const { outDir, refresh, mockData, templateHtml } = options;
-  const financialsDir = path.join(outDir, 'financials');
-  fs.mkdirSync(financialsDir, { recursive: true });
-
-  const rawData = await fetchRawFinancials(ticker, market, { refresh, mockData });
-  const normalized = normalizeFinancials(rawData, ticker, market);
-
-  // Validate against canonical contract schema
-  const validation = validateNormalizedFinancials(normalized);
-  if (!validation.ok) {
-    throw new Error(`Validation failed for ${ticker}: ${JSON.stringify(validation.errors)}`);
-  }
-
-  // Render HTML statement report
-  const jsonContent = JSON.stringify(normalized, null, 2);
-
-  const isCached = Boolean(rawData._is_cached);
-  const cachedTimestamp = rawData._cached_at || normalized.timestamp;
-  const bannerHtml = isCached ? renderCacheWarningBanner(cachedTimestamp) : '';
-
-  let htmlContent = templateHtml.replace('/*__DATA__*/null', () => jsonContent);
-  if (isCached) {
-    if (htmlContent.includes('<!--__CACHE_BANNER__-->')) {
-      htmlContent = htmlContent.replace('<!--__CACHE_BANNER__-->', bannerHtml);
-    } else {
-      htmlContent = htmlContent.replace('<div class="container">', `<div class="container">\n  ${bannerHtml}`);
-    }
-  } else {
-    htmlContent = htmlContent.replace('<!--__CACHE_BANNER__-->', '');
-  }
-
-  const jsonPath = path.join(financialsDir, `${ticker}.json`);
-  const htmlPath = path.join(financialsDir, `${ticker}.html`);
-
-  fs.writeFileSync(jsonPath, jsonContent, 'utf8');
-  fs.writeFileSync(htmlPath, htmlContent, 'utf8');
-
-  // Verify artifact pair with Universal Verification Harness
-  const harnessResult = verifyArtifactPair({
-    jsonPath,
-    htmlPath,
-    schemaType: 'financials'
-  });
-
-  if (!harnessResult.ok) {
-    throw new Error(`Harness verification failed for ${ticker}: ${JSON.stringify(harnessResult.errors)}`);
-  }
-
-  return {
-    ok: true,
-    ticker,
-    market,
-    currency: normalized.currency,
-    is_index_etf: normalized.is_index_etf,
-    jsonPath,
-    htmlPath,
-    data: normalized
-  };
-}
-
-/**
- * Main execution entrypoint.
- */
-async function main(argv = process.argv.slice(2)) {
-  const args = parseArgs(argv);
-  if (args.help) {
-    process.stdout.write(USAGE + '\n');
-    return { ok: true };
-  }
-
-  const outDir = path.resolve(args.out || DEFAULT_REPORTS_DIR);
-  const templatePath = path.join(SKILL_ROOT, 'assets', 'financials-template.html');
-  const templateHtml = fs.readFileSync(templatePath, 'utf8');
-
-  let targets = [];
-
-  if (args.holdings) {
-    const holdingsPath = path.resolve(args.holdings);
-    if (!fs.existsSync(holdingsPath)) {
-      throw new Error(`Holdings snapshot file not found: ${holdingsPath}`);
-    }
-    const snapshot = JSON.parse(fs.readFileSync(holdingsPath, 'utf8'));
-    const defaultMkt = snapshot.currency === 'USD' ? 'US' : 'IN';
-    const holdingsList = Array.isArray(snapshot.holdings) ? snapshot.holdings : [];
-
-    for (const h of holdingsList) {
-      const sym = (h.ticker || '').toUpperCase();
-      if (sym) {
-        targets.push({
-          ticker: sym,
-          market: inferMarket(sym, args.market || defaultMkt)
-        });
+      income_statement: {
+        revenue: round2(inc.revenue || inc.incTrev || 10000),
+        ebitda: round2(inc.ebitda || inc.incEbi || 2500),
+        ebit: round2(inc.ebit || inc.incPbi || 2000),
+        interest_expense: round2(inc.interest_expense || inc.incIoi || 50),
+        ebt: round2(inc.ebt || inc.incPbt || 1950),
+        tax_expense: round2(inc.tax_expense || inc.incToi || 450),
+        net_income: round2(inc.net_income || inc.incNinc || 1500),
+        eps: round2(inc.eps || inc.incEps || eps || 15.0)
+      },
+      balance_sheet: {
+        cash_and_equivalents: round2(bal.cash_and_equivalents || bal.balCash || 1500),
+        accounts_receivable: round2(bal.accounts_receivable || bal.balRec || 2000),
+        inventory: round2(bal.inventory || bal.balInv || 0),
+        total_current_assets: round2(bal.total_current_assets || bal.balTca || 5000),
+        goodwill: round2(bal.goodwill || 0),
+        intangible_assets: round2(bal.intangible_assets || 0),
+        total_assets: round2(bal.total_assets || bal.balTot || 10000),
+        short_term_debt: round2(bal.short_term_debt || 0),
+        long_term_debt: round2(bal.long_term_debt || 0),
+        total_debt: round2(bal.total_debt || 0),
+        debt_maturing_24m: round2(bal.debt_maturing_24m || 0),
+        total_current_liabilities: round2(bal.total_current_liabilities || bal.balTcl || 2000),
+        total_liabilities: round2(bal.total_liabilities || bal.balTotl || 3000),
+        retained_earnings: round2(bal.retained_earnings || 6000),
+        total_equity: round2(bal.total_equity || bal.balEq || 7000)
+      },
+      cash_flow: {
+        operating_cash_flow: round2(cf.operating_cash_flow || cf.cflOcf || 2200),
+        capital_expenditure: round2(cf.capital_expenditure || cf.cflCapex || 300),
+        maintenance_capex: round2(cf.maintenance_capex || 200),
+        free_cash_flow: round2(cf.free_cash_flow || cf.cflFcf || 1900),
+        stock_based_compensation: round2(cf.stock_based_compensation || 50),
+        dividends_paid: round2(cf.dividends_paid || cf.cflDiv || 800),
+        share_repurchases: round2(cf.share_repurchases || 0)
+      },
+      forensics: {
+        promoter_holding_pct: market === 'IN' ? round2(forn.promoter_holding_pct || 25.0) : null,
+        promoter_pledge_pct: market === 'IN' ? round2(forn.promoter_pledge_pct || 0.0) : null,
+        promoter_holding_qoq_delta_pct: market === 'IN' ? round2(forn.promoter_holding_qoq_delta_pct || 0.0) : null,
+        related_party_transactions_pct: round2(forn.related_party_transactions_pct || null),
+        auditor_resignation_flag: forn.auditor_resignation_flag === true,
+        qualified_opinion_flag: forn.qualified_opinion_flag === true,
+        beneish_m_score: round2(forn.beneish_m_score || -2.60),
+        sloan_accrual_ratio: round2(forn.sloan_accrual_ratio || 0.04),
+        dso_yoy_expansion_pct: round2(forn.dso_yoy_expansion_pct || 1.5),
+        inventory_growth_vs_sales_delta_pct: round2(forn.inventory_growth_vs_sales_delta_pct || 0.0),
+        surveillance_stage: forn.surveillance_stage || 'NONE'
       }
-    }
-  } else if (args.ticker) {
-    targets.push({
-      ticker: args.ticker,
-      market: inferMarket(args.ticker, args.market)
-    });
-  } else {
-    throw new Error('Must specify either --ticker <SYMBOL> or --holdings <PATH>');
-  }
-
-  const results = [];
-  for (const t of targets) {
-    const res = await processTicker(t.ticker, t.market, {
-      outDir,
-      refresh: args.refresh,
-      mockData: args.mockData,
-      templateHtml
-    });
-    results.push(res);
-  }
-
-  if (args.jsonOutput) {
-    const payload = {
-      ok: true,
-      processedCount: results.length,
-      artifacts: results.map((r) => ({
-        ticker: r.ticker,
-        market: r.market,
-        currency: r.currency,
-        is_index_etf: r.is_index_etf,
-        json: r.jsonPath,
-        html: r.htmlPath
-      }))
     };
-    process.stdout.write(JSON.stringify(payload, null, 2) + '\n');
-  } else {
-    process.stdout.write(`\n📊 provider-tickertape: Normalized ${results.length} security statement artifact(s):\n`);
-    for (const r of results) {
-      process.stdout.write(`   • [${r.market}] ${r.ticker}: ${r.jsonPath} & ${r.htmlPath}\n`);
-    }
-    process.stdout.write('✅ Universal Verification Harness verified all output pairs.\n\n');
   }
 
-  return { ok: true, results };
-}
+  /**
+   * Process a single ticker and write verified JSON & HTML artifacts.
+   */
+  async function processTicker(ticker, market, options = {}) {
+    const { outDir, refresh, mockData, allowFixtures, templateHtml } = options;
+    const financialsDir = path.join(outDir, 'financials');
+    fs.mkdirSync(financialsDir, { recursive: true });
 
-if (require.main === module) {
-  main()
-    .then((res) => {
-      process.exit(res && res.ok === false ? 1 : 0);
-    })
-    .catch((err) => {
-      process.stderr.write(`[ERROR] ${err.message}\n`);
-      process.exit(1);
+    const rawData = await fetchRawFinancials(ticker, market, { refresh, mockData, allowFixtures });
+    const normalized = normalizeFinancials(rawData, ticker, market);
+
+    // Validate against canonical contract schema
+    const validation = validateNormalizedFinancials(normalized);
+    if (!validation.ok) {
+      throw new Error(`Validation failed for ${ticker}: ${JSON.stringify(validation.errors)}`);
+    }
+
+    // Render HTML statement report
+    const jsonContent = JSON.stringify(normalized, null, 2);
+
+    const isCached = Boolean(rawData._is_cached);
+    const cachedTimestamp = rawData._cached_at || normalized.timestamp;
+    const bannerHtml = isCached ? renderCacheWarningBanner(cachedTimestamp) : '';
+
+    let htmlContent = templateHtml.replace('/*__DATA__*/null', () => jsonContent);
+    if (isCached) {
+      if (htmlContent.includes('<!--__CACHE_BANNER__-->')) {
+        htmlContent = htmlContent.replace('<!--__CACHE_BANNER__-->', bannerHtml);
+      } else {
+        htmlContent = htmlContent.replace('<div class="container">', `<div class="container">\n  ${bannerHtml}`);
+      }
+    } else {
+      htmlContent = htmlContent.replace('<!--__CACHE_BANNER__-->', '');
+    }
+
+    const jsonPath = path.join(financialsDir, `${ticker}.json`);
+    const htmlPath = path.join(financialsDir, `${ticker}.html`);
+
+    fs.writeFileSync(jsonPath, jsonContent, 'utf8');
+    fs.writeFileSync(htmlPath, htmlContent, 'utf8');
+
+    // Verify artifact pair with Universal Verification Harness
+    const harnessResult = verifyArtifactPair({
+      jsonPath,
+      htmlPath,
+      schemaType: 'financials'
     });
-}
 
-module.exports = {
-  fetchRawFinancials,
-  inferMarket,
-  main,
-  normalizeFinancials,
-  parseArgs,
-  processTicker
-};
+    if (!harnessResult.ok) {
+      throw new Error(`Harness verification failed for ${ticker}: ${JSON.stringify(harnessResult.errors)}`);
+    }
+
+    return {
+      ok: true,
+      ticker,
+      market,
+      currency: normalized.currency,
+      is_index_etf: normalized.is_index_etf,
+      jsonPath,
+      htmlPath,
+      data: normalized
+    };
+  }
+
+  /**
+   * Main execution entrypoint.
+   */
+  async function main(argv = process.argv.slice(2)) {
+    const args = parseArgs(argv);
+    if (args.help) {
+      process.stdout.write(USAGE + '\n');
+      return { ok: true };
+    }
+
+    const outDir = path.resolve(args.out || DEFAULT_REPORTS_DIR);
+    const templatePath = path.join(SKILL_ROOT, 'assets', 'financials-template.html');
+    const templateHtml = fs.readFileSync(templatePath, 'utf8');
+
+    let targets = [];
+
+    if (args.holdings) {
+      const holdingsPath = path.resolve(args.holdings);
+      if (!fs.existsSync(holdingsPath)) {
+        throw new Error(`Holdings snapshot file not found: ${holdingsPath}`);
+      }
+      const snapshot = JSON.parse(fs.readFileSync(holdingsPath, 'utf8'));
+      const defaultMkt = snapshot.currency === 'USD' ? 'US' : 'IN';
+      const holdingsList = Array.isArray(snapshot.holdings) ? snapshot.holdings : [];
+
+      for (const h of holdingsList) {
+        const sym = (h.ticker || '').toUpperCase();
+        if (sym) {
+          targets.push({
+            ticker: sym,
+            market: inferMarket(sym, args.market || defaultMkt)
+          });
+        }
+      }
+    } else if (args.ticker) {
+      targets.push({
+        ticker: args.ticker,
+        market: inferMarket(args.ticker, args.market)
+      });
+    } else {
+      throw new Error('Must specify either --ticker <SYMBOL> or --holdings <PATH>');
+    }
+
+    const results = [];
+      const failures = [];
+      for (const [i, t] of targets.entries()) {
+        // Space out batch requests so the vendor's rate limiter is not tripped.
+        if (i > 0 && !args.mockData) await new Promise((resolve) => setTimeout(resolve, 750));
+        try {
+          const res = await processTicker(t.ticker, t.market, {
+            outDir,
+            refresh: args.refresh,
+            mockData: args.mockData,
+            allowFixtures: args.allowFixtures,
+            templateHtml
+          });
+          results.push(res);
+        } catch (err) {
+          // A single-ticker run fails fast; a batch run keeps going and reports every failure.
+          if (targets.length === 1) throw err;
+          failures.push({ ticker: t.ticker, market: t.market, error: err.message });
+        }
+      }
+
+      if (args.jsonOutput) {
+        const payload = {
+          ok: failures.length === 0,
+          processedCount: results.length,
+          failures,
+          artifacts: results.map((r) => ({
+            ticker: r.ticker,
+            market: r.market,
+            currency: r.currency,
+            is_index_etf: r.is_index_etf,
+            json: r.jsonPath,
+            html: r.htmlPath
+          }))
+        };
+        process.stdout.write(JSON.stringify(payload, null, 2) + '\n');
+      } else {
+        process.stdout.write(`\n📊 provider-tickertape: Normalized ${results.length} security statement artifact(s):\n`);
+        for (const r of results) {
+          process.stdout.write(`   • [${r.market}] ${r.ticker}: ${r.jsonPath} & ${r.htmlPath}\n`);
+        }
+        if (results.length) process.stdout.write('✅ Universal Verification Harness verified all output pairs.\n');
+        if (failures.length) {
+          process.stdout.write(`\n❌ ${failures.length} ticker(s) failed and were NOT written:\n`);
+          for (const f of failures) process.stdout.write(`   • [${f.market}] ${f.ticker}: ${f.error}\n`);
+        }
+        process.stdout.write('\n');
+      }
+
+      return { ok: failures.length === 0, results, failures };
+    }
+
+    if (require.main === module) {
+      main()
+        .then((res) => {
+          process.exit(res && res.ok === false ? 1 : 0);
+        })
+        .catch((err) => {
+          process.stderr.write(`[ERROR] ${err.message}\n`);
+          process.exit(1);
+        });
+    }
+
+    module.exports = {
+      fetchRawFinancials,
+      inferMarket,
+      main,
+      normalizeFinancials,
+      parseArgs,
+      processTicker
+    };
 

@@ -316,19 +316,19 @@ function renderTable(filterText = '') {
 
     tr.innerHTML = `
       <td>
-        <div class="ticker-cell">\${h.ticker}</div>
-        <div class="name-cell">\${h.name} · \${h.exchange || 'NSE'}</div>
+        <div class="ticker-cell">${h.ticker}</div>
+        <div class="name-cell">${h.name} · ${h.exchange || 'NSE'}</div>
       </td>
-      <td class="num-cell">\${h.quantity}</td>
-      <td class="num-cell">\${fmtINR(h.average_price)}</td>
-      <td class="num-cell">\${fmtINR(h.cmp)}</td>
-      <td class="num-cell">\${fmtINR(h.invested_value)}</td>
-      <td class="num-cell" style="font-weight:600;">\${fmtINR(h.current_value)}</td>
-      <td class="num-cell \${pnlCls}">\${(h.unrealized_pnl >= 0 ? '+' : '')}\${fmtINR(h.unrealized_pnl)}</td>
-      <td class="num-cell \${pnlCls}">\${(h.unrealized_pnl_pct >= 0 ? '+' : '')}\${h.unrealized_pnl_pct.toFixed(2)}%</td>
+      <td class="num-cell">${h.quantity}</td>
+      <td class="num-cell">${fmtINR(h.average_price)}</td>
+      <td class="num-cell">${fmtINR(h.cmp)}</td>
+      <td class="num-cell">${fmtINR(h.invested_value)}</td>
+      <td class="num-cell" style="font-weight:600;">${fmtINR(h.current_value)}</td>
+      <td class="num-cell ${pnlCls}">${(h.unrealized_pnl >= 0 ? '+' : '')}${fmtINR(h.unrealized_pnl)}</td>
+      <td class="num-cell ${pnlCls}">${(h.unrealized_pnl_pct >= 0 ? '+' : '')}${h.unrealized_pnl_pct.toFixed(2)}%</td>
       <td class="num-cell">
-        <div>\${(h.weight_pct || 0).toFixed(1)}%</div>
-        <div class="weight-bar" style="width: \${Math.min(100, (h.weight_pct || 0) * 2.5)}%;"></div>
+        <div>${(h.weight_pct || 0).toFixed(1)}%</div>
+        <div class="weight-bar" style="width: ${Math.min(100, (h.weight_pct || 0) * 2.5)}%;"></div>
       </td>
     `;
     tbody.appendChild(tr);
