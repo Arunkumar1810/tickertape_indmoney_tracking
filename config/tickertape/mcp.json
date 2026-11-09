@@ -1,0 +1,10 @@
+{
+  "_comment": "Tickertape Pro Market Data & Financials MCP server configuration.",
+  "server": "tickertape",
+  "endpoint": "https://mcp.tickertape.in/mcp",
+  "transport": "http",
+  "timeoutMs": 30000,
+  "credentialsFile": "client_credentials.json",
+  "tokensFile": "tokens.json"
+}
+

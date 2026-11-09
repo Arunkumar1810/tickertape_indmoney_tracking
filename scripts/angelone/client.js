@@ -62,7 +62,7 @@ class AngelOneMcpClient {
   async _startStdio() {
     if (this._ready) return this._ready;
     if (!this.stdio || !this.stdio.command) {
-      throw new Error('Angel One MCP stdio transport requires a command (see .agents/config/angelone-mcp.json)');
+      throw new Error('Angel One MCP stdio transport requires a command (see config/angel-one/mcp.json)');
     }
     this._ready = (async () => {
       const child = spawn(this.stdio.command, this.stdio.args || [], {

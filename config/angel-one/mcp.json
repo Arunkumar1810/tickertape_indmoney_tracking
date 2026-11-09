@@ -1,5 +1,6 @@
 {
-  "_comment": "Shared Angel One MCP config for all LTS skills. No secrets here; credentials go in the repo-root .env (git-ignored). Defaults to the bundled server at .agents/mcp/angelone-server; set ANGELONE_MCP_DIR in .env to use a different server folder.",
+  "_comment": "Angel One SmartAPI MCP server configuration.",
+  "server": "angelone",
   "transport": "stdio",
   "timeoutMs": 30000,
   "stdio": {
@@ -17,3 +18,4 @@
     "endpoint": "http://localhost:8000/mcp"
   }
 }
+

@@ -1,5 +1,6 @@
 {
-  "_comment": "Configuration for INDmoney MCP server (https://mcp.indmoney.com/mcp). Place INDMONEY_MCP_TOKEN in the repo-root .env (git-ignored).",
+  "_comment": "INDmoney US Equities MCP server configuration.",
+  "server": "indmoney",
   "endpoint": "https://mcp.indmoney.com/mcp",
   "transport": "http",
   "timeoutMs": 30000,
@@ -9,3 +10,4 @@
     "INDMONEY_MCP_TOKEN"
   ]
 }
+

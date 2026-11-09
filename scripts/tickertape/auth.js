@@ -29,6 +29,7 @@ async function getClientCredentials() {
     return JSON.parse(fs.readFileSync(CREDENTIALS_FILE, 'utf8'));
   }
   for (const rootCreds of [
+    path.join(PROJECT_ROOT, 'config', 'tickertape', 'client_credentials.json'),
     path.join(PROJECT_ROOT, 'config', 'client_credentials.json'),
     path.join(PROJECT_ROOT, 'client_credentials.json')
   ]) {
@@ -60,6 +61,7 @@ async function getClientCredentials() {
 function loadTokens() {
   for (const f of [
     TOKENS_FILE,
+    path.join(PROJECT_ROOT, 'config', 'tickertape', 'tokens.json'),
     path.join(PROJECT_ROOT, 'config', 'tokens.json'),
     path.join(PROJECT_ROOT, 'tokens.json')
   ]) {

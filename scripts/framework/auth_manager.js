@@ -13,12 +13,16 @@ const readline = require('readline');
 const REPO_ROOT = fs.existsSync(path.join(__dirname, '..', '..', 'package.json'))
   ? path.resolve(__dirname, '..', '..')
   : path.resolve(__dirname, '../../..');
-const DEFAULT_ENV_PATH = fs.existsSync(path.join(REPO_ROOT, 'config', '.env'))
-  ? path.join(REPO_ROOT, 'config', '.env')
-  : path.join(REPO_ROOT, '.env');
-const TICKERTAPE_TOKENS_PATH = fs.existsSync(path.join(REPO_ROOT, 'config', 'tokens.json'))
-  ? path.join(REPO_ROOT, 'config', 'tokens.json')
-  : path.join(REPO_ROOT, 'scripts', 'tickertape', 'tokens.json');
+const DEFAULT_ENV_PATH = [
+  path.join(REPO_ROOT, 'config', '.env'),
+  path.join(REPO_ROOT, '.env')
+].find(p => fs.existsSync(p)) || path.join(REPO_ROOT, '.env');
+
+const TICKERTAPE_TOKENS_PATH = [
+  path.join(REPO_ROOT, 'config', 'tickertape', 'tokens.json'),
+  path.join(REPO_ROOT, 'config', 'tokens.json'),
+  path.join(REPO_ROOT, 'scripts', 'tickertape', 'tokens.json')
+].find(p => fs.existsSync(p)) || path.join(REPO_ROOT, 'config', 'tickertape', 'tokens.json');
 
 const KNOWN_SERVICES = new Set(['angelone', 'indmoney', 'tickertape']);
 
@@ -232,6 +236,14 @@ function saveServiceCredentials(service, credentials = {}, options = {}) {
 
   if (s === 'angelone') {
     const res = updateEnvCredentials(credentials, envPath);
+    if (!options.envPath) {
+      for (const sub of ['angel-one', 'angle-one']) {
+        const subEnv = path.join(REPO_ROOT, 'config', sub, '.env');
+        if (fs.existsSync(subEnv) && path.resolve(envPath) !== path.resolve(subEnv)) {
+          try { updateEnvCredentials(credentials, subEnv); } catch { /* empty */ }
+        }
+      }
+    }
     return {
       success: true,
       service: s,
@@ -249,6 +261,12 @@ function saveServiceCredentials(service, credentials = {}, options = {}) {
       envUpdates.INDMONEY_MCP_URL = credentials.endpoint || credentials.INDMONEY_MCP_URL;
     }
     const res = updateEnvCredentials(envUpdates, envPath);
+    if (!options.envPath) {
+      const subEnv = path.join(REPO_ROOT, 'config', 'ind-money', '.env');
+      if (fs.existsSync(subEnv) && path.resolve(envPath) !== path.resolve(subEnv)) {
+        try { updateEnvCredentials(envUpdates, subEnv); } catch { /* empty */ }
+      }
+    }
     return {
       success: true,
       service: s,

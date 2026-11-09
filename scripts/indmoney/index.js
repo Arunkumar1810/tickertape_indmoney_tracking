@@ -6,10 +6,19 @@ const oauth = require('./oauth');
 const REPO_ROOT = fs.existsSync(path.join(__dirname, '..', '..', 'package.json'))
   ? path.resolve(__dirname, '..', '..')
   : path.resolve(__dirname, '..', '..', '..');
-const CONFIG_PATH = path.join(REPO_ROOT, '.agents', 'config', 'indmoney-mcp.json');
-const ENV_PATH = fs.existsSync(path.join(REPO_ROOT, 'config', '.env'))
-  ? path.join(REPO_ROOT, 'config', '.env')
-  : path.join(REPO_ROOT, '.env');
+const CONFIG_CANDIDATES = [
+  path.join(REPO_ROOT, 'config', 'ind-money', 'mcp.json'),
+  path.join(REPO_ROOT, 'config', 'indmoney', 'mcp.json')
+];
+const CONFIG_PATH = CONFIG_CANDIDATES.find(p => fs.existsSync(p)) || CONFIG_CANDIDATES[0];
+
+const ENV_CANDIDATES = [
+  path.join(REPO_ROOT, 'config', 'ind-money', '.env'),
+  path.join(REPO_ROOT, 'config', 'indmoney', '.env'),
+  path.join(REPO_ROOT, 'config', '.env'),
+  path.join(REPO_ROOT, '.env')
+];
+const ENV_PATH = ENV_CANDIDATES.find(p => fs.existsSync(p)) || path.join(REPO_ROOT, '.env');
 
 /** Minimal .env parser without mutating process.env */
 function loadEnvFile(file = ENV_PATH) {

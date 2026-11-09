@@ -6,10 +6,19 @@ const REPO_ROOT = fs.existsSync(path.join(__dirname, '..', '..', 'package.json')
   ? path.resolve(__dirname, '..', '..')
   : path.resolve(__dirname, '..', '..', '..');
 const DEFAULT_SERVER_DIR = path.join(REPO_ROOT, '.agents', 'mcp', 'angelone-server');
-const CONFIG_PATH = path.join(REPO_ROOT, '.agents', 'config', 'angelone-mcp.json');
-const ENV_PATH = fs.existsSync(path.join(REPO_ROOT, 'config', '.env'))
-  ? path.join(REPO_ROOT, 'config', '.env')
-  : path.join(REPO_ROOT, '.env');
+const CONFIG_CANDIDATES = [
+  path.join(REPO_ROOT, 'config', 'angel-one', 'mcp.json'),
+  path.join(REPO_ROOT, 'config', 'angle-one', 'mcp.json')
+];
+const CONFIG_PATH = CONFIG_CANDIDATES.find(p => fs.existsSync(p)) || CONFIG_CANDIDATES[0];
+
+const ENV_CANDIDATES = [
+  path.join(REPO_ROOT, 'config', 'angel-one', '.env'),
+  path.join(REPO_ROOT, 'config', 'angle-one', '.env'),
+  path.join(REPO_ROOT, 'config', '.env'),
+  path.join(REPO_ROOT, '.env')
+];
+const ENV_PATH = ENV_CANDIDATES.find(p => fs.existsSync(p)) || path.join(REPO_ROOT, '.env');
 
 /** Minimal .env parser (KEY=VALUE, # comments, optional quotes). Does not mutate process.env. */
 function loadEnvFile(file = ENV_PATH) {
@@ -36,7 +45,7 @@ function loadConfig() {
 
 /**
  * Build an Angel One MCP client from the shared repo config.
- * Resolution: overrides > ANGELONE_MCP_TRANSPORT env > .agents/config/angelone-mcp.json
+ * Resolution: overrides > ANGELONE_MCP_TRANSPORT env > config/angel-one/mcp.json
  * Credentials come from the git-ignored repo-root .env (or process env); they are
  * only passed to the spawned server process and never written to disk or reports.
  */

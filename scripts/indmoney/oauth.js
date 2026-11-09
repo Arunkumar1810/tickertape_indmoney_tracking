@@ -130,7 +130,11 @@ function exchangeCodeForToken({
 function updateEnvToken(newToken, customEnvPath = null) {
   const targetPaths = customEnvPath
     ? [customEnvPath]
-    : [DEFAULT_CONFIG_ENV, DEFAULT_ROOT_ENV];
+    : [
+        path.join(REPO_ROOT, 'config', 'ind-money', '.env'),
+        DEFAULT_CONFIG_ENV,
+        DEFAULT_ROOT_ENV
+      ];
 
   const updatedFiles = [];
   for (const envPath of targetPaths) {

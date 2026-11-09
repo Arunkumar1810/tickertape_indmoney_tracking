@@ -8,10 +8,10 @@ No order placement, modify, cancel or GTT tools exist by design.
 ## Setup
 
 1. `uv sync` in this folder.
-2. Put `ANGEL_ONE_API_KEY`, `ANGEL_ONE_CLIENT_CODE`, `ANGEL_ONE_PASSWORD` (PIN) and `ANGEL_ONE_TOTP_SECRET` in the repo-root `.env` (template: `.agents/config/angelone.env.example`).
+2. Put `ANGEL_ONE_API_KEY`, `ANGEL_ONE_CLIENT_CODE`, `ANGEL_ONE_PASSWORD` (PIN) and `ANGEL_ONE_TOTP_SECRET` in `config/angel-one/.env` or repo-root `.env` (template: `config/angel-one/.env.example`).
 3. Smoke test from the repo root: `node .agents/mcp/smoke_test.js`.
 
-The skills launch it automatically through `.agents/shared/angelone` using `.agents/config/angelone-mcp.json`.
+The skills launch it automatically through `scripts/angelone` using `config/angel-one/mcp.json`.
 
 ## Notes
 - Session tokens stay in memory and are never returned by a tool; the server re-logs in once on an auth error.
