@@ -16,7 +16,7 @@
 function normalizePrincipleName(name) {
   if (!name || typeof name !== 'string') return '';
   const clean = name.replace(/^analyze[-_]/, '').replace(/^agent[-_]/, '').replace(/[-]/g, '_');
-  if (clean === 'buffet' || clean === 'buffett') return 'buffett_munger';
+  if (clean === 'buffet' || clean === 'buffett' || clean === 'buffett_munger') return 'buffet';
   return clean;
 }
 
@@ -66,10 +66,13 @@ function compileEmbeddedAudits(portfolioVerdicts = [], rawVerdictsByTicker = {})
     const pillarVerdicts = {};
     const synthesizedPillars = pv.pillar_verdicts || {};
 
-    const ALL_PILLARS = ['graham', 'lynch', 'buffett_munger', 'klarman_solvency'];
+    const ALL_PILLARS = ['graham', 'lynch', 'buffet', 'buffett_munger', 'klarman_solvency'];
     for (const pil of ALL_PILLARS) {
-      const syn = synthesizedPillars[pil];
-      const raw = rawList.find(v => normalizePrincipleName(v.principle) === pil);
+      const syn = synthesizedPillars[pil] || (pil === 'buffet' ? synthesizedPillars.buffett_munger : (pil === 'buffett_munger' ? synthesizedPillars.buffet : null));
+      const raw = rawList.find(v => {
+        const norm = normalizePrincipleName(v.principle);
+        return norm === pil || (pil === 'buffet' && norm === 'buffett_munger') || (pil === 'buffett_munger' && norm === 'buffet');
+      });
 
       if (syn || raw) {
         pillarVerdicts[pil] = {

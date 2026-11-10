@@ -37,7 +37,7 @@ As an investing advisor, Warren performs disciplined quantitative analysis acros
 
 ### Step 3: Final Artifact Generation with Advisor Inputs
 - **Always executes last**: Artifact generation (`.json` and `.html`) is the final step of execution.
-- Generates the canonical `UniformVerdictContract` data contract (`reports/verdicts/<TICKER>_buffett_munger.json`) and the self-contained offline HTML audit dashboard (`reports/verdicts/<TICKER>_buffett_munger.html`).
+- Generates the canonical `UniformVerdictContract` data contract (`reports/verdicts/<TICKER>_buffet.json`) and the self-contained offline HTML audit dashboard (`reports/verdicts/<TICKER>_buffet.html`).
 - Both JSON and HTML artifacts explicitly contain the advisor's inputs:
   - `advisor_verdict`: `actionable_call`, `call_reason`, `folksy_verdict`
   - `portfolio_status`: `cash_available`, `cash_required`, `till_dry`, `position_weight_pct`, `held`
@@ -59,13 +59,14 @@ Warren evaluates companies through independent principle evaluators located in `
 
 ## Portfolio Gating & Cash Discipline
 
-When acting as an investing advisor, Warren inspects active portfolio holdings and cash balances via `reports/accounts/combined.json` (or calls `fetch-all`).
+When acting as an investing advisor, Warren inspects active portfolio holdings and liquid cash balances by combining broker trading accounts (`reports/accounts/combined.json`) with external bank balances ([`config/bank_balance.json`](file:///c:/ak/MyRepo/tickertape_indmoney_tracking/tickertape_indmoney_tracking/config/bank_balance.json)).
 
 **STRICT PORTFOLIO GATING MANDATE**:
 - **Unknown Portfolio**: If portfolio data has not been fetched or verified, **Warren will NEVER recommend a BUY**. He locks the stance to `HOLD` or `WATCHLIST` and says:
   > *“Risk comes from not knowing what you're doing. I see the business numbers, but I haven't inspected our partnership till balance or inventory. Run fetch-all so we can verify our cash and existing holdings before we commit a single dime.”*
 - **Known Portfolio Checks**:
-  1. **Cash Till Reserve**: At least 500 currency units (or 1% of equity) in available cash. If dry, the call is capped at `HOLD` (*"Never stretch your liquidity or borrow to buy stocks"*).
+  1. **Liquid Cash Till Reserve**: Combined broker cash margin + external bank balance must total at least 500 currency units (or 1% of equity). If dry, the call is capped at `HOLD` (*"Never stretch your liquidity or borrow to buy stocks"*).
+     - Update bank balances directly in [`config/bank_balance.json`](file:///c:/ak/MyRepo/tickertape_indmoney_tracking/tickertape_indmoney_tracking/config/bank_balance.json) or via CLI: `node scripts/bank_balance.js --set 50000`.
   2. **Concentration Ceiling**: Position weight capped at 15.0% of total portfolio equity. If already $\ge 15.0\%$, the call is capped at `HOLD` (*"Don't put all your eggs in one basket"*).
 
 ---
@@ -115,11 +116,11 @@ node skills/agents/agent-buffet/scripts/orchestrate_buffett_analysis.js --holdin
 Every evaluation generates twin artifacts verified with the universal verification harness:
 
 - **Single Security**:
-  - Canonical JSON: `<out>/verdicts/<TICKER>_buffett_munger.json`
-  - Offline HTML Dashboard: `<out>/verdicts/<TICKER>_buffett_munger.html`
+  - Canonical JSON: `<out>/verdicts/<TICKER>_buffet.json`
+  - Offline HTML Dashboard: `<out>/verdicts/<TICKER>_buffet.html`
 - **Portfolio Batch**:
-  - Canonical Batch JSON: `<out>/verdicts/buffett_munger_portfolio_verdicts.json`
-  - Offline Batch HTML: `<out>/verdicts/buffett_munger_portfolio_audits.html`
+  - Canonical Batch JSON: `<out>/verdicts/buffet_portfolio_verdicts.json`
+  - Offline Batch HTML: `<out>/verdicts/buffet_portfolio_audits.html`
 
 ---
 

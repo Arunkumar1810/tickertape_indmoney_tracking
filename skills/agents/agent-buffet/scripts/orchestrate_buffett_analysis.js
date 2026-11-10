@@ -8,7 +8,7 @@
  * Performs disciplined quantitative analysis (true Owner Earnings, 5-step DuPont ROE,
  * ROIC economic moat hurdle) alongside portfolio cash till discipline and position sizing.
  * Emits Omaha folksy investment advice, canonical UniformVerdictContract reports
- * (principle: "buffett_munger"), and self-contained offline HTML audit dashboards.
+ * (principle: "buffet"), and self-contained offline HTML audit dashboards.
  */
 
 const fs = require('fs');
@@ -25,12 +25,14 @@ const DEFAULT_PORTFOLIO_PATH = path.join(REPO_ROOT, 'reports', 'accounts', 'comb
 const FINANCIALS_DIR = path.join(REPO_ROOT, 'reports', 'financials');
 const TEMPLATE_PATH = path.join(SKILL_ROOT, 'assets', 'buffet-template.html');
 
-// Framework validators
+// Framework validators & liquidity helpers
 const {
   validateUniformVerdict,
   validateUniformVerdictBatch,
   verifyArtifactPair,
-  verifyHtmlSelfContainment
+  verifyHtmlSelfContainment,
+  loadBankBalance,
+  getLiquidCashSummary
 } = require(path.join(REPO_ROOT, 'scripts', 'framework'));
 
 // Optional direct provider import
@@ -164,11 +166,11 @@ function calculateROIC({ ebit, taxExpense, ebt, totalEquity, totalDebt, cashAndE
  * Pure deterministic valuation evaluator emitting canonical UniformVerdictContract.
  * @param {object} financials - NormalizedCompanyFinancials object
  * @param {object} [options]
- * @returns {object} Canonical UniformVerdictContract (principle: "buffett_munger")
+ * @returns {object} Canonical UniformVerdictContract (principle: "buffet")
  */
-function evaluateBuffettMungerValuation(financials, options = {}) {
+function evaluateBuffetValuation(financials, options = {}) {
   if (!financials || typeof financials !== 'object') {
-    throw new Error('evaluateBuffettMungerValuation requires a valid NormalizedCompanyFinancials object');
+    throw new Error('evaluateBuffetValuation requires a valid NormalizedCompanyFinancials object');
   }
 
   const ticker = (financials.ticker || 'UNKNOWN').toUpperCase();
@@ -184,8 +186,8 @@ function evaluateBuffettMungerValuation(financials, options = {}) {
   if (isIndexEtf) {
     const etfSummary = `Index ETF passive basket (${ticker}): Single-equity DuPont decomposition and Owner Earnings bypassed. “A low-cost index fund is the most sensible equity investment for the great majority of investors.”`;
     const verdict = {
-      principle: 'buffett_munger',
-      principle_title: 'Buffett & Munger Quality Compounding',
+      principle: 'buffet',
+      principle_title: 'Warren Buffett Value Investing',
       ticker,
       timestamp,
       stance: 'HOLD',
@@ -206,7 +208,7 @@ function evaluateBuffettMungerValuation(financials, options = {}) {
       roic_pct: null
     };
     return {
-      principle: 'buffett_munger',
+      principle: 'buffet',
       ticker,
       timestamp,
       score: 100.0,
@@ -447,8 +449,8 @@ function evaluateBuffettMungerValuation(financials, options = {}) {
   const warnings = [...redFlags];
 
   const verdict = {
-    principle: 'buffett_munger',
-    principle_title: 'Buffett & Munger Quality Compounding',
+    principle: 'buffet',
+    principle_title: 'Warren Buffett Value Investing',
     ticker,
     timestamp,
     stance,
@@ -471,7 +473,7 @@ function evaluateBuffettMungerValuation(financials, options = {}) {
   };
 
   return {
-    principle: 'buffett_munger',
+    principle: 'buffet',
     ticker,
     timestamp,
     score: finalScore,
@@ -488,6 +490,8 @@ function evaluateBuffettMungerValuation(financials, options = {}) {
     warnings
   };
 }
+
+const evaluateBuffettMungerValuation = evaluateBuffetValuation;
 
 /**
  * Render self-contained offline HTML audit report using the template.
@@ -515,12 +519,12 @@ function writeArtifacts(verdictOrBatch, outDir, isBatch) {
   let schemaType;
 
   if (isBatch) {
-    jsonPath = path.join(verdictsDir, 'buffett_munger_portfolio_verdicts.json');
-    htmlPath = path.join(verdictsDir, 'buffett_munger_portfolio_audits.html');
+    jsonPath = path.join(verdictsDir, 'buffet_portfolio_verdicts.json');
+    htmlPath = path.join(verdictsDir, 'buffet_portfolio_audits.html');
     schemaType = 'verdict-batch';
   } else {
-    jsonPath = path.join(verdictsDir, `${verdictOrBatch.ticker}_buffett_munger.json`);
-    htmlPath = path.join(verdictsDir, `${verdictOrBatch.ticker}_buffett_munger.html`);
+    jsonPath = path.join(verdictsDir, `${verdictOrBatch.ticker}_buffet.json`);
+    htmlPath = path.join(verdictsDir, `${verdictOrBatch.ticker}_buffet.html`);
     schemaType = 'verdict';
   }
 
@@ -729,7 +733,7 @@ async function processHoldings(holdingsPath, options = {}) {
   }
 
   const batch = {
-    principle: 'buffett_munger',
+    principle: 'buffet',
     timestamp: options.timestamp || new Date().toISOString(),
     verdicts
   };
@@ -784,19 +788,23 @@ function analyzeStockWithBuffett(ticker, options = {}) {
 
   const compositeScore = Math.round(verdictResult.score);
 
-  // 3. Inspect Portfolio Status
+  // 3. Inspect Portfolio Status & Liquid Cash (Broker Cash + Bank Balance)
   const portfolio = options.ignorePortfolio ? null : loadPortfolio(options.portfolioPath);
   const portfolioKnown = Boolean(portfolio && portfolio.holdings);
+  const liquidCash = getLiquidCashSummary(portfolio, options.bankBalancePath);
 
   let currentHolding = null;
   let availableCash = null;
+  let brokerCash = 0.0;
+  let bankBalance = liquidCash.bank_balance;
   let totalEquity = null;
   let currentWeightPct = 0.0;
   let isHeld = false;
 
   if (portfolioKnown) {
-    availableCash = portfolio.summary ? portfolio.summary.available_cash : 0;
-    totalEquity = portfolio.summary ? portfolio.summary.total_account_equity : 0;
+    brokerCash = liquidCash.broker_cash;
+    availableCash = liquidCash.total_liquid_cash;
+    totalEquity = (portfolio.summary ? portfolio.summary.total_account_equity : 0) + bankBalance;
     const match = (portfolio.holdings || []).find(h => (h.ticker || '').toUpperCase() === clean);
     if (match) {
       isHeld = true;
@@ -889,7 +897,10 @@ function analyzeStockWithBuffett(ticker, options = {}) {
     portfolio_known: portfolioKnown,
     is_held: isHeld,
     current_weight_pct: currentWeightPct,
-    available_cash: availableCash,
+    broker_cash: round2(brokerCash),
+    bank_balance: round2(bankBalance),
+    total_liquid_cash: round2(availableCash),
+    available_cash: round2(availableCash),
     min_cash_required: 500.0,
     warnings: portfolioWarnings
   };
@@ -963,6 +974,8 @@ function parseArgs(argv = process.argv.slice(2)) {
       args.market = argv[++i].toUpperCase();
     } else if (arg === '--portfolio' && i + 1 < argv.length) {
       args.portfolioPath = argv[++i];
+    } else if (arg === '--bank-balance' && i + 1 < argv.length) {
+      args.bankBalancePath = argv[++i];
     } else if (arg === '--no-portfolio') {
       args.ignorePortfolio = true;
     } else if (arg === '--out' && i + 1 < argv.length) {
@@ -1056,7 +1069,7 @@ Options:
       console.log(`  Known: ${res.portfolio_status.portfolio_known ? 'YES' : 'NO'}`);
       if (res.portfolio_status.portfolio_known) {
         console.log(`  Held: ${res.portfolio_status.is_held ? 'YES' : 'NO'} (${res.portfolio_status.current_weight_pct.toFixed(1)}% weight)`);
-        console.log(`  Available Cash: ${res.portfolio_status.available_cash}`);
+        console.log(`  Liquid Cash Till: ₹${Number(res.portfolio_status.available_cash || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} (Broker: ₹${Number(res.portfolio_status.broker_cash || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} | Bank: ₹${Number(res.portfolio_status.bank_balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })})`);
       }
       if (res.portfolio_status.warnings.length > 0) {
         console.log(`  Warnings:\n   - ${res.portfolio_status.warnings.join('\n   - ')}`);
@@ -1079,7 +1092,8 @@ if (require.main === module) {
 
 module.exports = {
   analyzeStockWithBuffett,
-  evaluateBuffettMungerValuation,
+  evaluateBuffetValuation,
+  evaluateBuffettMungerValuation: evaluateBuffetValuation,
   processTicker,
   processHoldings,
   processDataFile,

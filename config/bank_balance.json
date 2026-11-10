@@ -1,0 +1,15 @@
+{
+  "updated_at": "2026-11-10T10:45:00.000Z",
+  "currency": "INR",
+  "total_bank_balance": 50000.0,
+  "accounts": [
+    {
+      "account_name": "Primary Savings Account",
+      "bank": "Primary Bank",
+      "balance": 50000.0,
+      "currency": "INR",
+      "updated_at": "2026-11-10T10:45:00.000Z"
+    }
+  ]
+}
+

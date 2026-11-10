@@ -106,7 +106,7 @@ test('4. Wide moat fixture evaluation produces STRONG_BUY canonical verdict', ()
     timestamp: '2026-11-07T12:00:00.000Z'
   });
 
-  assert.equal(verdict.principle, 'buffett_munger');
+  assert.equal(verdict.principle, 'buffet');
   assert.equal(verdict.ticker, 'WIDE_MOAT_CO');
   assert.equal(verdict.is_veto, false);
   assert.ok(verdict.score >= 80.0, `Expected score >= 80.0, got ${verdict.score}`);
@@ -129,7 +129,7 @@ test('5. Index ETF passive bypass assigns 100.0 score and HOLD stance', () => {
   };
 
   const verdict = evaluateBuffettMungerValuation(etfFinancials);
-  assert.equal(verdict.principle, 'buffett_munger');
+  assert.equal(verdict.principle, 'buffet');
   assert.equal(verdict.ticker, 'VOO');
   assert.equal(verdict.score, 100.0);
   assert.equal(verdict.stance, 'HOLD');
@@ -154,7 +154,7 @@ test('6. Conversational persona: analyzeStockWithBuffett generates Omaha advice 
   assert.ok(result.folksy_verdict.includes('Risk comes from not knowing') || result.folksy_verdict.includes('partnership books'));
   assert.equal(result.call, 'HOLD'); // strictly gated because portfolio unknown
   assert.ok(result.verdict);
-  assert.equal(result.verdict.principle, 'buffett_munger');
+  assert.equal(result.verdict.principle, 'buffet');
 
   const valRes = validateUniformVerdict(result.verdict);
   assert.equal(valRes.ok, true);
@@ -201,7 +201,7 @@ test('7. Batch portfolio evaluation: processHoldings generates valid UniformVerd
   });
 
   assert.equal(batchRes.ok, true);
-  assert.equal(batchRes.batch.principle, 'buffett_munger');
+  assert.equal(batchRes.batch.principle, 'buffet');
   assert.equal(batchRes.batch.verdicts.length, 2);
 
   const valRes = validateUniformVerdictBatch(batchRes.batch);

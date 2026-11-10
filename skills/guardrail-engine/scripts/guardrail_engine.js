@@ -121,7 +121,7 @@ function renderHtml(synthesis) {
     const pPillars = pv.pillar_verdicts || {};
     const grahamScore = pPillars.graham ? `${pPillars.graham.score}` : '-';
     const lynchScore = pPillars.lynch ? `${pPillars.lynch.score}` : '-';
-    const buffettScore = pPillars.buffett_munger ? `${pPillars.buffett_munger.score}` : '-';
+    const buffettScore = pPillars.buffet ? `${pPillars.buffet.score}` : (pPillars.buffett_munger ? `${pPillars.buffett_munger.score}` : '-');
     const klarmanScore = pPillars.klarman_solvency ? `${pPillars.klarman_solvency.score}` : '-';
 
     const notesList = (pv.notes || []).map(n => {

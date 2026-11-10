@@ -242,14 +242,14 @@ function renderHtml(portfolio) {
                 ${formatMetrics(pillars.lynch ? pillars.lynch.metrics : {})}
               </div>
 
-              <!-- Buffett-Munger -->
+              <!-- Warren Buffett -->
               <div class="audit-pillar-box">
                 <div class="audit-pillar-header">
-                  <span>Buffett &amp; Munger</span>
-                  <span class="badge badge-strong-buy">${pillars.buffett_munger ? pillars.buffett_munger.stance : 'N/A'}</span>
+                  <span>Warren Buffett</span>
+                  <span class="badge badge-strong-buy">${(pillars.buffet || pillars.buffett_munger) ? (pillars.buffet || pillars.buffett_munger).stance : 'N/A'}</span>
                 </div>
-                <div style="font-size: 0.75rem; margin-bottom: 4px;">Score: <strong>${pillars.buffett_munger ? pillars.buffett_munger.score : '-'}</strong>/100</div>
-                ${formatMetrics(pillars.buffett_munger ? pillars.buffett_munger.metrics : {})}
+                <div style="font-size: 0.75rem; margin-bottom: 4px;">Score: <strong>${(pillars.buffet || pillars.buffett_munger) ? (pillars.buffet || pillars.buffett_munger).score : '-'}</strong>/100</div>
+                ${formatMetrics((pillars.buffet || pillars.buffett_munger) ? (pillars.buffet || pillars.buffett_munger).metrics : {})}
               </div>
 
               <!-- Klarman -->

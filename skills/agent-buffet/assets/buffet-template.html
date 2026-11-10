@@ -563,11 +563,14 @@ function renderSingleView(v) {
 
       const pillsEl = document.getElementById('advisor-portfolio-pills');
       if (pillsEl && ps) {
-        const cashFmt = ps.available_cash !== null && ps.available_cash !== undefined ? Number(ps.available_cash).toFixed(2) : 'N/A';
+        const cashFmt = ps.available_cash !== null && ps.available_cash !== undefined ? Number(ps.available_cash).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 'N/A';
         const isDry = ps.available_cash !== null && ps.available_cash < (ps.min_cash_required || 500);
         const weightFmt = ps.current_weight_pct !== undefined ? Number(ps.current_weight_pct).toFixed(1) + '%' : '0.0%';
+        const breakdownFmt = (ps.bank_balance > 0 || ps.broker_cash > 0)
+          ? ` <span style="font-size:0.75rem; opacity:0.85;">(Broker: ₹${Number(ps.broker_cash || 0).toLocaleString('en-IN')} | Bank: ₹${Number(ps.bank_balance || 0).toLocaleString('en-IN')})</span>`
+          : '';
         pillsEl.innerHTML = `
-          <span style="background: ${isDry ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; border: 1px solid ${isDry ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}; color: ${isDry ? '#fca5a5' : '#86efac'}; padding: 4px 10px; border-radius: 6px;">Cash Till: ₹${cashFmt} ${isDry ? '(Till Dry)' : '(Available)'}</span>
+          <span style="background: ${isDry ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; border: 1px solid ${isDry ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}; color: ${isDry ? '#fca5a5' : '#86efac'}; padding: 4px 10px; border-radius: 6px;">Liquid Cash: ₹${cashFmt}${breakdownFmt} ${isDry ? '(Till Dry)' : '(Ample)'}</span>
           <span style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; padding: 4px 10px; border-radius: 6px;">Weight: ${weightFmt} / 15.0%</span>
         `;
       }

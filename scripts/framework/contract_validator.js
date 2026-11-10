@@ -11,6 +11,8 @@ const GATEKEEPER_PRINCIPLES = new Set(['forensic_governance']);
 const VALUATION_PRINCIPLES = new Set([
   'graham',
   'lynch',
+  'buffet',
+  'buffett',
   'buffett_munger',
   'klarman_solvency'
 ]);

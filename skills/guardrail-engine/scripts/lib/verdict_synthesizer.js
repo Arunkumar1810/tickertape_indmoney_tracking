@@ -12,7 +12,7 @@ const { evaluateDownsideGuardrail } = require('./downside_guardrail');
 function normalizePrincipleName(name) {
   if (!name || typeof name !== 'string') return '';
   const clean = name.replace(/^analyze[-_]/, '').replace(/^agent[-_]/, '').replace(/[-]/g, '_');
-  if (clean === 'buffet' || clean === 'buffett') return 'buffett_munger';
+  if (clean === 'buffet' || clean === 'buffett' || clean === 'buffett_munger') return 'buffet';
   return clean;
 }
 
