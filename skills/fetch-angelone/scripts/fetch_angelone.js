@@ -26,21 +26,54 @@ try {
   createAngelOneClient = null;
 }
 
+let calculateXirr;
+try {
+  const xirrModule = require('../../strategy-xirr/scripts/lib/xirr_math');
+  calculateXirr = xirrModule.calculateXirr;
+} catch {
+  calculateXirr = null;
+}
+
+function computeXirr(cashflows) {
+  if (typeof calculateXirr === 'function') {
+    return calculateXirr(cashflows);
+  }
+  if (!Array.isArray(cashflows) || cashflows.length < 2) return { xirr: null };
+  const d0 = new Date(cashflows[0].date);
+  let rate = 0.1;
+  for (let iter = 0; iter < 100; iter++) {
+    let npv = 0;
+    let dnpv = 0;
+    for (const c of cashflows) {
+      const years = (new Date(c.date) - d0) / (365.25 * 86400000);
+      const disc = Math.pow(1 + rate, years);
+      npv += c.amount / disc;
+      dnpv -= years * c.amount / (disc * (1 + rate));
+    }
+    if (Math.abs(npv) < 1e-6) return { xirr: rate };
+    if (Math.abs(dnpv) < 1e-9) break;
+    rate -= npv / dnpv;
+  }
+  return { xirr: null };
+}
+
 const SKILL_ROOT = path.resolve(__dirname, '..');
 const DEFAULT_CACHE_DIR = path.join(SKILL_ROOT, '.cache');
 const DEFAULT_REPORTS_DIR = path.join(SKILL_ROOT, 'reports');
+const COMPANIES_FILE = path.join(SKILL_ROOT, 'assets', 'companies.json');
 
-const COMPANY_NAMES = {
-  INFY: 'Infosys Ltd',
-  ITC: 'ITC Ltd',
-  ZYDUSLIFE: 'Zydus Lifesciences Ltd',
-  NATCOPHARM: 'Natco Pharma Ltd',
-  HDFCBANK: 'HDFC Bank Ltd',
-  SOUTHBANK: 'South Indian Bank Ltd',
-  TCS: 'Tata Consultancy Services Ltd',
-  WIPRO: 'Wipro Ltd',
-  HCLTECH: 'HCL Technologies Ltd'
-};
+function loadCompanies() {
+  if (fs.existsSync(COMPANIES_FILE)) {
+    try {
+      return JSON.parse(fs.readFileSync(COMPANIES_FILE, 'utf8'));
+    } catch {
+      return {};
+    }
+  }
+  return {};
+}
+
+const COMPANIES = loadCompanies();
 
 function round2(val) {
   return Math.round((Number(val) + Number.EPSILON) * 100) / 100;
@@ -67,8 +100,7 @@ function parseArgs(argv = process.argv.slice(2)) {
       return argv[++i];
     };
 
-    if (k === '--broker') args.broker = next().toLowerCase();
-    else if (k === '--out') args.out = next();
+    if (k === '--out') args.out = next();
     else if (k === '--only') args.only = next().toUpperCase();
     else if (k === '--refresh') args.refresh = true;
     else if (k === '--json-output' || k === '--json') args.jsonOutput = true;
@@ -81,7 +113,49 @@ function parseArgs(argv = process.argv.slice(2)) {
   return args;
 }
 
-const USAGE = `Usage: node scripts/fetch_angelone.js [--broker angelone] [--out DIR] [--refresh] [--only TICKER] [--json-output]`;
+const USAGE = `Usage: node scripts/fetch_angelone.js [--out DIR] [--refresh] [--only TICKER] [--json-output]`;
+
+/**
+ * Load bank transactions ledger from local JSON cache or Excel export (Transaction_2026.xlsx).
+ */
+function loadLedgerFromCacheOrExcel(cacheDir = DEFAULT_CACHE_DIR) {
+  const ledgerCacheFile = path.join(cacheDir, 'ledger_cache.json');
+  if (fs.existsSync(ledgerCacheFile)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(ledgerCacheFile, 'utf8'));
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {}
+  }
+
+  // Check for Excel transaction files in cacheDir or DEFAULT_CACHE_DIR
+  const candidateExcels = [
+    path.join(cacheDir, 'Transaction_2026.xlsx'),
+    path.join(cacheDir, 'Transaction.xlsx'),
+    path.join(DEFAULT_CACHE_DIR, 'Transaction_2026.xlsx'),
+    path.join(DEFAULT_CACHE_DIR, 'Transaction.xlsx')
+  ];
+
+  for (const excelPath of candidateExcels) {
+    if (fs.existsSync(excelPath)) {
+      try {
+        const parserScript = path.join(__dirname, 'parse_angelone_ledger.py');
+        if (fs.existsSync(parserScript)) {
+          const res = require('child_process').spawnSync('python', [parserScript, excelPath], { encoding: 'utf8' });
+          if (res.status === 0 && res.stdout) {
+            const parsed = JSON.parse(res.stdout);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              try {
+                fs.writeFileSync(ledgerCacheFile, JSON.stringify(parsed, null, 2), 'utf8');
+              } catch {}
+              return parsed;
+            }
+          }
+        }
+      } catch {}
+    }
+  }
+  return [];
+}
 
 /**
  * Fetch raw Angel One holdings and cash margins from live MCP/API, cache, or mock.
@@ -120,6 +194,9 @@ async function fetchRawData(options = {}) {
         try {
           const cached = JSON.parse(fs.readFileSync(f, 'utf8'));
           if (cached && Array.isArray(cached.holdings)) {
+            if (!cached.ledger || cached.ledger.length === 0) {
+              cached.ledger = loadLedgerFromCacheOrExcel(cacheDir);
+            }
             const cachedTimestamp = cached.timestamp || fs.statSync(f).mtime.toISOString();
             if (isFallback) {
               process.stderr.write(`[WARNING] Cached Snapshot Active: Data as of ${cachedTimestamp}. ${fallbackReason}\n`);
@@ -163,10 +240,18 @@ async function fetchRawData(options = {}) {
         // Trade history optional
       }
 
+      let ledger = [];
+      try {
+        ledger = await client.getAccountLedger();
+      } catch {
+        // Ledger optional
+      }
+
       const rawResult = {
         holdings: rawHoldings || [],
         margin: margin || { available_cash: 0, net_margin: 0 },
         trades: trades || [],
+        ledger: ledger || [],
         timestamp: new Date().toISOString(),
         _is_cached: false
       };
@@ -208,7 +293,7 @@ async function fetchRawData(options = {}) {
     return JSON.parse(fs.readFileSync(fixtureFile, 'utf8'));
   }
 
-  return { holdings: [], margin: { available_cash: 0, net_margin: 0 }, trades: [] };
+  return { holdings: [], margin: { available_cash: 0, net_margin: 0 }, trades: [], ledger: [] };
 }
 
 /**
@@ -262,9 +347,10 @@ function generateSnapshot(rawData, options = {}) {
     const unrealized_pnl_pct = invested_value > 0 ? round2((unrealized_pnl / invested_value) * 100) : 0;
     const weight_pct = totalCurrent > 0 ? round2((current_value / totalCurrent) * 100) : 0;
 
+    const meta = COMPANIES[ticker] || {};
     return {
       ticker,
-      name: COMPANY_NAMES[ticker] || h.name || ticker,
+      name: meta.name || h.name || ticker,
       isin: h.isin || 'INE000000000',
       exchange: h.exchange || 'NSE',
       quantity,
@@ -276,7 +362,8 @@ function generateSnapshot(rawData, options = {}) {
       unrealized_pnl_pct,
       weight_pct,
       fractional_shares: false,
-      buy_date: h.buyDate || buyDateMap[ticker] || null
+      buy_date: h.buyDate || buyDateMap[ticker] || null,
+      sector: meta.sector || h.sector || 'Other'
     };
   });
 
@@ -294,6 +381,65 @@ function generateSnapshot(rawData, options = {}) {
   const totalPnl = round2(totalCurrent - totalInvested);
   const totalReturnPct = totalInvested > 0 ? round2((totalPnl / totalInvested) * 100) : 0;
 
+  const rawLedger = Array.isArray(rawData.ledger) ? rawData.ledger : [];
+
+  let totalPayin = 0;
+  let totalPayout = 0;
+  for (const item of rawLedger) {
+    const amt = Number(item.amount || 0);
+    const cat = (item.category || '').toUpperCase();
+    if (cat === 'DEPOSIT' || cat === 'PAYIN') {
+      totalPayin += Math.abs(amt);
+    } else if (cat === 'WITHDRAWAL' || cat === 'PAYOUT') {
+      totalPayout += Math.abs(amt);
+    }
+  }
+
+  const netDeposits = totalPayin - totalPayout;
+  const fundsInvested = rawLedger.length > 0 && totalPayin > 0 ? round2(netDeposits) : round2(totalInvested);
+
+  let accountXirr = null;
+  const terminalEquity = round2(totalCurrent + availableCash);
+  const evalDate = (rawData.timestamp ? new Date(rawData.timestamp) : new Date()).toISOString().slice(0, 10);
+
+  if (rawLedger.length > 0) {
+    const xirrFlows = [];
+    for (const item of rawLedger) {
+      if (!item.date || item.amount === undefined || item.amount === null) continue;
+      const cat = (item.category || '').toUpperCase();
+      const amt = Number(item.amount);
+      if (cat === 'DEPOSIT' || cat === 'PAYIN') {
+        xirrFlows.push({
+          date: String(item.date).slice(0, 10),
+          amount: -Math.abs(amt)
+        });
+      } else if (cat === 'WITHDRAWAL' || cat === 'PAYOUT' || cat === 'DIVIDEND') {
+        xirrFlows.push({
+          date: String(item.date).slice(0, 10),
+          amount: Math.abs(amt)
+        });
+      }
+    }
+
+    if (terminalEquity > 0) {
+      xirrFlows.push({
+        date: evalDate,
+        amount: terminalEquity
+      });
+    }
+
+    if (xirrFlows.length >= 2) {
+      try {
+        const xirrRes = computeXirr(xirrFlows);
+        if (xirrRes && xirrRes.xirr !== null && !isNaN(xirrRes.xirr)) {
+          accountXirr = round2(xirrRes.xirr * 100);
+        }
+      } catch {
+        accountXirr = null;
+      }
+    }
+  }
+
   const snapshot = {
     account_id: 'angelone',
     broker: 'angelone',
@@ -306,7 +452,9 @@ function generateSnapshot(rawData, options = {}) {
       unrealized_pnl_pct: totalReturnPct,
       available_cash: availableCash,
       total_account_equity: round2(totalCurrent + availableCash),
-      holdings_count: holdings.length
+      holdings_count: holdings.length,
+      funds_invested: fundsInvested,
+      account_xirr: accountXirr
     },
     margin: {
       available_cash: availableCash,
@@ -314,7 +462,8 @@ function generateSnapshot(rawData, options = {}) {
       utilised,
       net_margin: netMargin
     },
-    holdings
+    holdings,
+    ledger: rawLedger
   };
 
   return snapshot;
@@ -328,10 +477,6 @@ async function main(argv = process.argv.slice(2)) {
   if (args.help) {
     process.stdout.write(USAGE + '\n');
     return { ok: true };
-  }
-
-  if (args.broker !== 'angelone') {
-    throw new Error(`Unsupported broker "${args.broker}". fetch-angelone only supports "angelone".`);
   }
 
   const outDir = path.resolve(args.out || DEFAULT_REPORTS_DIR);
@@ -421,11 +566,13 @@ async function main(argv = process.argv.slice(2)) {
   } else {
     const s = snapshot.summary;
     process.stdout.write('\n📊 Angel One AccountHoldingsSnapshot Generated:\n');
-    process.stdout.write(`   • Total Market Value:   ₹${s.total_current_value.toLocaleString('en-IN')}\n`);
+    process.stdout.write(`   • Equity Value:         ₹${s.total_current_value.toLocaleString('en-IN')}\n`);
     process.stdout.write(`   • Total Invested Cost:  ₹${s.total_invested.toLocaleString('en-IN')}\n`);
+    process.stdout.write(`   • Funds Invested:       ₹${s.funds_invested.toLocaleString('en-IN')}\n`);
+    process.stdout.write(`   • Account XIRR:         ${s.account_xirr !== null ? (s.account_xirr >= 0 ? '+' : '') + s.account_xirr.toFixed(2) + '%' : 'N/A'}\n`);
     process.stdout.write(`   • Unrealized P&L:       ${s.unrealized_pnl >= 0 ? '+' : ''}₹${s.unrealized_pnl.toLocaleString('en-IN')} (${s.unrealized_pnl_pct.toFixed(2)}%)\n`);
     process.stdout.write(`   • Available Cash:       ₹${s.available_cash.toLocaleString('en-IN')}\n`);
-    process.stdout.write(`   • Total Equity:         ₹${s.total_account_equity.toLocaleString('en-IN')}\n`);
+    process.stdout.write(`   • Portfolio Value:      ₹${s.total_account_equity.toLocaleString('en-IN')}\n`);
     process.stdout.write(`   • Holdings Count:       ${s.holdings_count}\n\n`);
     process.stdout.write(`✅ Artifacts written and verified:\n`);
     process.stdout.write(`   • JSON Contract: ${jsonPath}\n`);
@@ -450,5 +597,6 @@ module.exports = {
   fetchRawData,
   generateSnapshot,
   main,
-  parseArgs
+  parseArgs,
+  loadCompanies
 };

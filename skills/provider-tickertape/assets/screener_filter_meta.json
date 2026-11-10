@@ -1,0 +1,1018 @@
+{
+  "Other": {
+    "sector": {
+      "def": "sector",
+      "unit": ""
+    },
+    "subindustry": {
+      "def": "subindustry",
+      "unit": ""
+    },
+    "mrktCapf": {
+      "def": "mrktCapf",
+      "unit": ""
+    }
+  },
+  "Price and Volume": {
+    "lastPrice": {
+      "def": "This is the close price from the day stock last traded",
+      "unit": "Rs"
+    },
+    "pr1d": {
+      "def": "This is the percentage change in the company's stock price over the previous day",
+      "unit": "%"
+    },
+    "pr1w": {
+      "def": "This is the percentage change in the company's stock price over the previous week",
+      "unit": "%"
+    },
+    "4wpct": {
+      "def": "This is the percentage change in the company's stock price over the previous 4 weeks",
+      "unit": "%"
+    },
+    "26wpct": {
+      "def": "This is the percentage change in the company's stock price over the previous 26 weeks",
+      "unit": "%"
+    },
+    "52wpct": {
+      "def": "This is the percentage change in the company's stock price over the previous 52 weeks",
+      "unit": "%"
+    },
+    "pr1wN": {
+      "def": "% change in the company's stock price minus % change in the Nifty over the previous week",
+      "unit": "%"
+    },
+    "4wpctN": {
+      "def": "% change in the company's stock price minus % change in the Nifty over the previous 4 weeks",
+      "unit": "%"
+    },
+    "6mpctN": {
+      "def": "% change in the company's stock price minus % change in the Nifty over the previous 26 weeks",
+      "unit": "%"
+    },
+    "12mpctN": {
+      "def": "% change in the company's stock price minus % change in the Nifty over the previous 52 weeks",
+      "unit": "%"
+    },
+    "52whd": {
+      "def": "52W high price divided by the close price minus one",
+      "unit": ""
+    },
+    "52wld": {
+      "def": "Close price divided by the 52W low price minus one",
+      "unit": ""
+    },
+    "acVol": {
+      "def": "This is the traded volume from the day stock last traded",
+      "unit": ""
+    },
+    "vol1dChPct": {
+      "def": "This is the percentage change in stocks volume over the previous day",
+      "unit": "%"
+    },
+    "vol1wChPct": {
+      "def": "This is the percentage change in stock's volume over the previous week",
+      "unit": "%"
+    },
+    "vol1mAvg": {
+      "def": "Average of daily volume of stocks traded over the past 4 weeks",
+      "unit": ""
+    },
+    "vol3mAvg": {
+      "def": "Average of daily volume of stocks traded over the past 13 weeks",
+      "unit": ""
+    },
+    "faceValue": {
+      "def": "Original cost of the stock as decided by the company at the time of issue",
+      "unit": "Rs."
+    },
+    "5yCagrPct": {
+      "def": "Compounded annual growth rate of stock price over previous 5 years",
+      "unit": "%"
+    }
+  },
+  "Profitability": {
+    "roe": {
+      "def": "Net income divided by the average common equity for the most recent financial year",
+      "unit": "%"
+    },
+    "5Yroe": {
+      "def": "Average of annual return on equity for the five most recent financial years",
+      "unit": "%"
+    },
+    "rtnAsts": {
+      "def": "Net income divided by the average total assets for the most recent financial year",
+      "unit": "%"
+    },
+    "5YrtnAsts": {
+      "def": "Average of annual return on assets for the five most recent financial years",
+      "unit": "%"
+    },
+    "pftMrg": {
+      "def": "Net income divided by the revenue earned for the most recent financial year ",
+      "unit": "%"
+    },
+    "5YpftMrg": {
+      "def": "Average of annual net profit margin for the five most recent financial years",
+      "unit": "%"
+    },
+    "aroi": {
+      "def": "Net income divided by the average of total debt and total equity",
+      "unit": "%"
+    },
+    "5Yaroi": {
+      "def": "Average of annual return on investment for the five most recent financial years",
+      "unit": "%"
+    },
+    "aopm": {
+      "def": "EBITDA divided by the revenue earned for the most recent financial year",
+      "unit": "%"
+    },
+    "opmg": {
+      "def": "Average of annual EBITDA margin for the five most recent financial years",
+      "unit": "%"
+    },
+    "balCogs": {
+      "def": "Refers to the direct cost of producing goods sold by the company. This usually includes raw material and labour cost expended to produce the good.",
+      "unit": "Cr"
+    },
+    "cafCfoaMgn": {
+      "def": "Cash from operations divided by total revenue for the most recent financial year",
+      "unit": "%"
+    },
+    "5YcafCfoaMgn": {
+      "def": "Average of annual cash flow margin for the 5 most recent financial years",
+      "unit": "%"
+    },
+    "roce": {
+      "def": "Return on Capital Employed. EBIT divided by capital employed, ie total assets minus total current liabilities for the most recent financial year",
+      "unit": "%"
+    }
+  },
+  "Financial Ratios": {
+    "ldbtEqt": {
+      "def": "Total long term debt divided by the total shareholder equity",
+      "unit": "%"
+    },
+    "dbtEqt": {
+      "def": "Total debt divided by the total shareholder equity",
+      "unit": "%"
+    },
+    "aqui": {
+      "def": "Total current assets minus total inventory divided by the total current liabilities",
+      "unit": ""
+    },
+    "qcur": {
+      "def": "Total current assets divided by the total current liabilities",
+      "unit": ""
+    },
+    "ccnc": {
+      "def": "Sum of the avg inventory days & avg receivables collection days minus avg payable payment period",
+      "unit": ""
+    },
+    "aint": {
+      "def": "Ratio of earnings before interest and taxes divided by the interest expense",
+      "unit": ""
+    },
+    "invTurnR": {
+      "def": "Cost of goods sold of a company divided by average inventory over the past 2 financial years",
+      "unit": ""
+    },
+    "asstTurnR": {
+      "def": "Total revenue of a company divided by average total assets over the past 2 financial years",
+      "unit": ""
+    },
+    "daysOfInvOstndng": {
+      "def": "Average number of days a company holds inventory before turning it into sales",
+      "unit": ""
+    },
+    "daysSalesOstndng": {
+      "def": "Average number of days a company takes to realise payment of a sale",
+      "unit": ""
+    },
+    "daysPayOstndng": {
+      "def": "Average number of days a company takes to make payments to its trade creditors.",
+      "unit": ""
+    },
+    "wcTurnR": {
+      "def": "Total revenue of a company divided by average working capital over the past 2 financial years",
+      "unit": ""
+    },
+    "netIncByLbl": {
+      "def": "Net income divided by total liabilities for the most recent financial year",
+      "unit": "%"
+    },
+    "erngPwrR": {
+      "def": "EBIT divided by total assets for the most recent financial year",
+      "unit": "%"
+    }
+  },
+  "Growth": {
+    "estrvng": {
+      "def": "Estimated revenue for the current financial year divided by the revenue for the last financial year minus one",
+      "unit": "%"
+    },
+    "rvng": {
+      "def": "Revenue for the last financial year divided by the revenue for the financial year before that minus one",
+      "unit": "%"
+    },
+    "5YrevChg": {
+      "def": "The annual compounded growth rate of revenue over the last 5 years",
+      "unit": "%"
+    },
+    "estAvg": {
+      "def": "Estimated EBITDA for the current financial year divided by the EBITDA for the last financial year minus one",
+      "unit": "%"
+    },
+    "ebitg": {
+      "def": "EBITDA for the last financial year divided by the EBITDA for the financial year before that minus one",
+      "unit": "%"
+    },
+    "earnings": {
+      "def": "The annual compounded growth rate of EBITDA over the last 5 years",
+      "unit": "%"
+    },
+    "12mEpsg": {
+      "def": "Estimated EPS for the current financial year divided by the EPS for the last financial year minus one",
+      "unit": "%"
+    },
+    "epsg": {
+      "def": "EPS for the last financial year divided by the EPS for the financial year before that minus one",
+      "unit": "%"
+    },
+    "epsGwth": {
+      "def": "The annual compounded growth rate of EPS, excluding extraordinary items,  over the last 5 years",
+      "unit": "%"
+    },
+    "ecfog": {
+      "def": "Estimated cash flow from operations (CFO) for the current financial year divided by the CFO for the last financial year minus one",
+      "unit": "%"
+    },
+    "cfog": {
+      "def": "Actual cash flow from operations (CFO) for the last financial year divided by the CFO for the financial year before that minus one",
+      "unit": "%"
+    },
+    "cfotr": {
+      "def": "The annual compounded growth rate of CFO, excluding extraordinary items,  over the last 5 years",
+      "unit": "%"
+    },
+    "3YdivGwth": {
+      "def": "Compound annual growth rate in dividends per share calculated for 3 years",
+      "unit": "%"
+    }
+  },
+  "Valuation": {
+    "apef": {
+      "def": "Close price divided by the earnings per share, excluding extraordinary items, for the most recent financial year",
+      "unit": ""
+    },
+    "pef": {
+      "def": "Close price divided by the estimated EPS for the current financial year",
+      "unit": ""
+    },
+    "ped": {
+      "def": "Stock PE ratio divided by the corresponding sector PE ratio minus one",
+      "unit": "%"
+    },
+    "pbr": {
+      "def": "Close price divided by the book value per share at the end of the most recent financial year",
+      "unit": ""
+    },
+    "pbd": {
+      "def": "Stock PB ratio divided by the corresponding sector PB ratio minus one",
+      "unit": "%"
+    },
+    "divDps": {
+      "def": "Dividend Per Share for the most recent financial year divided by the close price",
+      "unit": "%"
+    },
+    "divSec": {
+      "def": "Difference between the dividend yield of company and the corresponding sector",
+      "unit": "%"
+    },
+    "ps": {
+      "def": "Close price divided by the revenue per share for the most recent financial year",
+      "unit": ""
+    },
+    "psf": {
+      "def": "Close price divided by the estimated revenue per share for the most recent financial year",
+      "unit": ""
+    },
+    "psfs": {
+      "def": "Stock PS ratio divided by the corresponding sector PS ratio minus one",
+      "unit": "%"
+    },
+    "evebitd": {
+      "def": "Enterprise Value divided by the EBITDA for the most recent financial year",
+      "unit": ""
+    },
+    "ev": {
+      "def": "Sum of a company’s latest market capitalisation, total debt and minority interest minus cash and short term investments at the end of the most recent financial year",
+      "unit": "Cr"
+    },
+    "evebit": {
+      "def": "Current Enterprise Value divided by the EBIT at the end of the most recent financial year",
+      "unit": ""
+    },
+    "evByRev": {
+      "def": "Current Enterprise Value divided by the total revenue at the end of the most recent financial year",
+      "unit": ""
+    },
+    "evByIc": {
+      "def": "Enterprise Value divided by invested capital of the last financial year",
+      "unit": ""
+    },
+    "evCafFcf": {
+      "def": "Enterprise Value divided by free cash flow for the most recent financial year",
+      "unit": ""
+    },
+    "lcpCafFcf": {
+      "def": "Market capitalisation of the company divided by free cash flow for the most recent financial year",
+      "unit": ""
+    },
+    "priceCfoR": {
+      "def": "Market capitalisation of the company divided by cashflow from operations for the most recent financial year",
+      "unit": ""
+    },
+    "priceBySales": {
+      "def": "Market cap of the stock divided by total revenue for the most recent financial year",
+      "unit": ""
+    },
+    "pePremSi": {
+      "def": "Stock PE ratio divided by the corresponding sub-sector PE ratio minus one",
+      "unit": "%"
+    },
+    "pbPremSi": {
+      "def": "Stock PB ratio divided by the corresponding sub-sector PB ratio minus one",
+      "unit": "%"
+    },
+    "psPremSi": {
+      "def": "Stock PS ratio divided by the corresponding sub-sector PS ratio minus one",
+      "unit": "%"
+    },
+    "dyPremSs": {
+      "def": "Difference between the dividend yield of company and the corresponding sub-sector",
+      "unit": "%"
+    },
+    "indpe": {
+      "def": "Average PE ratio of the sector the stock belongs to",
+      "unit": ""
+    },
+    "indpb": {
+      "def": "Average PB ratio of the sector the stock belongs to",
+      "unit": ""
+    },
+    "inddy": {
+      "def": "Average dividend yield of the sector the stock belongs to",
+      "unit": ""
+    },
+    "ttmPe": {
+      "def": "Close price divided by the TTM earnings per share, excluding extraordinary items. TTM stands for trailing twelve months",
+      "unit": ""
+    }
+  },
+  "Analyst Ratings": {
+    "breco": {
+      "def": "Sum of analysts having a strong buy/buy rating divided by the total number of analysts",
+      "unit": "%"
+    },
+    "upside": {
+      "def": "Target price estimate for the stock divided by the close price minus one",
+      "unit": "%"
+    },
+    "nBreco": {
+      "def": "Sum of analysts having a strong buy/buy rating for the stock",
+      "unit": ""
+    },
+    "pctHldReco": {
+      "def": "Sum of analysts having a hold rating divided by the total number of analysts",
+      "unit": "%"
+    },
+    "pctSelReco": {
+      "def": "Sum of analysts having a strong sell / sell rating divided by the total number of analysts",
+      "unit": "%"
+    },
+    "totalAnalysts": {
+      "def": "Total number of analysts covering the company",
+      "unit": ""
+    }
+  },
+  "Ownership": {
+    "instown": {
+      "def": "Percentage of company's common stock held by mutual funds",
+      "unit": "%"
+    },
+    "instown3": {
+      "def": "Percentage change in MF ownership of the stock in last three months",
+      "unit": "%"
+    },
+    "chMutHldng6M": {
+      "def": "Percentage change in MF ownership of the stock in last six months",
+      "unit": "%"
+    },
+    "strown": {
+      "def": "Percentage of company's common stock held by promoters",
+      "unit": "%"
+    },
+    "strown3": {
+      "def": "Percentage change in promoter holding of the stock in last three months",
+      "unit": "%"
+    },
+    "chPromHldng6M": {
+      "def": "Percentage change in promoter holding of the stock in last six months",
+      "unit": "%"
+    },
+    "promShrPled": {
+      "def": "Promoter holdings pledged as a percentage of the total shares outstanding",
+      "unit": "%"
+    },
+    "domInstHldng": {
+      "def": "Percentage of company's common stock held by domestic institutions",
+      "unit": "%"
+    },
+    "domInstHldng3M": {
+      "def": "Percentage change in domestic inst. holding of the stock in last three months",
+      "unit": "%"
+    },
+    "domInstHldng6M": {
+      "def": "Percentage change in domestic inst. holding of the stock in last six months",
+      "unit": "%"
+    },
+    "forInstHldng": {
+      "def": "Percentage of company's common stock held by foreign institutions",
+      "unit": "%"
+    },
+    "forInstHldng3M": {
+      "def": "Percentage change in foreign inst. holding of the stock in last three months",
+      "unit": "%"
+    },
+    "forInstHldng6M": {
+      "def": "Percentage change in foreign inst. holding of the stock in last six months",
+      "unit": "%"
+    },
+    "insHolding": {
+      "def": "Percentage of company's common stock held by insurance firms",
+      "unit": "%"
+    },
+    "retailHolding": {
+      "def": "Percentage of company's common stock held by retail investors",
+      "unit": "%"
+    },
+    "insiderCml1M": {
+      "def": "Cumulative number of shares traded by insiders of the company over the previous 1 month as a % of total shares outstanding",
+      "unit": "%"
+    },
+    "insiderCml3M": {
+      "def": "Cumulative number of shares traded by insiders of the company over the previous 3 months as a % of total shares outstanding",
+      "unit": "%"
+    },
+    "insiderCml6M": {
+      "def": "Cumulative number of shares traded by insiders of the company over the previous 6 months as a % of total shares outstanding",
+      "unit": "%"
+    },
+    "bulkCml1M": {
+      "def": "Cumulative number of shares traded under bulk deals over the previous 1 month as a % of total shares outstanding",
+      "unit": "%"
+    },
+    "bulkCml3M": {
+      "def": "Cumulative number of shares traded under bulk deals over the previous 3 months as a % of total shares outstanding",
+      "unit": "%"
+    },
+    "bulkCml6M": {
+      "def": "Cumulative number of shares traded under bulk deals over the previous 6 months as a % of total shares outstanding",
+      "unit": "%"
+    },
+    "nShareholders": {
+      "def": "No. of unique DEMATS account with at least one share of the stock in their portfolio",
+      "unit": "Cr"
+    }
+  },
+  "Tickertape Special": {
+    "valr": {
+      "def": "Percentile rank of the stock, based on the price momentum as well as valuation characteristics",
+      "unit": ""
+    },
+    "prmr": {
+      "def": "Percentile rank of the stock, based on the price momentum characteristics",
+      "unit": ""
+    },
+    "erqr": {
+      "def": "Earnings quality rank of the stock vs all the other stocks listed on NSE",
+      "unit": ""
+    },
+    "ptir": {
+      "def": "Percentile rank of the stock, calculated based on the price to intrinsic value ratio",
+      "unit": ""
+    },
+    "fundamental": {
+      "def": "Rank of the stock vs all others in the sector, based on different fundamental criteria",
+      "unit": ""
+    }
+  },
+  "Futures & Options": {
+    "fair": {
+      "def": "Fair value of the stock future contract calculated using expected dividends and discount rate",
+      "unit": "Rs"
+    },
+    "ftcp": {
+      "def": "Future contract close price from the day the stock future contract was last traded",
+      "unit": "Rs"
+    },
+    "ftls": {
+      "def": "Minimum number of stock future/option contracts that can be purchased in one transaction",
+      "unit": ""
+    },
+    "ftoi": {
+      "def": "Current month stock future contract open interest from the day stock future contract last traded",
+      "unit": ""
+    },
+    "1Dfoi": {
+      "def": "Percentage change in current month stock future contract open interest in last 1 day",
+      "unit": "%"
+    },
+    "1Wfoi": {
+      "def": "Percentage change in current month stock future contract open interest in last 1 week",
+      "unit": "%"
+    },
+    "ftvol": {
+      "def": "Current month stock future contract Volume from the day stock future contract last traded",
+      "unit": ""
+    },
+    "1Dvol": {
+      "def": "Percentage change in current month stock future contract volume in last 1 day",
+      "unit": "%"
+    },
+    "1Wvol": {
+      "def": "Percentage change in current month stock future contract volume in last 1 week",
+      "unit": "%"
+    },
+    "ftbas": {
+      "def": "Difference betweeen the price of the future contract and stock price in cash",
+      "unit": ""
+    },
+    "fairsp": {
+      "def": "Difference between the last close price and fair value of the stock future contract",
+      "unit": ""
+    },
+    "ccrp": {
+      "def": "Profit that can be made by entering into a cash and carry arbitrage position",
+      "unit": "Rs"
+    },
+    "rolc": {
+      "def": "Difference between the next and current month future price divided by the current month future price",
+      "unit": "%"
+    },
+    "rolp": {
+      "def": "An indication of how many current month futures contract have been rolled over to next month",
+      "unit": "%"
+    },
+    "csprd": {
+      "def": "Next month future contract close price minus current month future contract close price",
+      "unit": ""
+    },
+    "opcoi": {
+      "def": "Sum of open interests of stock call option contracts for all the strikes",
+      "unit": ""
+    },
+    "oppoi": {
+      "def": "Sum of open interests of stock put option contracts for all the strikes",
+      "unit": ""
+    },
+    "1Dcoi": {
+      "def": "Percentage change in stock call option open interest in last 1 day",
+      "unit": "%"
+    },
+    "1DPoi": {
+      "def": "Percentage change in stock put option open interest in last 1 day",
+      "unit": "%"
+    },
+    "1Wcoi": {
+      "def": "Percentage change in stock call option open interest in last 1 week",
+      "unit": "%"
+    },
+    "1Wpoi": {
+      "def": "Percentage change in stock put option open interest in last 1 week",
+      "unit": "%"
+    },
+    "chstr": {
+      "def": "Strike price of the stock call option with the highest open interest",
+      "unit": ""
+    },
+    "phstr": {
+      "def": "Strike price of the stock put option with the highest open interest",
+      "unit": ""
+    },
+    "1Dceoi": {
+      "def": "Strike price of the stock call option with the highest 1 day change in open interest",
+      "unit": ""
+    },
+    "1Dpeoi": {
+      "def": "Strike price of the stock put option with the highest 1 day change in open interest",
+      "unit": ""
+    },
+    "1Wceoi": {
+      "def": "Strike price of the stock call option with the highest 1 week change in open interest",
+      "unit": ""
+    },
+    "1Wpeoi": {
+      "def": "Strike price of the stock put option with the highest 1 week change in open interest",
+      "unit": ""
+    },
+    "putcall": {
+      "def": "Total put open interest divided by the total call open interest",
+      "unit": ""
+    }
+  },
+  "Technical Indicators": {
+    "vWAP": {
+      "def": "Volume weighted average price from the day stock last traded",
+      "unit": ""
+    },
+    "pab1Mma": {
+      "def": "Close price divided by the simple moving average of last 20 trading days price minus one",
+      "unit": ""
+    },
+    "pab12Mma": {
+      "def": "Close price divided by the simple moving average of last 250 trading days price minus one",
+      "unit": ""
+    },
+    "prAvMonthEVA": {
+      "def": "Close price divided by the exponential moving average of last 22 trading days price minus one",
+      "unit": ""
+    },
+    "beta": {
+      "def": "Beta is a measure of a company's stock price volatility relative to the market",
+      "unit": ""
+    },
+    "3Ywsh": {
+      "def": "Measure of excess return per unit of risk, calculated using 104 weekly price close points",
+      "unit": ""
+    },
+    "3Ywal": {
+      "def": "Excess return of a stock relative to its benchmark, calculated using 104 weekly price close points",
+      "unit": ""
+    },
+    "relVol": {
+      "def": "10 days avg daily traded volume divided by the last 91 days avg daily traded volume",
+      "unit": ""
+    },
+    "12mVol": {
+      "def": "Annualised standard deviation of the daily price change for the 200 most recent trading days",
+      "unit": "%"
+    },
+    "12mVolN": {
+      "def": "Annualised standard deviation of the stock minus annualized standard deviation of the Nifty",
+      "unit": "%"
+    },
+    "14dRsi": {
+      "def": "RSI measures the momentum of a stock to determine whether it is in overbought or oversold range",
+      "unit": ""
+    },
+    "14ersi": {
+      "def": "Modified RSI based on exponential price averages, used to determine overbought & oversold zones",
+      "unit": ""
+    },
+    "14adx": {
+      "def": "It indicates the strength of a trend, calculated as average between current and 14 days prior value",
+      "unit": ""
+    },
+    "1mac": {
+      "def": "It is trend indicator calculated using difference between 12 and 26 day exponential price average",
+      "unit": ""
+    },
+    "2mac": {
+      "def": "Difference between moving average convergence divergence indicator and signal line",
+      "unit": ""
+    },
+    "priceUBB": {
+      "def": "Used to check richness in the price, calculated as close price / upper bollinger band - 1",
+      "unit": ""
+    },
+    "priceLBB": {
+      "def": "Used to check cheapness in the price, calculated as close price / lower bollinger band - 1",
+      "unit": ""
+    },
+    "parabolSAR": {
+      "def": "A trend indicator, calculated as close price divided by the parabolic SAR",
+      "unit": ""
+    },
+    "williamR": {
+      "def": "Calculated using 14D lookback period, used to identify overbought/oversold zones",
+      "unit": ""
+    },
+    "stochasticK": {
+      "def": "A momentum indicator used to identify overbought/oversold zones",
+      "unit": ""
+    },
+    "stochasticD": {
+      "def": "3D simple moving average of %K used to identify overbought/oversold zones",
+      "unit": ""
+    },
+    "percentChangeObv": {
+      "def": "Percentage change in on balance voume in last 1 week",
+      "unit": "%"
+    },
+    "percentChangeADL": {
+      "def": "Percentage change in accumulation distribution line in last 1 week",
+      "unit": "%"
+    },
+    "superTrend": {
+      "def": "A trend following indicator used to generate buy/sell signals in trending market",
+      "unit": ""
+    },
+    "ema10d": {
+      "def": "Exponential moving average of the price over last 10 trading days",
+      "unit": ""
+    },
+    "sma10d": {
+      "def": "Simple moving average of the price over last 10 trading days",
+      "unit": ""
+    },
+    "ema50d": {
+      "def": "Exponential moving average of the price over last 50 trading days",
+      "unit": ""
+    },
+    "sma50d": {
+      "def": "Simple moving average of the price over last 50 trading days",
+      "unit": ""
+    },
+    "ema100d": {
+      "def": "Exponential moving average of the price over last 100 trading days",
+      "unit": ""
+    },
+    "ema200d": {
+      "def": "Exponential moving average of the price over last 200 trading days",
+      "unit": ""
+    },
+    "sma100d": {
+      "def": "Simple moving average of the price over last 100 trading days",
+      "unit": ""
+    },
+    "sma200d": {
+      "def": "Simple moving average of the price over last 200 trading days",
+      "unit": ""
+    },
+    "maxDrawdown": {
+      "def": "Indicates the maximum fall in the value of the investment over the previous 1 year; measured as the percentage change between the lowest point and the highest point before the lowest point.",
+      "unit": "%"
+    }
+  },
+  "Income Statement": {
+    "incTrev": {
+      "def": "Revenue generated by the company in the most recent financial year",
+      "unit": "Cr"
+    },
+    "incEbi": {
+      "def": "Gross profit minus operating cost for the latest financial year",
+      "unit": "Cr"
+    },
+    "incDep": {
+      "def": "Depreciation and amortization expense of the company for the latest financial year",
+      "unit": "Cr"
+    },
+    "incPbi": {
+      "def": "EBITDA minus depreciation and amortization expense for the latest financial year",
+      "unit": "Cr"
+    },
+    "incIoi": {
+      "def": "Interest expense and other related items for the most recent financial year",
+      "unit": "Cr"
+    },
+    "incPbt": {
+      "def": "PBIT minus interest and other related items for the latest financial year",
+      "unit": "Cr"
+    },
+    "incToi": {
+      "def": "Taxes paid for the most recent financial year",
+      "unit": "Cr"
+    },
+    "incNinc": {
+      "def": "PBT minus taxes paid by the company for the latest financial year",
+      "unit": "Cr"
+    },
+    "incEps": {
+      "def": "Net income divided by the total common shares outstanding of the company",
+      "unit": "Rs"
+    },
+    "incDps": {
+      "def": "Total dividend divided by the total common shares outstanding of the company",
+      "unit": "Rs"
+    },
+    "incPyr": {
+      "def": "Dividend per share divided by the earnings per share",
+      "unit": ""
+    },
+    "incRaw": {
+      "def": "Expenses incurred on procuring raw materials",
+      "unit": "Cr"
+    },
+    "incPfc": {
+      "def": "Expenses incurred on using power & fuel",
+      "unit": "Cr"
+    },
+    "incEpc": {
+      "def": "Expenses incurred on employee wages & salaries",
+      "unit": "Cr"
+    },
+    "incSga": {
+      "def": "Expenses incurred on marketing, selling products & services and managing the company",
+      "unit": "Cr"
+    },
+    "incOpe": {
+      "def": "Other expenses incurred in operating the company like rent, servicing of machines, R&D etc",
+      "unit": "Cr"
+    },
+    "qIncTrevK": {
+      "def": "Revenue generated by the company in the most recent financial quarter",
+      "unit": "Cr"
+    },
+    "qIncNincK": {
+      "def": "Net income earned by the company in the most recent financial quarter",
+      "unit": "Cr"
+    },
+    "qIncEbiK": {
+      "def": "Gross profit minus operating cost for the latest financial quarter",
+      "unit": "Cr"
+    },
+    "qIncEpsK": {
+      "def": "Net income for the latest financial quarter divided by the total common shares outstanding of the company",
+      "unit": "Rs"
+    },
+    "qIncOpeK": {
+      "def": "Other expenses incurred in operating the company like rent, servicing of machines, R&D etc",
+      "unit": "Cr"
+    },
+    "qIncPbiK": {
+      "def": "EBITDA minus depreciation and amortization expense for the latest financial quarter",
+      "unit": "Cr"
+    },
+    "qIncPbtK": {
+      "def": "PBIT minus interest and other related items for the latest financial quarter",
+      "unit": "Cr"
+    }
+  },
+  "Balance Sheet & Cash Flow": {
+    "balCsti": {
+      "def": "It includes cash, cash equivalent and short term investments of the company",
+      "unit": "Cr"
+    },
+    "balTrec": {
+      "def": "It includes accounts, notes and other receivables of the company",
+      "unit": "Cr"
+    },
+    "balTinv": {
+      "def": "All assets held for sale in the ordinary course of business by the company",
+      "unit": "Cr"
+    },
+    "balTca": {
+      "def": "Sum of cash and equivalents, total receivables, total inventory and other current assets",
+      "unit": "Cr"
+    },
+    "balNetl": {
+      "def": "Total loans to customers",
+      "unit": "Cr"
+    },
+    "balNppe": {
+      "def": "Gross property, plant and equipment minus accumulated depreciation",
+      "unit": "Cr"
+    },
+    "balGint": {
+      "def": "Sum of goodwill and intangibles like patents, copyrights, trademarks etc",
+      "unit": "Cr"
+    },
+    "balLti": {
+      "def": "Long term investments of the company at the end of latest financial year",
+      "unit": "Cr"
+    },
+    "balTota": {
+      "def": "Total assets of the company for the latest financial year",
+      "unit": "Cr"
+    },
+    "balAccp": {
+      "def": "Balance owed to suppliers for material and merchandise used in production",
+      "unit": "Cr"
+    },
+    "balTdep": {
+      "def": "Total deposits held by the bank at the end of the latest financial year",
+      "unit": "Cr"
+    },
+    "balTcl": {
+      "def": "Liabilities expected to be due in the next year/operating cycle of the company",
+      "unit": "Cr"
+    },
+    "balTltd": {
+      "def": "Long term debt and capital lease obligation of the company for the latest financial year",
+      "unit": "Cr"
+    },
+    "balTdeb": {
+      "def": "Total interest bearing debt of the company outstanding at the end of the most recent financial year",
+      "unit": "Cr"
+    },
+    "balDit": {
+      "def": "Difference between deferred tax liabilities and deferred tax assets of the company",
+      "unit": "Cr"
+    },
+    "balMint": {
+      "def": "Accumulated interest for minority shareholders in subsidiaries not wholly owned by the company",
+      "unit": "Cr"
+    },
+    "balTotl": {
+      "def": "Total liabilities of the company for the latest financial year",
+      "unit": "Cr"
+    },
+    "balComs": {
+      "def": "Common shares outstanding of the company multiplied by the par value, also known as Common Stock",
+      "unit": "Cr"
+    },
+    "balApic": {
+      "def": "Capital contributed by shareholders in excess of par value of common stock",
+      "unit": "Cr"
+    },
+    "balRtne": {
+      "def": "Residual earnings from operations not distributed to shareholders",
+      "unit": "Cr"
+    },
+    "balTeq": {
+      "def": "Sum of share capital, additional paid-in capital, reserves & surplus and other equity of the company",
+      "unit": "Cr"
+    },
+    "balTcso": {
+      "def": "Total common shares of the company outstanding at the end of the most recent financial year",
+      "unit": "Cr"
+    },
+    "cafCiwc": {
+      "def": "Change in working capital of the company for the latest financial year",
+      "unit": "Cr"
+    },
+    "cafCfoa": {
+      "def": "Cash flow attributed to normal business operations of the company for the latest financial year",
+      "unit": "Cr"
+    },
+    "cafCexp": {
+      "def": "Capital expenditure incurred by the company in the latest financial year",
+      "unit": "Cr"
+    },
+    "cafCfia": {
+      "def": "Cash flow attributed to investing activities of the latest financial year",
+      "unit": "Cr"
+    },
+    "cafTcdp": {
+      "def": "Total cash distributed as dividend to shareholders in the latest financial year",
+      "unit": "Cr"
+    },
+    "cafCffa": {
+      "def": "Cash flow attributed to financing activities of the latest financial year",
+      "unit": "Cr"
+    },
+    "cafNcic": {
+      "def": "Sum of operating cashflow, investing cashflow, financing cashflow and foreign exchange effects",
+      "unit": "Cr"
+    },
+    "balNca": {
+      "def": "Sum of long term assets like Property/Plant/Equipment, Goodwill & Intangibles, Long term investments etc",
+      "unit": "Cr"
+    },
+    "balNcl": {
+      "def": "Sum of long term debt, deferred tax liabilities & other long term liabilities",
+      "unit": "Cr"
+    },
+    "cafFcf": {
+      "def": "Operating cash flow remaining after deducting the capital expenditure for the latest financial year",
+      "unit": "Cr"
+    },
+    "balDta": {
+      "def": "Difference between deferred tax assets and deferred tax liabilities of the company",
+      "unit": "Cr"
+    },
+    "bookValue": {
+      "def": "Total value of a company’s assets that shareholders of the company will receive if the company gets liquidated",
+      "unit": "Cr"
+    },
+    "balOca": {
+      "def": "Uncommon / Atypical assets held by a company which can be quickly converted to cash",
+      "unit": "Cr"
+    },
+    "balOtha": {
+      "def": "Uncommon / Atypical assets held by a company which do not fall under major asset categories",
+      "unit": "Cr"
+    },
+    "balOcl": {
+      "def": "Uncommon immediate obligations outstanding for a company not under any major liability type",
+      "unit": "Cr"
+    },
+    "balOthl": {
+      "def": "Obligations outstanding for a company which do not fall under major liability categories",
+      "unit": "Cr"
+    }
+  },
+  "ETFs": {
+    "expenseRatio": {
+      "def": "The operating and administrative costs of running the fund measured as the percentage of fund assets",
+      "unit": "%"
+    },
+    "trackErr": {
+      "def": "The difference between the performance of the security and the benchmark index that it tracks",
+      "unit": "%"
+    }
+  }
+}

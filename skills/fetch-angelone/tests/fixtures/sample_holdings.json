@@ -74,6 +74,22 @@
       "quantity": 10,
       "price": 950.0
     }
+  ],
+  "ledger": [
+    {
+      "date": "2026-06-01",
+      "amount": -25000.0,
+      "category": "PAYIN",
+      "description": "Bank Pay-in via NetBanking",
+      "voucher": "VOUCH-001"
+    },
+    {
+      "date": "2026-08-20",
+      "amount": 500.0,
+      "category": "DIVIDEND",
+      "description": "INFY Final Dividend",
+      "voucher": "DIV-001"
+    }
   ]
 }
 

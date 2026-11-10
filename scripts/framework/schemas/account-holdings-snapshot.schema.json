@@ -79,6 +79,14 @@
           "type": "integer",
           "minimum": 0,
           "description": "Total count of distinct equity holding positions."
+        },
+        "funds_invested": {
+          "type": "number",
+          "description": "Total net deposited funds in account currency (Pay-ins minus Pay-outs, falling back to total_invested)."
+        },
+        "account_xirr": {
+          "type": ["number", "null"],
+          "description": "Annualized money-weighted rate of return percentage (XIRR) based on account cashflows, or null if insufficient history."
         }
       }
     },
@@ -199,6 +207,39 @@
           "buy_date": {
             "type": ["string", "null"],
             "description": "Earliest or primary acquisition date in YYYY-MM-DD format."
+          },
+          "sector": {
+            "type": "string",
+            "description": "Economic sector classification (e.g., Information Technology, Financials, Healthcare)."
+          }
+        }
+      }
+    },
+    "ledger": {
+      "type": "array",
+      "description": "Historical bank transactions ledger (pay-ins, pay-outs, dividends) associated with the account.",
+      "items": {
+        "type": "object",
+        "required": [
+          "date",
+          "amount",
+          "category"
+        ],
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "category": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "voucher": {
+            "type": "string"
           }
         }
       }

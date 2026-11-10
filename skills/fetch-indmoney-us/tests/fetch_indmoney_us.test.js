@@ -156,6 +156,12 @@ test('fetch_indmoney_us: main() writes accounts/indmoney_us.json and accounts/in
     const selfContainment = verifyHtmlSelfContainment(htmlContent);
     assert.equal(selfContainment.ok, true, `Errors found: ${JSON.stringify(selfContainment.errors)}`);
     assert.equal(selfContainment.errors.length, 0);
+
+    // Verify presence of 2 donut charts: Stock Composition & Sector Composition
+    assert.ok(htmlContent.includes('Stock Composition'), 'HTML must include Stock Composition chart');
+    assert.ok(htmlContent.includes('Sector Composition'), 'HTML must include Sector Composition chart');
+    assert.ok(htmlContent.includes('stockDonutSvg'), 'HTML must include stockDonutSvg element');
+    assert.ok(htmlContent.includes('sectorDonutSvg'), 'HTML must include sectorDonutSvg element');
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }

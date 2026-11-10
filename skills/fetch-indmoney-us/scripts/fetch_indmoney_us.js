@@ -34,6 +34,77 @@ const REPO_ROOT = fs.existsSync(path.join(SKILL_ROOT, '..', '..', 'package.json'
 const DEFAULT_CACHE_DIR = path.join(SKILL_ROOT, '.cache');
 const DEFAULT_REPORTS_DIR = path.join(REPO_ROOT, 'reports');
 
+let calculateXirr;
+try {
+  const xirrModule = require('../../strategy-xirr/scripts/lib/xirr_math');
+  calculateXirr = xirrModule.calculateXirr;
+} catch {
+  calculateXirr = null;
+}
+
+function computeXirr(cashflows) {
+  if (typeof calculateXirr === 'function') {
+    return calculateXirr(cashflows);
+  }
+  if (!Array.isArray(cashflows) || cashflows.length < 2) return { xirr: null };
+  const d0 = new Date(cashflows[0].date);
+  let rate = 0.1;
+  for (let iter = 0; iter < 100; iter++) {
+    let npv = 0;
+    let dnpv = 0;
+    for (const c of cashflows) {
+      const years = (new Date(c.date) - d0) / (365.25 * 86400000);
+      const disc = Math.pow(1 + rate, years);
+      npv += c.amount / disc;
+      dnpv -= years * c.amount / (disc * (1 + rate));
+    }
+    if (Math.abs(npv) < 1e-6) return { xirr: rate };
+    if (Math.abs(dnpv) < 1e-9) break;
+    rate -= npv / dnpv;
+  }
+  return { xirr: null };
+}
+
+function loadLedgerFromCacheOrExcel(cacheDir = DEFAULT_CACHE_DIR) {
+  const ledgerCacheFile = path.join(cacheDir, 'indmoney_ledger.json');
+  if (fs.existsSync(ledgerCacheFile)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(ledgerCacheFile, 'utf8'));
+      if (parsed && Array.isArray(parsed.all_transactions) && parsed.all_transactions.length > 0) {
+        return parsed.all_transactions.map(t => ({
+          date: t.date,
+          category: t.category,
+          amount: Number(t.amount_usd !== undefined ? t.amount_usd : t.amount || 0),
+          particulars: t.title || 'INDmoney Transaction',
+          voucher: t.transaction_id || t.id || ''
+        }));
+      }
+    } catch {}
+  }
+
+  // If cache file not found, try running parse_indmoney_ledger.py
+  try {
+    const parserScript = path.join(__dirname, 'parse_indmoney_ledger.py');
+    if (fs.existsSync(parserScript)) {
+      const res = require('child_process').spawnSync('python', [parserScript, '--cache-dir', cacheDir], { encoding: 'utf8' });
+      if (res.status === 0 && fs.existsSync(ledgerCacheFile)) {
+        const parsed = JSON.parse(fs.readFileSync(ledgerCacheFile, 'utf8'));
+        if (parsed && Array.isArray(parsed.all_transactions)) {
+          return parsed.all_transactions.map(t => ({
+            date: t.date,
+            category: t.category,
+            amount: Number(t.amount_usd !== undefined ? t.amount_usd : t.amount || 0),
+            particulars: t.title || 'INDmoney Transaction',
+            voucher: t.transaction_id || t.id || ''
+          }));
+        }
+      }
+    }
+  } catch {}
+
+  return [];
+}
+
 const KNOWN_US_EXCHANGES = {
   AAPL: 'NASDAQ',
   MSFT: 'NASDAQ',
@@ -101,12 +172,58 @@ const KNOWN_US_NAMES = {
   TSLA: 'Tesla Inc.',
   AMD: 'Advanced Micro Devices Inc.',
   INTC: 'Intel Corp.',
+  TSM: 'Taiwan Semiconductor Manufacturing Co.',
+  KO: 'The Coca-Cola Company',
+  JNJ: 'Johnson & Johnson',
+  AMAT: 'Applied Materials Inc.',
+  V: 'Visa Inc.',
   VOO: 'Vanguard S&P 500 ETF',
   QQQ: 'Invesco QQQ Trust',
   SPY: 'SPDR S&P 500 ETF Trust',
   IVV: 'iShares Core S&P 500 ETF',
   VTI: 'Vanguard Total Stock Market ETF',
   RSP: 'Invesco S&P 500 Equal Weight ETF'
+};
+
+const KNOWN_US_SECTORS = {
+  AAPL: 'Information Technology',
+  MSFT: 'Information Technology',
+  GOOGL: 'Communication Services',
+  GOOG: 'Communication Services',
+  AMZN: 'Consumer Discretionary',
+  NVDA: 'Information Technology',
+  META: 'Communication Services',
+  TSLA: 'Consumer Discretionary',
+  AMD: 'Information Technology',
+  INTC: 'Information Technology',
+  CSCO: 'Information Technology',
+  ADBE: 'Information Technology',
+  NFLX: 'Communication Services',
+  AVGO: 'Information Technology',
+  CRM: 'Information Technology',
+  ORCL: 'Information Technology',
+  DIS: 'Communication Services',
+  KO: 'Consumer Staples',
+  PEP: 'Consumer Staples',
+  PG: 'Consumer Staples',
+  COST: 'Consumer Staples',
+  WMT: 'Consumer Staples',
+  JNJ: 'Healthcare',
+  UNH: 'Healthcare',
+  LLY: 'Healthcare',
+  V: 'Financials',
+  MA: 'Financials',
+  JPM: 'Financials',
+  BAC: 'Financials',
+  GS: 'Financials',
+  TSM: 'Information Technology',
+  AMAT: 'Information Technology',
+  VOO: 'Index ETF',
+  QQQ: 'Index ETF',
+  SPY: 'Index ETF',
+  IVV: 'Index ETF',
+  VTI: 'Index ETF',
+  RSP: 'Index ETF'
 };
 
 function round2(val) {
@@ -358,7 +475,8 @@ function generateSnapshot(rawData, options = {}) {
       unrealized_pnl_pct,
       weight_pct,
       fractional_shares: isFractional,
-      buy_date: h.buy_date || h.buyDate || null
+      buy_date: h.buy_date || h.buyDate || null,
+      sector: KNOWN_US_SECTORS[ticker] || h.sector || 'Other'
     };
   });
 
@@ -370,6 +488,63 @@ function generateSnapshot(rawData, options = {}) {
 
   const totalPnl = round2(totalCurrent - totalInvested);
   const totalReturnPct = totalInvested > 0 ? round2((totalPnl / totalInvested) * 100) : 0;
+
+  const rawLedger = loadLedgerFromCacheOrExcel(options.cacheDir || DEFAULT_CACHE_DIR);
+
+  let totalPayin = 0;
+  let totalPayout = 0;
+  for (const item of rawLedger) {
+    const cat = (item.category || '').toUpperCase();
+    const amt = Number(item.amount || 0);
+    if (cat === 'DEPOSIT' || cat === 'PAYIN') {
+      totalPayin += Math.abs(amt);
+    } else if (cat === 'WITHDRAWAL' || cat === 'PAYOUT') {
+      totalPayout += Math.abs(amt);
+    }
+  }
+
+  const netDeposits = totalPayin - totalPayout;
+  const fundsInvested = rawLedger.length > 0 && totalPayin > 0 ? round2(netDeposits) : round2(totalInvested);
+
+  let accountXirr = null;
+  const terminalEquity = round2(totalCurrent + availableCash);
+  const evalDate = (rawData.timestamp ? new Date(rawData.timestamp) : new Date()).toISOString().slice(0, 10);
+
+  if (rawLedger.length > 0) {
+    const xirrFlows = [];
+    for (const item of rawLedger) {
+      if (!item.date || item.amount === undefined || item.amount === null) continue;
+      const cat = (item.category || '').toUpperCase();
+      const amt = Number(item.amount);
+      if (cat === 'DEPOSIT' || cat === 'PAYIN') {
+        xirrFlows.push({
+          date: String(item.date).slice(0, 10),
+          amount: -Math.abs(amt)
+        });
+      } else if (cat === 'WITHDRAWAL' || cat === 'PAYOUT') {
+        xirrFlows.push({
+          date: String(item.date).slice(0, 10),
+          amount: Math.abs(amt)
+        });
+      }
+    }
+
+    if (terminalEquity > 0) {
+      xirrFlows.push({
+        date: evalDate,
+        amount: terminalEquity
+      });
+    }
+
+    if (xirrFlows.length >= 2) {
+      try {
+        const xirrRes = computeXirr(xirrFlows);
+        if (xirrRes && xirrRes.xirr !== null && !isNaN(xirrRes.xirr)) {
+          accountXirr = round2(xirrRes.xirr * 100);
+        }
+      } catch {}
+    }
+  }
 
   const snapshot = {
     account_id: 'indmoney_us',
@@ -383,7 +558,9 @@ function generateSnapshot(rawData, options = {}) {
       unrealized_pnl_pct: totalReturnPct,
       available_cash: availableCash,
       total_account_equity: round2(totalCurrent + availableCash),
-      holdings_count: holdings.length
+      holdings_count: holdings.length,
+      funds_invested: round2(fundsInvested),
+      account_xirr: accountXirr !== null ? round2(accountXirr) : null
     },
     margin: {
       available_cash: availableCash,
@@ -391,7 +568,8 @@ function generateSnapshot(rawData, options = {}) {
       utilised: 0,
       net_margin: availableCash
     },
-    holdings
+    holdings,
+    ...(rawLedger.length > 0 ? { ledger: rawLedger } : {})
   };
 
   return { snapshot, usdToInr: fxRate };
@@ -527,11 +705,17 @@ async function main(argv = process.argv.slice(2)) {
   } else {
     const s = snapshot.summary;
     process.stdout.write('\n📊 INDmoney US AccountHoldingsSnapshot Generated:\n');
-    process.stdout.write(`   • Total Market Value:   $${s.total_current_value.toLocaleString('en-US', { minimumFractionDigits: 2 })} (≈ ₹${(s.total_current_value * usdToInr).toLocaleString('en-IN', { maximumFractionDigits: 0 })})\n`);
+    process.stdout.write(`   • Equity Value:         $${s.total_current_value.toLocaleString('en-US', { minimumFractionDigits: 2 })} (≈ ₹${(s.total_current_value * usdToInr).toLocaleString('en-IN', { maximumFractionDigits: 0 })})\n`);
     process.stdout.write(`   • Total Invested Cost:  $${s.total_invested.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`);
+    if (s.funds_invested !== undefined) {
+      process.stdout.write(`   • Funds Invested:       $${s.funds_invested.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`);
+    }
+    if (s.account_xirr !== undefined && s.account_xirr !== null) {
+      process.stdout.write(`   • Account XIRR:         ${s.account_xirr >= 0 ? '+' : ''}${s.account_xirr.toFixed(2)}%\n`);
+    }
     process.stdout.write(`   • Unrealized P&L:       ${s.unrealized_pnl >= 0 ? '+' : ''}$${s.unrealized_pnl.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${s.unrealized_pnl_pct.toFixed(2)}%)\n`);
     process.stdout.write(`   • Available USD Cash:   $${s.available_cash.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`);
-    process.stdout.write(`   • Total Account Equity: $${s.total_account_equity.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`);
+    process.stdout.write(`   • Portfolio Value:      $${s.total_account_equity.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`);
     process.stdout.write(`   • Holdings Count:       ${s.holdings_count}\n`);
     process.stdout.write(`   • FX Conversion Rate:   1 USD = ₹${usdToInr.toFixed(2)}\n\n`);
     process.stdout.write(`✅ Artifacts written and verified:\n`);

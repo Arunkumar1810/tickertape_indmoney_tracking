@@ -1,0 +1,348 @@
+<mxfile host="Electron" modified="2026-11-09T11:08:47.703Z" agent="Antigravity Architecture Engine" version="21.0.0" type="device">
+  <diagram id="seq_diag" name="End-to-End Orchestration Sequence Diagram">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2800" pageHeight="2400" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ll_user" value="User / CLI" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="50" width="120" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_orch" value=":WayOrchestrator
+(Tier 4)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="220" y="50" width="140" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_man" value=":ManifestValidator
+(Framework)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="50" width="140" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_fetch_a" value=":FetchAngelOne
+(Tier 2)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#E0F2FE;strokeColor=#0284C7;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="620" y="50" width="130" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_fetch_i" value=":FetchIndmoneyUs
+(Tier 2)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#E0F2FE;strokeColor=#0284C7;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="810" y="50" width="140" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_blender" value=":HoldingBlender
+(Tier 4)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="50" width="130" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_xirr" value=":StrategyXirr
+(Tier 4)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="50" width="130" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_tt" value=":ProviderTickertape
+(Tier 2)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#E0F2FE;strokeColor=#0284C7;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1390" y="50" width="140" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_fg" value=":ForensicGov
+(Tier 3 Gatekeeper)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#FFE4E6;strokeColor=#E11D48;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1590" y="50" width="140" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_val" value=":ValuationEngines
+(Graham/Lynch/BM/KS)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#EDE9FE;strokeColor=#7C3AED;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1790" y="50" width="150" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_gr" value=":GuardrailEngine
+(Tier 4)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2000" y="50" width="130" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_embed" value=":AuditEmbedder
+(Tier 4)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2190" y="50" width="130" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_harness" value=":ArtifactHarness
+(Framework)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2380" y="50" width="130" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_fs" value=":FileSystem
+(Reports)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2570" y="50" width="110" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="s_msg1" value="executePipeline(fundamental_lts)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_user" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="100" y="130" />
+              <mxPoint x="290" y="130" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg2" value="loadManifestFile(&quot;config/investment_ways.yaml&quot;)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_man">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="160" />
+              <mxPoint x="490" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret2" value="return ValidatedManifest {accounts, principles, weights}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_man" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="490" y="195" />
+              <mxPoint x="290" y="195" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="frame_par_ingest" value="par [Parallel Broker Demat Ingestion]" style="shape=umlFrame;whiteSpace=wrap;html=1;width=100;height=25;fontFamily=Segoe UI;fontSize=11;fontStyle=1;align=center;fillColor=none;strokeColor=#0284C7;strokeWidth=1.5;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="250" y="220" width="680" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="s_msg3" value="fetchHoldings({ refresh: false })" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_fetch_a">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="255" />
+              <mxPoint x="685" y="255" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret3" value="return AccountHoldingsSnapshot (IN Equities, Cash)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_fetch_a" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="685" y="300" />
+              <mxPoint x="290" y="300" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg4" value="fetchHoldings({ refresh: false })" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_fetch_i">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="345" />
+              <mxPoint x="880" y="345" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret4" value="return AccountHoldingsSnapshot (US Equities, FX=86.2)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_fetch_i" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="880" y="395" />
+              <mxPoint x="290" y="395" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg5" value="blendPositions([angelone_snap, indmoney_snap])" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_blender">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="465" />
+              <mxPoint x="1075" y="465" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret5" value="return StrategyHoldingsBlended (WAC, Pooled Cash, Lots)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_blender" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1075" y="515" />
+              <mxPoint x="290" y="515" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg6" value="calculateStrategyXirr(blendedHoldings, bankLedger)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_xirr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="565" />
+              <mxPoint x="1265" y="565" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret6" value="return StrategyXirrReport {xirr: 24.8%, frictionSummary}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_xirr" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1265" y="615" />
+              <mxPoint x="290" y="615" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="frame_loop_sec" value="loop [For each distinct holding ticker in portfolio]" style="shape=umlFrame;whiteSpace=wrap;html=1;width=100;height=25;fontFamily=Segoe UI;fontSize=11;fontStyle=1;align=center;fillColor=none;strokeColor=#6D28D9;strokeWidth=1.5;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="240" y="660" width="1920" height="890" as="geometry" />
+        </mxCell>
+        <mxCell id="s_msg7" value="ingestCompany(ticker, market)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_tt">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="700" />
+              <mxPoint x="1460" y="700" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret7" value="return NormalizedCompanyFinancials (P&amp;L, BS, CF, Forensics)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_tt" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1460" y="750" />
+              <mxPoint x="290" y="750" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg8" value="evaluate(financials)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_fg">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="800" />
+              <mxPoint x="1660" y="800" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret8" value="return UniformVerdictContract {stance: PASS|FLAG|VETO_DISQUALIFIED}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_fg" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1660" y="850" />
+              <mxPoint x="290" y="850" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="frame_alt_veto" value="alt [Gatekeeper Stance == VETO_DISQUALIFIED]" style="shape=umlFrame;whiteSpace=wrap;html=1;width=100;height=25;fontFamily=Segoe UI;fontSize=11;fontStyle=1;align=center;fillColor=none;strokeColor=#E11D48;strokeWidth=1.5;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="260" y="890" width="1870" height="630" as="geometry" />
+        </mxCell>
+        <mxCell id="s_msg9a" value="shortCircuitDisqualification(ticker, reason)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#E11D48;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#BE123C;" edge="1" parent="1" source="ll_orch" target="ll_gr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="940" />
+              <mxPoint x="2065" y="940" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret9a" value="return SynthesizedVerdict {stance: DISQUALIFIED, target_weight: 0.0%}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_gr" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2065" y="990" />
+              <mxPoint x="290" y="990" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="alt_else_div" value="[else: Gatekeeper PASS or FLAG]" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#047857;" vertex="1" parent="1">
+          <mxGeometry x="280" y="1040" width="220" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="frame_par_val" value="par [Evaluate 4 Valuation Principles in Parallel]" style="shape=umlFrame;whiteSpace=wrap;html=1;width=100;height=25;fontFamily=Segoe UI;fontSize=11;fontStyle=1;align=center;fillColor=none;strokeColor=#7C3AED;strokeWidth=1.5;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="270" y="1080" width="1600" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="s_msg10a" value="evaluateGraham(financials)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_val">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1120" />
+              <mxPoint x="1865" y="1120" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg10b" value="evaluateLynch(financials)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_val">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1160" />
+              <mxPoint x="1865" y="1160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg10c" value="evaluateBuffettMunger(financials)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_val">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1200" />
+              <mxPoint x="1865" y="1200" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg10d" value="evaluateKlarmanSolvency(financials)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_val">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1240" />
+              <mxPoint x="1865" y="1240" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret10" value="return [GrahamVerdict, LynchVerdict, BuffettVerdict, KlarmanVerdict]" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_val" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1865" y="1300" />
+              <mxPoint x="290" y="1300" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg11" value="evaluateSecurity(ticker, gatekeeper, valuationVerdicts, weights)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_gr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1400" />
+              <mxPoint x="2065" y="1400" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret11" value="return SynthesizedVerdict {stance, guardrail_flags, synthesized_score}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_gr" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2065" y="1470" />
+              <mxPoint x="290" y="1470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg12" value="compileEmbeddedAudits(portfolioVerdicts)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_embed">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1600" />
+              <mxPoint x="2255" y="1600" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret12" value="return EmbeddedAuditsMap {tabs, payloads, metrics}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_embed" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2255" y="1650" />
+              <mxPoint x="290" y="1650" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg13" value="compileConsolidatedPortfolio({ blended, xirr, synthesis, audits })" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1700" />
+              <mxPoint x="350" y="1700" />
+              <mxPoint x="350" y="1730" />
+              <mxPoint x="290" y="1730" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg14" value="verifyArtifactPair(jsonArtifact, renderedHtmlDashboard)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_harness">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1780" />
+              <mxPoint x="2445" y="1780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg15" value="auditOfflineSelfContainment(html): check zero external scripts/CDNs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_harness" target="ll_harness">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2445" y="1820" />
+              <mxPoint x="2505" y="1820" />
+              <mxPoint x="2505" y="1850" />
+              <mxPoint x="2445" y="1850" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret14" value="return { schemaValid: true, offlineVerified: true, leaksCount: 0 }" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_harness" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2445" y="1890" />
+              <mxPoint x="290" y="1890" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg16" value="writeFileSync(&quot;reports/strategies/fundamental_lts.json&quot;, jsonPayload)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_fs">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1950" />
+              <mxPoint x="2625" y="1950" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg17" value="writeFileSync(&quot;reports/strategies/fundamental_lts.html&quot;, htmlPayload)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_fs">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="2000" />
+              <mxPoint x="2625" y="2000" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret_final" value="Emit CLI Summary &amp; Dashboard URL (Exit Code 0)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_orch" target="ll_user">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="2080" />
+              <mxPoint x="100" y="2080" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

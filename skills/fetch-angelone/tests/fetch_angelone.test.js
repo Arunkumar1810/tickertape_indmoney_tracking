@@ -34,7 +34,6 @@ test('fetch_angelone: parseArgs defaults and CLI options', () => {
   assert.equal(defaults.jsonOutput, false);
 
   const custom = parseArgs([
-    '--broker', 'angelone',
     '--out', './tmp_out',
     '--only', 'itc',
     '--refresh',
@@ -67,6 +66,10 @@ test('fetch_angelone: generateSnapshot creates schema-compliant AccountHoldingsS
   assert.equal(s.total_current_value, 23448.1);
   assert.equal(s.unrealized_pnl, 935.92);
   assert.equal(s.total_account_equity, 35948.6);
+  assert.equal(s.funds_invested, 25000.0);
+  assert.ok(typeof s.account_xirr === 'number', 'account_xirr must be a calculated number');
+  assert.ok(Array.isArray(snapshot.ledger), 'ledger must be an array');
+  assert.equal(snapshot.ledger.length, 2);
 
   // Margin checks
   const m = snapshot.margin;
@@ -77,6 +80,8 @@ test('fetch_angelone: generateSnapshot creates schema-compliant AccountHoldingsS
 
   // Holdings checks (ordered descending by current value)
   assert.equal(snapshot.holdings[0].ticker, 'ZYDUSLIFE');
+  assert.equal(snapshot.holdings[0].name, 'Zydus Lifesciences Ltd');
+  assert.equal(snapshot.holdings[0].sector, 'Healthcare');
   assert.equal(snapshot.holdings[0].current_value, 10200.0);
   assert.equal(snapshot.holdings[0].fractional_shares, false);
   assert.equal(snapshot.holdings[0].buy_date, '2026-08-15');
@@ -106,7 +111,6 @@ test('fetch_angelone: main() writes accounts/angelone.json and accounts/angelone
 
   try {
     const res = await main([
-      '--broker', 'angelone',
       '--out', tmpDir,
       '--mock-data', FIXTURE_PATH,
       '--json-output'
@@ -137,6 +141,21 @@ test('fetch_angelone: main() writes accounts/angelone.json and accounts/angelone
     const selfContainment = verifyHtmlSelfContainment(htmlContent);
     assert.equal(selfContainment.ok, true, `Errors found: ${JSON.stringify(selfContainment.errors)}`);
     assert.equal(selfContainment.errors.length, 0);
+
+    // Verify presence of 2 donut charts: Stock Composition & Sector Composition
+    assert.ok(htmlContent.includes('Stock Composition'), 'HTML must include Stock Composition chart');
+    assert.ok(htmlContent.includes('Sector Composition'), 'HTML must include Sector Composition chart');
+    assert.ok(htmlContent.includes('stockDonutSvg'), 'HTML must include stockDonutSvg element');
+    assert.ok(htmlContent.includes('sectorDonutSvg'), 'HTML must include sectorDonutSvg element');
+
+    // Verify Funds Invested, Account XIRR, and Bank Transactions Ledger modal
+    assert.ok(htmlContent.includes('Funds Invested'), 'HTML must include Funds Invested card');
+    assert.ok(htmlContent.includes('Account XIRR'), 'HTML must include Account XIRR card');
+    assert.ok(htmlContent.includes('kpiFundsInvested'), 'HTML must include kpiFundsInvested element');
+    assert.ok(htmlContent.includes('kpiAccountXirr'), 'HTML must include kpiAccountXirr element');
+    assert.ok(htmlContent.includes('ledgerModal'), 'HTML must include ledgerModal popup element');
+    assert.ok(htmlContent.includes('Bank Transactions Ledger'), 'HTML must include Bank Transactions Ledger modal');
+    assert.ok(htmlContent.includes('openLedgerModal'), 'HTML must include openLedgerModal handler');
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -150,7 +169,6 @@ test('fetch_angelone: CLI process execution with --json-output', () => {
       process.execPath,
       [
         SCRIPT_PATH,
-        '--broker', 'angelone',
         '--out', tmpDir,
         '--mock-data', FIXTURE_PATH,
         '--json-output'
@@ -180,7 +198,6 @@ test('fetch_angelone: CLI execution handles --only filter with no match', () => 
       process.execPath,
       [
         SCRIPT_PATH,
-        '--broker', 'angelone',
         '--out', tmpDir,
         '--mock-data', FIXTURE_PATH,
         '--only', 'NONEXISTENT',
@@ -198,7 +215,7 @@ test('fetch_angelone: CLI execution handles --only filter with no match', () => 
   }
 });
 
-test('fetch_angelone: rejects unsupported broker', () => {
+test('fetch_angelone: rejects unknown options', () => {
   const res = spawnSync(
     process.execPath,
     [SCRIPT_PATH, '--broker', 'zerodha'],
@@ -206,7 +223,7 @@ test('fetch_angelone: rejects unsupported broker', () => {
   );
 
   assert.notEqual(res.status, 0);
-  assert.match(res.stderr, /Unsupported broker "zerodha"/);
+  assert.match(res.stderr, /Unknown option: --broker/);
 });
 
 test('fetch_angelone: cached snapshot fallback renders warning banner and passes verification', async () => {
@@ -222,7 +239,6 @@ test('fetch_angelone: cached snapshot fallback renders warning banner and passes
     }, null, 2), 'utf8');
 
     const result = await main([
-      '--broker', 'angelone',
       '--out', tmpDir,
       '--mock-data', cachedFixture
     ]);

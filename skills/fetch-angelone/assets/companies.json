@@ -1,0 +1,43 @@
+{
+  "INFY": {
+    "name": "Infosys Ltd",
+    "sector": "Information Technology"
+  },
+  "ITC": {
+    "name": "ITC Ltd",
+    "sector": "Consumer Staples"
+  },
+  "ZYDUSLIFE": {
+    "name": "Zydus Lifesciences Ltd",
+    "sector": "Healthcare"
+  },
+  "NATCOPHARM": {
+    "name": "Natco Pharma Ltd",
+    "sector": "Healthcare"
+  },
+  "HDFCBANK": {
+    "name": "HDFC Bank Ltd",
+    "sector": "Financial Services"
+  },
+  "SOUTHBANK": {
+    "name": "South Indian Bank Ltd",
+    "sector": "Financial Services"
+  },
+  "IDFCFIRSTB": {
+    "name": "IDFC First Bank Ltd",
+    "sector": "Financial Services"
+  },
+  "TCS": {
+    "name": "Tata Consultancy Services Ltd",
+    "sector": "Information Technology"
+  },
+  "WIPRO": {
+    "name": "Wipro Ltd",
+    "sector": "Information Technology"
+  },
+  "HCLTECH": {
+    "name": "HCL Technologies Ltd",
+    "sector": "Information Technology"
+  }
+}
+

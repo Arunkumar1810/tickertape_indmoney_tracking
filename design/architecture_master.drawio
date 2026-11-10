@@ -1,0 +1,1703 @@
+<mxfile host="Electron" modified="2026-11-09T11:08:47.704Z" agent="Antigravity Architecture Engine" version="21.0.0" type="device">
+  <diagram id="comp_class_diag" name="Component &amp; Class Architecture Diagram">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2800" pageHeight="2200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="pkg_tier1" value="Tier 1: External Authentication &amp; API Clients
+(scripts/angelone, scripts/indmoney, scripts/tickertape, scripts/framework)" style="shape=folder;fontStyle=1;tabWidth=160;tabHeight=32;tabPosition=left;html=1;boundedLbl=1;fillColor=#F8FAFC;strokeColor=#0D9488;strokeWidth=2;fontFamily=Segoe UI;fontSize=13;fontColor=#0F172A;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="840" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_auth_mgr" value="AuthManager
+«Singleton / Service»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#0D9488;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#CCFBF1;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier1">
+          <mxGeometry x="70" y="95" width="230" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="f_am_1" value="+ getCredentials(serviceId): object
++ refreshOAuthToken(serviceId): Promise&amp;lt;token&amp;gt;
++ decryptSecret(enc): string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_auth_mgr">
+          <mxGeometry x="0" y="30" width="230" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="f_am_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_auth_mgr">
+          <mxGeometry x="0" y="85" width="230" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_am_2" value="+ renewExpiredTokens(): Promise&amp;lt;boolean&amp;gt;
++ saveTokens(serviceId, tokens): void
++ auditAuthStatus(): AuthReport" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_auth_mgr">
+          <mxGeometry x="0" y="90" width="230" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_angel_client" value="AngelOneClient
+«SmartAPI Adapter»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#0D9488;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#CCFBF1;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier1">
+          <mxGeometry x="330" y="95" width="240" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ac_1" value="- clientCode: string
+- apiKey: string
+- jwtToken: string
+- feedToken: string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_angel_client">
+          <mxGeometry x="0" y="30" width="240" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ac_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_angel_client">
+          <mxGeometry x="0" y="85" width="240" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ac_2" value="+ loginWithTotp(totpPin): Promise&amp;lt;Session&amp;gt;
++ getHoldings(): Promise&amp;lt;RawHoldings&amp;gt;
++ getRMSLimits(): Promise&amp;lt;CashBalance&amp;gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_angel_client">
+          <mxGeometry x="0" y="90" width="240" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_ind_client" value="IndmoneyClient
+«DriveWealth Adapter»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#0D9488;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#CCFBF1;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier1">
+          <mxGeometry x="600" y="95" width="250" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ic_1" value="- accessToken: string
+- refreshToken: string
+- driveWealthAccountId: string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_ind_client">
+          <mxGeometry x="0" y="30" width="250" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ic_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_ind_client">
+          <mxGeometry x="0" y="85" width="250" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ic_2" value="+ getUsHoldings(): Promise&amp;lt;DwHoldings&amp;gt;
++ getUsCashBalance(): Promise&amp;lt;DwCash&amp;gt;
++ getLiveUsdInrFxRate(): Promise&amp;lt;number&amp;gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_ind_client">
+          <mxGeometry x="0" y="90" width="250" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_tt_client" value="TickertapeClient
+«Tickertape Pro Adapter»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#0D9488;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#CCFBF1;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier1">
+          <mxGeometry x="330" y="290" width="260" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="f_tc_1" value="- sessionToken: string
+- clientCredentials: object
+- cacheDir: string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_tt_client">
+          <mxGeometry x="0" y="30" width="260" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="f_tc_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_tt_client">
+          <mxGeometry x="0" y="85" width="260" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_tc_2" value="+ fetchQuotes(ticker, market): Promise&amp;lt;Quote&amp;gt;
++ fetchFinancials(ticker, stmtType): Promise&amp;lt;Stmt&amp;gt;
++ fetchHoldingsAndForensics(ticker): Promise&amp;lt;Data&amp;gt;
++ fetchHistoricalRatios(ticker): Promise&amp;lt;Ratios&amp;gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_tt_client">
+          <mxGeometry x="0" y="90" width="260" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="pkg_tier2" value="Tier 2: Holdings &amp; Market Data Providers
+(skills/fetch-angelone, skills/fetch-indmoney-us, skills/provider-tickertape)" style="shape=folder;fontStyle=1;tabWidth=160;tabHeight=32;tabPosition=left;html=1;boundedLbl=1;fillColor=#F8FAFC;strokeColor=#0284C7;strokeWidth=2;fontFamily=Segoe UI;fontSize=13;fontColor=#0F172A;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="920" y="40" width="880" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_fetch_angel" value="FetchAngelOneService
+«Provider Skill»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#0284C7;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#E0F2FE;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier2">
+          <mxGeometry x="950" y="95" width="250" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="f_fa_1" value="- client: AngelOneClient
+- cache: FileCache" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_fetch_angel">
+          <mxGeometry x="0" y="30" width="250" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_fa_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_fetch_angel">
+          <mxGeometry x="0" y="70" width="250" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_fa_2" value="+ fetchHoldings(options): Promise&amp;lt;Snapshot&amp;gt;
++ normalizePositions(raw): HoldingLot[]
++ renderOfflineHtml(snapshot): string
++ emitArtifacts(dir): void" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_fetch_angel">
+          <mxGeometry x="0" y="75" width="250" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_fetch_ind" value="FetchIndmoneyUsService
+«Provider Skill»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#0284C7;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#E0F2FE;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier2">
+          <mxGeometry x="1230" y="95" width="260" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="f_fi_1" value="- client: IndmoneyClient
+- cache: FileCache" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_fetch_ind">
+          <mxGeometry x="0" y="30" width="260" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_fi_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_fetch_ind">
+          <mxGeometry x="0" y="70" width="260" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_fi_2" value="+ fetchHoldings(options): Promise&amp;lt;Snapshot&amp;gt;
++ normalizeUsEquities(raw): HoldingLot[]
++ convertCashToInr(usdCash, fx): number
++ renderOfflineHtml(snapshot): string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_fetch_ind">
+          <mxGeometry x="0" y="75" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_prov_tt" value="ProviderTickertapeService
+«Market Data Provider»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#0284C7;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#E0F2FE;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier2">
+          <mxGeometry x="1520" y="95" width="260" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="f_pt_1" value="- client: TickertapeClient
+- validator: ContractValidator
+- cacheTtlHours: number = 24" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_prov_tt">
+          <mxGeometry x="0" y="30" width="260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_pt_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_prov_tt">
+          <mxGeometry x="0" y="80" width="260" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_pt_2" value="+ ingestCompany(ticker, market): Promise&amp;lt;NCF&amp;gt;
++ mapFinancialStatements(raw): NormalizedCompany
++ checkCacheFreshness(ticker): boolean
++ renderFinancialsHtml(ncf): string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_prov_tt">
+          <mxGeometry x="0" y="85" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_snap_contract" value="AccountHoldingsSnapshot
+«DataContract JSON Schema»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#64748B;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#F1F5F9;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier2">
+          <mxGeometry x="1070" y="310" width="280" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="f_sc_1" value="+ account_id: string
++ broker: &quot;angelone&quot; | &quot;indmoney&quot;
++ currency: &quot;INR&quot; | &quot;USD&quot;
++ holdings: HoldingLot[]
++ cash_balances: CashBalance
++ summary: AccountSummary" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_snap_contract">
+          <mxGeometry x="0" y="30" width="280" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="f_sc_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_snap_contract">
+          <mxGeometry x="0" y="120" width="280" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_sc_2" value="+ validate(): boolean
++ toJSON(): string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_snap_contract">
+          <mxGeometry x="0" y="125" width="280" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_ncf_contract" value="NormalizedCompanyFinancials
+«DataContract JSON Schema»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#64748B;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#F1F5F9;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier2">
+          <mxGeometry x="1470" y="310" width="300" height="195" as="geometry" />
+        </mxCell>
+        <mxCell id="f_nc_1" value="+ ticker: string
++ market: &quot;IN&quot; | &quot;US&quot;
++ currency: &quot;INR&quot; | &quot;USD&quot;
++ market_data: MarketDataMetrics
++ income_statement: IncomeMetrics
++ balance_sheet: BalanceSheetMetrics
++ cash_flow: CashFlowMetrics
++ forensics: ForensicsMetrics" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_ncf_contract">
+          <mxGeometry x="0" y="30" width="300" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="f_nc_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_ncf_contract">
+          <mxGeometry x="0" y="150" width="300" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_nc_2" value="+ validate(): boolean
++ toJSON(): string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_ncf_contract">
+          <mxGeometry x="0" y="155" width="300" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="pkg_tier3" value="Tier 3: Gatekeeper &amp; Valuation Analysis Engines
+(skills/forensic-governance, skills/analyze-*)" style="shape=folder;fontStyle=1;tabWidth=160;tabHeight=32;tabPosition=left;html=1;boundedLbl=1;fillColor=#F8FAFC;strokeColor=#6D28D9;strokeWidth=2;fontFamily=Segoe UI;fontSize=13;fontColor=#0F172A;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="570" width="1020" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_forensic_engine" value="ForensicGovernanceEngine
+«Tier 3 Gatekeeper»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#E11D48;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#FFE4E6;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier3">
+          <mxGeometry x="70" y="625" width="270" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="f_fe_1" value="- promoterPledgeThreshold: 20%
+- beneishMScoreLimit: -1.78
+- sloanAccrualUpperLimit: 10%" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_forensic_engine">
+          <mxGeometry x="0" y="30" width="270" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="f_fe_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_forensic_engine">
+          <mxGeometry x="0" y="85" width="270" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_fe_2" value="+ evaluate(financials): UniformVerdictContract
++ checkPromoterPledging(): GatekeeperCheck
++ checkAuditorContinuity(): GatekeeperCheck
++ computeBeneishMScore(): number
++ computeSloanAccrualRatio(): number" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_forensic_engine">
+          <mxGeometry x="0" y="90" width="270" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_graham_engine" value="GrahamAnalysisEngine
+«Tier 3 Valuation»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#7C3AED;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#EDE9FE;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier3">
+          <mxGeometry x="370" y="625" width="220" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ge_1" value="- ncavDiscountReq: 33%
+- pePbCeiling: 22.5" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_graham_engine">
+          <mxGeometry x="0" y="30" width="220" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ge_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_graham_engine">
+          <mxGeometry x="0" y="70" width="220" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ge_2" value="+ evaluate(financials): UniformVerdict
++ computeNNWC(): number
++ computeNCAV(): number
++ computeGrahamNumberFloor(): number
++ computeMarginOfSafety(): number" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_graham_engine">
+          <mxGeometry x="0" y="75" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_lynch_engine" value="LynchAnalysisEngine
+«Tier 3 Valuation»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#7C3AED;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#EDE9FE;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier3">
+          <mxGeometry x="620" y="625" width="200" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="f_le_1" value="- pegFairValue: 1.0
+- pegBargain: 0.5" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_lynch_engine">
+          <mxGeometry x="0" y="30" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_le_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_lynch_engine">
+          <mxGeometry x="0" y="70" width="200" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_le_2" value="+ evaluate(financials): UniformVerdict
++ computePegRatio(): number
++ computeYieldAdjustedPeg(): number
++ classifyArchetype(): LynchCategory
++ detectInventoryVelocityLag(): boolean" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_lynch_engine">
+          <mxGeometry x="0" y="75" width="200" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_buffett_engine" value="BuffettMungerEngine
+«Tier 3 Valuation»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#7C3AED;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#EDE9FE;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier3">
+          <mxGeometry x="70" y="845" width="270" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="f_be_1" value="- minRoicThreshold: 15%
+- minOwnerEarningsYield: 5%" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_buffett_engine">
+          <mxGeometry x="0" y="30" width="270" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_be_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_buffett_engine">
+          <mxGeometry x="0" y="70" width="270" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_be_2" value="+ evaluate(financials): UniformVerdict
++ computeOwnerEarnings(): number
++ runDuPont5StepDecomposition(): DuPont
++ evaluateEconomicMoat(): MoatScore
++ computeROIC(): number" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_buffett_engine">
+          <mxGeometry x="0" y="75" width="270" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_klarman_engine" value="KlarmanSolvencyEngine
+«Tier 3 Valuation»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#7C3AED;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#EDE9FE;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier3">
+          <mxGeometry x="370" y="845" width="230" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ke_1" value="- altmanDistressThreshold: 1.81
+- maxNetDebtEbitda: 3.5" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_klarman_engine">
+          <mxGeometry x="0" y="30" width="230" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ke_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_klarman_engine">
+          <mxGeometry x="0" y="70" width="230" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ke_2" value="+ evaluate(financials): UniformVerdict
++ computeAltmanZScore(): number
++ computeNetDebtToEbitda(): number
++ auditDebtMaturityCliff24M(): Stress
++ computeLiquidationFloor(): number" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_klarman_engine">
+          <mxGeometry x="0" y="75" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_uv_contract" value="UniformVerdictContract
+«Canonical DataContract»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#64748B;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#F1F5F9;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier3">
+          <mxGeometry x="630" y="845" width="260" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="f_uv_1" value="+ ticker: string
++ principle_id: PrincipleType
++ stance: StanceEnum
++ confidence_score: number
++ metrics: Record&amp;lt;string, any&amp;gt;
++ audit_payload: AuditSection
++ rule_triggers: string[]" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_uv_contract">
+          <mxGeometry x="0" y="30" width="260" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="f_uv_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_uv_contract">
+          <mxGeometry x="0" y="135" width="260" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_uv_2" value="+ validate(): boolean
++ renderHtmlDashboard(): string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_uv_contract">
+          <mxGeometry x="0" y="140" width="260" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="pkg_tier4" value="Tier 4: Strategy Orchestrators &amp; Risk Synthesis
+(skills/holding-blender, skills/strategy-xirr, skills/guardrail-engine, skills/way-long-term-strategy)" style="shape=folder;fontStyle=1;tabWidth=160;tabHeight=32;tabPosition=left;html=1;boundedLbl=1;fillColor=#F8FAFC;strokeColor=#047857;strokeWidth=2;fontFamily=Segoe UI;fontSize=13;fontColor=#0F172A;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="570" width="1100" height="880" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_blender" value="HoldingBlenderService
+«Tier 4 Engine»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#059669;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#D1FAE5;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier4">
+          <mxGeometry x="1130" y="625" width="280" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="f_hb_1" value="- accounts: AccountHoldingsSnapshot[]
+- targetCurrency: &quot;INR&quot; | &quot;USD&quot;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_blender">
+          <mxGeometry x="0" y="30" width="280" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_hb_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_blender">
+          <mxGeometry x="0" y="70" width="280" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_hb_2" value="+ blendPositions(): StrategyHoldingsBlended
++ computeWAC(lots): number
++ poolCashWithFx(cashBalances, fx): CashPool
++ preserveLotAttributionTranches(): LotTranche[]
++ renderBlendedHtml(): string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_blender">
+          <mxGeometry x="0" y="75" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_xirr" value="StrategyXirrService
+«Tier 4 Engine»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#059669;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#D1FAE5;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier4">
+          <mxGeometry x="1440" y="625" width="300" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="f_sx_1" value="- solverTolerance: 1e-7
+- maxIterations: 100
+- subAnnualGuardrailDays: 90" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_xirr">
+          <mxGeometry x="0" y="30" width="300" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_sx_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_xirr">
+          <mxGeometry x="0" y="80" width="300" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_sx_2" value="+ calculateStrategyXirr(cashflows): StrategyXirrReport
++ aggregateBankExternalCashflows(): Cashflow[]
++ cancelInternalBrokerTransfers(): Cashflow[]
++ auditFrictionDrag(brokerage, stt, fx): FrictionReport
++ newtonRaphsonSolve(flows, dates): number" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_xirr">
+          <mxGeometry x="0" y="85" width="300" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_guardrail" value="GuardrailEngine
+«Tier 4 Risk Engine»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#059669;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#D1FAE5;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier4">
+          <mxGeometry x="1780" y="625" width="310" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ge_s1" value="- gatekeepers: UniformVerdictContract[]
+- valuationVerdicts: UniformVerdictContract[]
+- principleWeights: Record&amp;lt;string, number&amp;gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_guardrail">
+          <mxGeometry x="0" y="30" width="310" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ge_sdiv" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_guardrail">
+          <mxGeometry x="0" y="80" width="310" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ge_s2" value="+ evaluateSecurity(ticker): SynthesizedVerdict
++ enforceGatekeeperVetoShortCircuit(): boolean
++ enforceAsymmetricDownsideGuardrail(): boolean
++ applyCeilingCapping(stance, flag): StanceEnum
++ computeWeightedPrincipleScore(): number" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_guardrail">
+          <mxGeometry x="0" y="85" width="310" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_blended_contract" value="StrategyHoldingsBlended
+«DataContract»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#64748B;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#F1F5F9;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier4">
+          <mxGeometry x="1130" y="845" width="270" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="f_bc_1" value="+ strategy_id: string
++ base_currency: string
++ positions: BlendedPosition[]
++ pooled_cash: PooledCashAccount[]
++ summary: BlendedSummary" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_blended_contract">
+          <mxGeometry x="0" y="30" width="270" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="f_bc_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_blended_contract">
+          <mxGeometry x="0" y="115" width="270" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_bc_2" value="+ validate(): boolean
++ toJSON(): string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_blended_contract">
+          <mxGeometry x="0" y="120" width="270" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_xirr_contract" value="StrategyXirrReport
+«DataContract»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#64748B;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#F1F5F9;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier4">
+          <mxGeometry x="1440" y="845" width="280" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="f_xc_1" value="+ strategy_id: string
++ xirr: number
++ is_sub_annual: boolean
++ days_held: number
++ cashflow_events: CashflowEvent[]
++ friction_breakdown: FrictionSummary" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_xirr_contract">
+          <mxGeometry x="0" y="30" width="280" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="f_xc_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_xirr_contract">
+          <mxGeometry x="0" y="115" width="280" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_xc_2" value="+ validate(): boolean
++ toJSON(): string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_xirr_contract">
+          <mxGeometry x="0" y="120" width="280" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_synth_contract" value="StrategyVerdictSynthesis
+«DataContract»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#64748B;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#F1F5F9;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier4">
+          <mxGeometry x="1780" y="845" width="290" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="f_sc2_1" value="+ strategy_id: string
++ portfolio_verdicts: SecurityVerdict[]
++ guardrail_summary: GuardrailFlags
++ disqualified_count: number
++ capital_at_risk_base: number" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_synth_contract">
+          <mxGeometry x="0" y="30" width="290" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="f_sc2_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_synth_contract">
+          <mxGeometry x="0" y="115" width="290" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_sc2_2" value="+ validate(): boolean
++ toJSON(): string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_synth_contract">
+          <mxGeometry x="0" y="120" width="290" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_master_orch" value="WayLongTermStrategyOrchestrator
+«Master Tier 4 Orchestrator»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#059669;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#D1FAE5;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier4">
+          <mxGeometry x="1250" y="1050" width="400" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="f_mo_1" value="- manifestPath: string
+- strategyId: &quot;fundamental_lts&quot; | &quot;fundamental_foreign&quot;
+- outputDir: string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_master_orch">
+          <mxGeometry x="0" y="30" width="400" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_mo_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_master_orch">
+          <mxGeometry x="0" y="80" width="400" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_mo_2" value="+ executePipeline(): Promise&amp;lt;StrategyConsolidatedPortfolio&amp;gt;
++ stage1_bindAccountsAndManifest(): ManifestContext
++ stage2_blendHoldings(): StrategyHoldingsBlended
++ stage3_computeXirr(): StrategyXirrReport
++ stage4_synthesizeGuardrails(): StrategyVerdictSynthesis
++ stage5_assembleOptionCDashboard(): HTMLString
++ renderMasterHtml(portfolio): string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_master_orch">
+          <mxGeometry x="0" y="85" width="400" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_audit_embedder" value="AuditEmbedder
+«Option C Compiler Helper»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#059669;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#D1FAE5;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier4">
+          <mxGeometry x="1720" y="1050" width="330" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ae_1" value="+ compileEmbeddedAudits(verdicts): EmbeddedAuditsMap
++ extractForensicsAudit(verdict): object
++ extractValuationTabModel(verdict): object
++ sanitizeForScriptInjection(obj): string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_audit_embedder">
+          <mxGeometry x="0" y="30" width="330" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ae_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_audit_embedder">
+          <mxGeometry x="0" y="105" width="330" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ae_2" value="+ generateTabRoutingJson(audits): string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_audit_embedder">
+          <mxGeometry x="0" y="110" width="330" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_consolidated_contract" value="StrategyConsolidatedPortfolio
+«Option C Master DataContract»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#D97706;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#FEF3C7;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_tier4">
+          <mxGeometry x="1350" y="1290" width="420" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="f_cc_1" value="+ manifest_version: &quot;1.0&quot;
++ strategy_id: string
++ base_currency: &quot;INR&quot; | &quot;USD&quot;
++ summary: ConsolidatedExecutiveSummary
++ blended_holdings: StrategyHoldingsBlended
++ performance: StrategyXirrReport
++ verdict_synthesis: StrategyVerdictSynthesis
++ embedded_audits: Record&amp;lt;ticker, EmbeddedAudits&amp;gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_consolidated_contract">
+          <mxGeometry x="0" y="30" width="420" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="pkg_framework" value="Framework &amp; Governance Infrastructure
+(scripts/framework)" style="shape=folder;fontStyle=1;tabWidth=160;tabHeight=32;tabPosition=left;html=1;boundedLbl=1;fillColor=#F8FAFC;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=13;fontColor=#0F172A;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1090" width="960" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_contract_val" value="ContractValidator
+«Core Governance Engine»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#475569;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#F1F5F9;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_framework">
+          <mxGeometry x="70" y="1145" width="290" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="f_cv_1" value="- schemas: Map&amp;lt;string, JsonSchema&amp;gt;
+- FINANCIALS_TOP_KEYS: Set&amp;lt;string&amp;gt;
+- GATEKEEPER_STANCES: Set&amp;lt;string&amp;gt;
+- VALUATION_STANCES: Set&amp;lt;string&amp;gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_contract_val">
+          <mxGeometry x="0" y="30" width="290" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="f_cv_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_contract_val">
+          <mxGeometry x="0" y="90" width="290" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_cv_2" value="+ validateContract(data, schemaName): ValidationResult
++ validateConsolidatedPortfolio(portfolio): void
++ validateUniformVerdict(verdict): void
++ validateFinancialsContract(financials): void
++ assertStrictTopKeys(obj, allowedKeys): void" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_contract_val">
+          <mxGeometry x="0" y="95" width="290" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_manifest_val" value="ManifestValidator &amp; YamlLoader
+«Manifest Parser»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#475569;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#F1F5F9;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_framework">
+          <mxGeometry x="390" y="1145" width="280" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="f_mv_1" value="- manifestSchema: JsonSchema
+- manifestPath: string" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_manifest_val">
+          <mxGeometry x="0" y="30" width="280" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_mv_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_manifest_val">
+          <mxGeometry x="0" y="70" width="280" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_mv_2" value="+ loadManifestFile(path): InvestmentWaysManifest
++ validateManifest(manifest): ManifestReport
++ assertAccountPartitioning(ways): void
++ resolvePrincipleWeights(wayId): Map&amp;lt;string, number&amp;gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_manifest_val">
+          <mxGeometry x="0" y="75" width="280" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_artifact_harness" value="ArtifactHarness
+«Offline Quality Verifier»" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#FFFFFF;swimlaneFillColor=#FFFFFF;strokeColor=#475569;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;gradientColor=#F1F5F9;gradientDirection=south;shadow=1;" vertex="1" parent="pkg_framework">
+          <mxGeometry x="700" y="1145" width="280" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ah_1" value="- forbiddenProtocols: [&quot;http:&quot;, &quot;https:&quot;]
+- externalTagRegexes: RegExp[]" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_artifact_harness">
+          <mxGeometry x="0" y="30" width="280" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ah_div" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingBottom=-1;points=[];portConstraint=eastwest;strokeColor=#CBD5E1;" vertex="1" parent="cls_artifact_harness">
+          <mxGeometry x="0" y="70" width="280" height="5" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ah_2" value="+ verifyArtifactPair(jsonPath, htmlPath): void
++ verifyHtmlSelfContainment(htmlContent): AuditResult
++ checkZeroExternalNetworkLeaks(html): boolean
++ assertContractSchemaSync(json, html): void" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontFamily=Consolas, Courier New;fontSize=11;fontColor=#334155;" vertex="1" parent="cls_artifact_harness">
+          <mxGeometry x="0" y="75" width="280" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="r1" value="«uses»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_fetch_angel" target="cls_angel_client">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r2" value="«uses»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_fetch_ind" target="cls_ind_client">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r3" value="«uses»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_prov_tt" target="cls_tt_client">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r4" value="«produces»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_fetch_angel" target="cls_snap_contract">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r5" value="«produces»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_fetch_ind" target="cls_snap_contract">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r6" value="«produces»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_prov_tt" target="cls_ncf_contract">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r7" value="«consumes»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_forensic_engine" target="cls_ncf_contract">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r8" value="«consumes»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_graham_engine" target="cls_ncf_contract">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r9" value="«emits»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_forensic_engine" target="cls_uv_contract">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r10" value="«emits»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_graham_engine" target="cls_uv_contract">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r11" value="«blends»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_blender" target="cls_snap_contract">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r12" value="«produces»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_blender" target="cls_blended_contract">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r13" value="«solves»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_xirr" target="cls_blended_contract">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r14" value="«produces»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_xirr" target="cls_xirr_contract">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r15" value="«synthesizes»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_guardrail" target="cls_uv_contract">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r16" value="«produces»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_guardrail" target="cls_synth_contract">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r17" value="«coordinates»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0F172A;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;startArrow=diamond;startFill=1;startSize=10;endArrow=none;" edge="1" parent="1" source="cls_master_orch" target="cls_blender">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r18" value="«coordinates»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0F172A;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;startArrow=diamond;startFill=1;startSize=10;endArrow=none;" edge="1" parent="1" source="cls_master_orch" target="cls_xirr">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r19" value="«coordinates»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0F172A;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;startArrow=diamond;startFill=1;startSize=10;endArrow=none;" edge="1" parent="1" source="cls_master_orch" target="cls_guardrail">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r20" value="«embeds»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0F172A;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;startArrow=diamond;startFill=1;startSize=10;endArrow=none;" edge="1" parent="1" source="cls_master_orch" target="cls_audit_embedder">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r21" value="«assembles»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;endArrow=block;endFill=1;" edge="1" parent="1" source="cls_master_orch" target="cls_consolidated_contract">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r22" value="«validates»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_contract_val" target="cls_consolidated_contract">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r23" value="«verifies offline»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;endArrow=open;endSize=8;" edge="1" parent="1" source="cls_artifact_harness" target="cls_consolidated_contract">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="activity_diag" name="End-to-End Activity Workflow">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2600" pageHeight="2000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="lane_user" value="Investor / CLI Interface" style="swimlane;html=1;startSize=40;fillColor=#F8FAFC;swimlaneFillColor=#FFFFFF;strokeColor=#334155;strokeWidth=2;fontFamily=Segoe UI;fontSize=14;fontStyle=1;fontColor=#FFFFFF;swimlaneLine=1;swimlaneHead=0;swimlaneHorizontal=1;gradientColor=#334155;gradientDirection=south;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="280" height="1880" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_tier1" value="Tier 1: Auth &amp; API Client Layer" style="swimlane;html=1;startSize=40;fillColor=#F8FAFC;swimlaneFillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontFamily=Segoe UI;fontSize=14;fontStyle=1;fontColor=#FFFFFF;swimlaneLine=1;swimlaneHead=0;swimlaneHorizontal=1;gradientColor=#0F766E;gradientDirection=south;" vertex="1" parent="1">
+          <mxGeometry x="320" y="60" width="340" height="1880" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_tier2" value="Tier 2: Ingestion &amp; Normalization" style="swimlane;html=1;startSize=40;fillColor=#F8FAFC;swimlaneFillColor=#FFFFFF;strokeColor=#0369A1;strokeWidth=2;fontFamily=Segoe UI;fontSize=14;fontStyle=1;fontColor=#FFFFFF;swimlaneLine=1;swimlaneHead=0;swimlaneHorizontal=1;gradientColor=#0369A1;gradientDirection=south;" vertex="1" parent="1">
+          <mxGeometry x="660" y="60" width="380" height="1880" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_tier3" value="Tier 3: Gatekeeper &amp; Valuation Engines" style="swimlane;html=1;startSize=40;fillColor=#F8FAFC;swimlaneFillColor=#FFFFFF;strokeColor=#6D28D9;strokeWidth=2;fontFamily=Segoe UI;fontSize=14;fontStyle=1;fontColor=#FFFFFF;swimlaneLine=1;swimlaneHead=0;swimlaneHorizontal=1;gradientColor=#6D28D9;gradientDirection=south;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="60" width="440" height="1880" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_tier4" value="Tier 4: Strategy Orchestrator &amp; Synthesis" style="swimlane;html=1;startSize=40;fillColor=#F8FAFC;swimlaneFillColor=#FFFFFF;strokeColor=#047857;strokeWidth=2;fontFamily=Segoe UI;fontSize=14;fontStyle=1;fontColor=#FFFFFF;swimlaneLine=1;swimlaneHead=0;swimlaneHorizontal=1;gradientColor=#047857;gradientDirection=south;" vertex="1" parent="1">
+          <mxGeometry x="1480" y="60" width="440" height="1880" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_frame" value="Framework: Validation &amp; Artifact Harness" style="swimlane;html=1;startSize=40;fillColor=#F8FAFC;swimlaneFillColor=#FFFFFF;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=14;fontStyle=1;fontColor=#FFFFFF;swimlaneLine=1;swimlaneHead=0;swimlaneHorizontal=1;gradientColor=#475569;gradientDirection=south;" vertex="1" parent="1">
+          <mxGeometry x="1920" y="60" width="360" height="1880" as="geometry" />
+        </mxCell>
+        <mxCell id="act_start" value="" style="ellipse;html=1;shape=ellipse;fillColor=#0F172A;strokeColor=#0F172A;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="160" y="120" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="act_cmd" value="Run CLI Orchestrator
+node way_long_term_strategy.js
+--way fundamental_lts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2E8F0;strokeColor=#64748B;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="75" y="180" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e_start_cmd" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_start" target="act_cmd">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_load_manifest" value="Load investment_ways.yaml
+&amp; Run manifest_validator.js" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1990" y="180" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e_cmd_manifest" value="Load Config" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_cmd" target="act_load_manifest">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dec_manifest_valid" value="Manifest
+Valid?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF08A;strokeColor=#CA8A04;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#854D0E;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2050" y="270" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e_val_manifest" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_load_manifest" target="dec_manifest_valid">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_abort_manifest" value="Throw ERR_INVALID_MANIFEST
+&amp; Halt Execution" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE4E6;strokeColor=#E11D48;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#9F1239;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2000" y="360" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e_man_fail" value="[No: Schema Error]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#E11D48;strokeWidth=2.5;fontFamily=Segoe UI;fontSize=11;fontColor=#BE123C;dashed=1;" edge="1" parent="1" source="dec_manifest_valid" target="act_abort_manifest">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fork_ingestion" value="" style="html=1;shape=rect;fillColor=#1E293B;strokeColor=#1E293B;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="430" width="900" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="e_man_pass" value="[Yes: Manifest OK]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="dec_manifest_valid" target="fork_ingestion">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2190" y="300" />
+              <mxPoint x="2190" y="410" />
+              <mxPoint x="550" y="410" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_auth_angel" value="Tier 1 Auth:
+SmartAPI TOTP + JWT Session
+(Renew if expired)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CCFBF1;strokeColor=#0D9488;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#115E59;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="470" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e_fork_angel" value="Fetch IN Demat" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="fork_ingestion" target="act_auth_angel">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_fetch_angel" value="Tier 2 Fetch Demat Positions
+&amp; Ledger Cash Balances
+(fetch_angelone.js)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#0284C7;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#0369A1;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="470" width="240" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e_auth_fetch_angel" value="API Session" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_auth_angel" target="act_fetch_angel">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="obj_angel_snapshot" value="«DataContract»
+AccountHoldingsSnapshot
+(angelone.json)" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=14;fillColor=#F1F5F9;strokeColor=#64748B;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;fontStyle=2;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="750" y="555" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e_angel_obj" value="Emits" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_fetch_angel" target="obj_angel_snapshot">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_auth_indmoney" value="Tier 1 Auth:
+INDmoney / DriveWealth
+OAuth2 Refresh Token Flow" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CCFBF1;strokeColor=#0D9488;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#115E59;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="640" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e_fork_ind" value="Fetch US Equities" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="fork_ingestion" target="act_auth_indmoney">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="250" y="438" />
+              <mxPoint x="250" y="670" />
+              <mxPoint x="380" y="670" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_fetch_indmoney" value="Tier 2 Fetch US Holdings,
+USD Cash &amp; Live USD/INR FX
+(fetch_indmoney_us.js)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#0284C7;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#0369A1;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="640" width="240" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e_auth_fetch_ind" value="OAuth Token" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_auth_indmoney" target="act_fetch_indmoney">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="obj_ind_snapshot" value="«DataContract»
+AccountHoldingsSnapshot
+(indmoney_us.json)" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=14;fillColor=#F1F5F9;strokeColor=#64748B;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;fontStyle=2;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="750" y="725" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ind_obj" value="Emits" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_fetch_indmoney" target="obj_ind_snapshot">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_auth_tt" value="Tier 1 Auth:
+Tickertape Pro Auth Client
+(Session validation)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CCFBF1;strokeColor=#0D9488;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#115E59;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="810" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e_fork_tt" value="Fetch Financials" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="fork_ingestion" target="act_auth_tt">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="180" y="438" />
+              <mxPoint x="180" y="840" />
+              <mxPoint x="380" y="840" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_fetch_tt" value="Tier 2 Ingest &amp; Normalize
+Financial Statements &amp; Ratios
+(provider_tickertape.js)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#0284C7;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#0369A1;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="810" width="240" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e_auth_fetch_tt" value="Session Token" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_auth_tt" target="act_fetch_tt">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="obj_norm_financials" value="«DataContract»
+NormalizedCompanyFinancials
+(financials/&lt;TICKER&gt;.json)" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=14;fillColor=#F1F5F9;strokeColor=#64748B;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;fontStyle=2;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="895" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e_tt_obj" value="Normalizes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_fetch_tt" target="obj_norm_financials">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="join_ingestion" value="" style="html=1;shape=rect;fillColor=#1E293B;strokeColor=#1E293B;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="700" y="975" width="400" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="e_join_a" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="obj_angel_snapshot" target="join_ingestion">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_join_b" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="obj_ind_snapshot" target="join_ingestion">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_join_c" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="obj_norm_financials" target="join_ingestion">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_holding_blender" value="Stage 2: Multi-Account Holding Blender
+Consolidate Domestic + Foreign Holdings
+Compute WAC, Pool Cash at FX, Preserve Lots" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#065F46;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="950" width="320" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="e_join_blender" value="Snapshots &amp; FX" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="join_ingestion" target="act_holding_blender">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="obj_blended_holdings" value="«DataContract»
+StrategyHoldingsBlended
+(holdings_blended.json)" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=14;fillColor=#F1F5F9;strokeColor=#64748B;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;fontStyle=2;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1600" y="1040" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e_blend_obj" value="Produces" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_holding_blender" target="obj_blended_holdings">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_strategy_xirr" value="Stage 3: True Strategy XIRR &amp; Friction
+Pool External Cashflows, Cancel Transfers,
+Solve Newton-Raphson XIRR, Audit STT/Brokerage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#065F46;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="1115" width="320" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="e_blend_xirr" value="Blended Ledger" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="obj_blended_holdings" target="act_strategy_xirr">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="obj_strategy_xirr" value="«DataContract»
+StrategyXirrReport
+(strategy_xirr.json)" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=14;fillColor=#F1F5F9;strokeColor=#64748B;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;fontStyle=2;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1600" y="1205" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e_xirr_obj" value="Produces" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_strategy_xirr" target="obj_strategy_xirr">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_forensic_gov" value="Forensic Governance Gatekeeper
+Promoter Pledging, Auditor Continuity,
+Beneish M-Score, Sloan Accrual Ratio" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE4E6;strokeColor=#E11D48;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#9F1239;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="1115" width="300" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="e_norm_to_forensic" value="Audited Statements" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="obj_norm_financials" target="act_forensic_gov">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="990" y="920" />
+              <mxPoint x="990" y="1145" />
+              <mxPoint x="1100" y="1145" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dec_gatekeeper_veto" value="Gatekeeper
+VETO?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF08A;strokeColor=#CA8A04;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#854D0E;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="1205" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e_fg_dec" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_forensic_gov" target="dec_gatekeeper_veto">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_short_circuit" value="GATEKEEPER SHORT-CIRCUIT:
+• Veto Security Immediately
+• Force Capital Allocation = 0.0%
+• Flag as DISQUALIFIED in Banner" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE4E6;strokeColor=#E11D48;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#9F1239;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="1290" width="340" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="e_veto_yes" value="[Yes: Accounting Red Flag]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#E11D48;strokeWidth=2.5;fontFamily=Segoe UI;fontSize=11;fontColor=#BE123C;dashed=1;" edge="1" parent="1" source="dec_gatekeeper_veto" target="act_short_circuit">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fork_valuation" value="" style="html=1;shape=rect;fillColor=#1E293B;strokeColor=#1E293B;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="1375" width="340" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="e_veto_no" value="[No: PASS / FLAG]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="dec_gatekeeper_veto" target="fork_valuation">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1300" y="1235" />
+              <mxPoint x="1440" y="1235" />
+              <mxPoint x="1440" y="1360" />
+              <mxPoint x="1250" y="1360" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_val_graham" value="Benjamin Graham Valuation:
+NCAV, NNWC, Graham Number,
+Margin of Safety Floor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE9FE;strokeColor=#7C3AED;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#5B21B6;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="1400" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act_val_lynch" value="Peter Lynch GARP Valuation:
+PEG, Yield-Adjusted PEG,
+Inventory Velocity, Archetype" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE9FE;strokeColor=#7C3AED;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#5B21B6;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="1400" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act_val_buffett" value="Buffett &amp; Munger Moat:
+Owner Earnings (CFO-CapEx-SBC),
+5-Step DuPont ROE, ROIC Moat" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE9FE;strokeColor=#7C3AED;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#5B21B6;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="1480" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act_val_klarman" value="Seth Klarman Solvency:
+Altman Z-Score, Net Debt/EBITDA,
+24M Debt Maturity Wall Stress" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE9FE;strokeColor=#7C3AED;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#5B21B6;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="1480" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e_fv_graham" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="fork_valuation" target="act_val_graham">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_fv_lynch" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="fork_valuation" target="act_val_lynch">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_fv_buffett" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="fork_valuation" target="act_val_buffett">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_fv_klarman" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="fork_valuation" target="act_val_klarman">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="join_valuation" value="" style="html=1;shape=rect;fillColor=#1E293B;strokeColor=#1E293B;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="1560" width="340" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="e_jv_graham" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_val_graham" target="join_valuation">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_jv_lynch" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_val_lynch" target="join_valuation">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_jv_buffett" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_val_buffett" target="join_valuation">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_jv_klarman" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_val_klarman" target="join_valuation">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_guardrail_engine" value="Stage 4: Asymmetric Downside Guardrail
+&amp; Stance Synthesis (guardrail-engine)
+• If ANY Principle == STRONG_SELL -&gt; NEEDS_REVIEW
+• If Gatekeeper == FLAG -&gt; Cap Ceiling at HOLD
+• Compute Weighted Composite Stance Score" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#065F46;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1520" y="1420" width="360" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e_val_to_guardrail" value="Uniform Verdicts" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="join_valuation" target="act_guardrail_engine">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_short_to_guardrail" value="Disqualified Verdict" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#E11D48;strokeWidth=2.5;fontFamily=Segoe UI;fontSize=11;fontColor=#BE123C;dashed=1;" edge="1" parent="1" source="act_short_circuit" target="act_guardrail_engine">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1460" y="1320" />
+              <mxPoint x="1700" y="1320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="obj_verdict_synthesis" value="«DataContract»
+StrategyVerdictSynthesis
+(strategy_verdict_synthesis.json)" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=14;fillColor=#F1F5F9;strokeColor=#64748B;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;fontStyle=2;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1600" y="1530" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e_synth_obj" value="Produces" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_guardrail_engine" target="obj_verdict_synthesis">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_stage5_assembly" value="Stage 5: Option C Master Compilation
+compileConsolidatedPortfolio()
+&amp; compileEmbeddedAudits()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#065F46;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="1610" width="320" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="e_xirr_to_s5" value="Performance KPIs" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="obj_strategy_xirr" target="act_stage5_assembly">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1840" y="1230" />
+              <mxPoint x="1840" y="1640" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_synth_to_s5" value="Synthesized Stances" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="obj_verdict_synthesis" target="act_stage5_assembly">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_contract_val" value="Contract Validation:
+validateConsolidatedPortfolio()
+Check Top-Level Schema Keys" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1990" y="1610" width="220" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="e_s5_to_val" value="Master Contract" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_stage5_assembly" target="act_contract_val">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_artifact_harness" value="Artifact Harness Audit:
+artifact_harness.js
+Verify 100% Offline Self-Containment
+(Zero CDN scripts, external fonts, leaks)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#0F172A;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1990" y="1705" width="220" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e_val_to_harness" value="HTML Dashboard" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_contract_val" target="act_artifact_harness">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_render_output" value="Deliver Twin Master Artifacts:
+• way_long_term_strategy.json
+• way_long_term_strategy.html
+Render interactive tabs &amp; KPI hero" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontColor=#92400E;fontStyle=1;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="65" y="1705" width="230" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e_harness_to_user" value="Emit Artifacts" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_artifact_harness" target="act_render_output">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2100" y="1810" />
+              <mxPoint x="180" y="1810" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act_end" value="" style="ellipse;html=1;shape=doubleEllipse;fillColor=#0F172A;strokeColor=#059669;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="165" y="1815" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="e_out_end" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="act_render_output" target="act_end">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="use_case_diag" name="System Use Case Diagram (Strictly Vertical Pipeline)">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="2950" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="act_investor" value="Retail / Strategic
+Investor
+(Human)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#1E293B;strokeColor=#1E293B;strokeWidth=2;fontFamily=Segoe UI;fontSize=13;fontStyle=1;fontColor=#0F172A;" vertex="1" parent="1">
+          <mxGeometry x="80" y="800" width="45" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="act_agent" value="Autonomous Strategy
+Agent / CLI Runner
+(Automated)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#1E293B;strokeColor=#1E293B;strokeWidth=2;fontFamily=Segoe UI;fontSize=13;fontStyle=1;fontColor=#0F172A;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1750" width="45" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="sys_angel" value="Angel One
+SmartAPI" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;fillColor=#E2E8F0;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#1E293B;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="275" width="160" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="sys_ind" value="INDmoney /
+DriveWealth API" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;fillColor=#E2E8F0;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#1E293B;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="370" width="160" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="sys_tt" value="Tickertape Pro
+Private API" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;fillColor=#E2E8F0;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#1E293B;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="780" width="160" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="sys_fs" value="Local FileSystem
+&amp; Offline Cache" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;fillColor=#E2E8F0;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#1E293B;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="2300" width="160" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="sub_accounts" value="1. Stock Accounts System" style="swimlane;html=1;startSize=32;fillColor=#F8FAFC;swimlaneFillColor=#FFFFFF;strokeColor=#0D9488;strokeWidth=2;fontFamily=Segoe UI;fontSize=13;fontStyle=1;fontColor=#0F172A;rounded=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="50" width="620" height="640" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_auth" value="UC1: Authenticate Broker APIs
+(TOTP, JWT, OAuth2)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#CCFBF1;strokeColor=#0D9488;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_accounts">
+          <mxGeometry x="95" y="55" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_token_refresh" value="UC2: Renew Expired Session Tokens
+(SmartAPI &amp; DriveWealth)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#CCFBF1;strokeColor=#0D9488;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_accounts">
+          <mxGeometry x="95" y="150" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_fetch_angel" value="UC3: Fetch Angel One Demat Positions
+&amp; Ledger Cash Balances" style="ellipse;whiteSpace=wrap;html=1;fillColor=#CCFBF1;strokeColor=#0D9488;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_accounts">
+          <mxGeometry x="95" y="245" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_fetch_ind" value="UC4: Fetch INDmoney US Equities,
+Fractional Lots &amp; USD Cash" style="ellipse;whiteSpace=wrap;html=1;fillColor=#CCFBF1;strokeColor=#0D9488;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_accounts">
+          <mxGeometry x="95" y="340" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_fetch_fx" value="UC5: Fetch Live USD/INR Exchange Rate
+&amp; Compute INR Parity" style="ellipse;whiteSpace=wrap;html=1;fillColor=#CCFBF1;strokeColor=#0D9488;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_accounts">
+          <mxGeometry x="95" y="435" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_cache_snap" value="UC6: Persist Account Holdings Snapshot
+(Canonical JSON &amp; HTML)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#CCFBF1;strokeColor=#0D9488;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_accounts">
+          <mxGeometry x="95" y="530" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ext_token" value="«extend»
+[on 401/403]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#E11D48;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#BE123C;" edge="1" parent="1" source="uc_token_refresh" target="uc_auth">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="910" y="232" />
+              <mxPoint x="910" y="137" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inc_fx" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#0369A1;" edge="1" parent="1" source="uc_fetch_ind" target="uc_fetch_fx">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="905" y="422" />
+              <mxPoint x="905" y="517" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inc_snap1" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#0369A1;" edge="1" parent="1" source="uc_fetch_angel" target="uc_cache_snap">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="410" y="327" />
+              <mxPoint x="410" y="612" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inc_snap2" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#0369A1;" edge="1" parent="1" source="uc_fetch_ind" target="uc_cache_snap">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="425" y="422" />
+              <mxPoint x="425" y="612" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sub_info_prov" value="2. Stock Info Provider" style="swimlane;html=1;startSize=32;fillColor=#F8FAFC;swimlaneFillColor=#FFFFFF;strokeColor=#0284C7;strokeWidth=2;fontFamily=Segoe UI;fontSize=13;fontStyle=1;fontColor=#0F172A;rounded=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="730" width="620" height="550" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_ingest_tt" value="UC7: Ingest Fundamental Statements
+&amp; Historical Financial Ratios" style="ellipse;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#0284C7;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_info_prov">
+          <mxGeometry x="95" y="55" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_check_cache" value="UC8: Validate 24h Cache
+&amp; Support --refresh Bypass" style="ellipse;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#0284C7;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_info_prov">
+          <mxGeometry x="95" y="150" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_norm_fin" value="UC9: Normalize Statements into
+Canonical Company Financials Contract" style="ellipse;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#0284C7;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_info_prov">
+          <mxGeometry x="95" y="245" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_val_keys" value="UC10: Validate Strict Top-Level
+Financials Schema Keys (contract_validator)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#0284C7;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_info_prov">
+          <mxGeometry x="95" y="340" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_emit_fin" value="UC11: Emit Financials Contract (JSON)
+&amp; Visual Audit Dashboard HTML" style="ellipse;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#0284C7;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_info_prov">
+          <mxGeometry x="95" y="435" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ext_cache" value="«extend»
+[--refresh]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#E11D48;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#BE123C;" edge="1" parent="1" source="uc_check_cache" target="uc_ingest_tt">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="910" y="912" />
+              <mxPoint x="910" y="817" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inc_norm" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#0369A1;" edge="1" parent="1" source="uc_ingest_tt" target="uc_norm_fin">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="420" y="817" />
+              <mxPoint x="420" y="1007" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inc_keys" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#0369A1;" edge="1" parent="1" source="uc_norm_fin" target="uc_val_keys">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="905" y="1007" />
+              <mxPoint x="905" y="1102" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inc_emit" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#0369A1;" edge="1" parent="1" source="uc_norm_fin" target="uc_emit_fin">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="410" y="1007" />
+              <mxPoint x="410" y="1197" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sub_analysis" value="3. Stock Analysis System" style="swimlane;html=1;startSize=32;fillColor=#F8FAFC;swimlaneFillColor=#FFFFFF;strokeColor=#6D28D9;strokeWidth=2;fontFamily=Segoe UI;fontSize=13;fontStyle=1;fontColor=#0F172A;rounded=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="1320" width="620" height="640" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_forensic" value="UC12: Forensic Governance Audit
+(Promoter Pledge, Beneish M-Score, Sloan)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFE4E6;strokeColor=#E11D48;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_analysis">
+          <mxGeometry x="95" y="55" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_graham" value="UC13: Benjamin Graham Deep Value
+(NNWC, NCAV &amp; Margin of Safety Floor)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EDE9FE;strokeColor=#7C3AED;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_analysis">
+          <mxGeometry x="95" y="150" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_lynch" value="UC14: Peter Lynch GARP Analysis
+(PEG Ratio, Archetype, Inventory Lag)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EDE9FE;strokeColor=#7C3AED;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_analysis">
+          <mxGeometry x="95" y="245" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_buffett" value="UC15: Buffett-Munger Moat Analysis
+(Owner Earnings, 5-Step DuPont, ROIC)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EDE9FE;strokeColor=#7C3AED;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_analysis">
+          <mxGeometry x="95" y="340" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_klarman" value="UC16: Seth Klarman Solvency Stress
+(Altman Z, 24M Debt Cliff, Net Debt/EBITDA)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EDE9FE;strokeColor=#7C3AED;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_analysis">
+          <mxGeometry x="95" y="435" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_emit_verdict" value="UC17: Emit Uniform Verdict Contract
+&amp; Self-Contained Pillar HTML Dashboard" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EDE9FE;strokeColor=#7C3AED;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_analysis">
+          <mxGeometry x="95" y="530" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="e_inc_uv1" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#0369A1;" edge="1" parent="1" source="uc_forensic" target="uc_emit_verdict">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="405" y="1407" />
+              <mxPoint x="405" y="1882" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inc_uv2" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#0369A1;" edge="1" parent="1" source="uc_graham" target="uc_emit_verdict">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="415" y="1502" />
+              <mxPoint x="415" y="1882" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inc_uv3" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#0369A1;" edge="1" parent="1" source="uc_lynch" target="uc_emit_verdict">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="425" y="1597" />
+              <mxPoint x="425" y="1882" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inc_uv4" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#0369A1;" edge="1" parent="1" source="uc_buffett" target="uc_emit_verdict">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="900" y="1692" />
+              <mxPoint x="900" y="1882" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inc_uv5" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#0369A1;" edge="1" parent="1" source="uc_klarman" target="uc_emit_verdict">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="910" y="1787" />
+              <mxPoint x="910" y="1882" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sub_portfolio" value="4. Portfolio Analysis System" style="swimlane;html=1;startSize=32;fillColor=#F8FAFC;swimlaneFillColor=#FFFFFF;strokeColor=#047857;strokeWidth=2;fontFamily=Segoe UI;fontSize=13;fontStyle=1;fontColor=#0F172A;rounded=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="2000" width="620" height="830" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_blend" value="UC18: Blend Multi-Account Holdings
+(Compute WAC, Pool FX Cash, Tranches)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_portfolio">
+          <mxGeometry x="95" y="55" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_xirr" value="UC19: Compute True Strategy XIRR
+(Newton-Raphson &amp; Itemize Friction Drag)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_portfolio">
+          <mxGeometry x="95" y="150" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_veto_short" value="UC20: Short-Circuit Vetoed Stocks
+(0.0% Allocation &amp; Flag Disqualified)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFE4E6;strokeColor=#E11D48;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_portfolio">
+          <mxGeometry x="95" y="245" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_synth" value="UC21: Synthesize Weighted Stance
+&amp; Enforce Asymmetric Downside Guardrails" style="ellipse;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_portfolio">
+          <mxGeometry x="95" y="340" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_master_compile" value="UC22: Compile Consolidated Portfolio Contract
+(StrategyConsolidatedPortfolio)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_portfolio">
+          <mxGeometry x="95" y="435" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_embed_audits" value="UC23: Embed Complete 5-Pillar Audits
+into Interactive Option C Tab Models" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_portfolio">
+          <mxGeometry x="95" y="530" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_render_master" value="UC24: Render 100% Offline Master HTML
+Hero KPIs, Holdings Matrix &amp; Waterfall" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_portfolio">
+          <mxGeometry x="95" y="625" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_offline_audit" value="UC25: Audit Zero External Network Leaks
+&amp; Offline Self-Containment (artifact_harness)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#0F172A;shadow=1;" vertex="1" parent="sub_portfolio">
+          <mxGeometry x="95" y="720" width="430" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ext_veto" value="«extend»
+[on VETO_DISQUALIFIED]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#E11D48;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#BE123C;" edge="1" parent="1" source="uc_veto_short" target="uc_synth">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="910" y="2277" />
+              <mxPoint x="910" y="2372" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inc_embed" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#0369A1;" edge="1" parent="1" source="uc_master_compile" target="uc_embed_audits">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="905" y="2467" />
+              <mxPoint x="905" y="2562" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inc_render" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#0369A1;" edge="1" parent="1" source="uc_master_compile" target="uc_render_master">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="415" y="2467" />
+              <mxPoint x="415" y="2657" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inc_oaudit" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=10;fontColor=#0369A1;" edge="1" parent="1" source="uc_render_master" target="uc_offline_audit">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="905" y="2657" />
+              <mxPoint x="905" y="2752" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a_inv_blend" value="" style="edgeStyle=straight;html=1;strokeColor=#334155;strokeWidth=1.5;endArrow=none;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;" edge="1" parent="1" source="act_investor" target="uc_blend">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a_inv_xirr" value="" style="edgeStyle=straight;html=1;strokeColor=#334155;strokeWidth=1.5;endArrow=none;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;" edge="1" parent="1" source="act_investor" target="uc_xirr">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a_inv_view" value="" style="edgeStyle=straight;html=1;strokeColor=#334155;strokeWidth=1.5;endArrow=none;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;" edge="1" parent="1" source="act_investor" target="uc_render_master">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a_ag_auth" value="" style="edgeStyle=straight;html=1;strokeColor=#334155;strokeWidth=1.5;endArrow=none;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;" edge="1" parent="1" source="act_agent" target="uc_auth">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a_ag_fetch_a" value="" style="edgeStyle=straight;html=1;strokeColor=#334155;strokeWidth=1.5;endArrow=none;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;" edge="1" parent="1" source="act_agent" target="uc_fetch_angel">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a_ag_fetch_i" value="" style="edgeStyle=straight;html=1;strokeColor=#334155;strokeWidth=1.5;endArrow=none;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;" edge="1" parent="1" source="act_agent" target="uc_fetch_ind">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a_ag_tt" value="" style="edgeStyle=straight;html=1;strokeColor=#334155;strokeWidth=1.5;endArrow=none;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;" edge="1" parent="1" source="act_agent" target="uc_ingest_tt">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a_ag_orch" value="" style="edgeStyle=straight;html=1;strokeColor=#334155;strokeWidth=1.5;endArrow=none;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;" edge="1" parent="1" source="act_agent" target="uc_master_compile">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a_sys_angel" value="" style="edgeStyle=straight;html=1;strokeColor=#334155;strokeWidth=1.5;endArrow=none;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;" edge="1" parent="1" source="uc_fetch_angel" target="sys_angel">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a_sys_ind" value="" style="edgeStyle=straight;html=1;strokeColor=#334155;strokeWidth=1.5;endArrow=none;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;" edge="1" parent="1" source="uc_fetch_ind" target="sys_ind">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a_sys_tt" value="" style="edgeStyle=straight;html=1;strokeColor=#334155;strokeWidth=1.5;endArrow=none;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;" edge="1" parent="1" source="uc_ingest_tt" target="sys_tt">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a_sys_fs_snap" value="" style="edgeStyle=straight;html=1;strokeColor=#334155;strokeWidth=1.5;endArrow=none;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;" edge="1" parent="1" source="uc_cache_snap" target="sys_fs">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a_sys_fs_fin" value="" style="edgeStyle=straight;html=1;strokeColor=#334155;strokeWidth=1.5;endArrow=none;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;" edge="1" parent="1" source="uc_emit_fin" target="sys_fs">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a_sys_fs_verd" value="" style="edgeStyle=straight;html=1;strokeColor=#334155;strokeWidth=1.5;endArrow=none;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;" edge="1" parent="1" source="uc_emit_verdict" target="sys_fs">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a_sys_fs_master" value="" style="edgeStyle=straight;html=1;strokeColor=#334155;strokeWidth=1.5;endArrow=none;fontFamily=Segoe UI;fontSize=11;fontColor=#334155;" edge="1" parent="1" source="uc_render_master" target="sys_fs">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="seq_diag" name="End-to-End Orchestration Sequence Diagram">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2800" pageHeight="2400" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ll_user" value="User / CLI" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="50" width="120" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_orch" value=":WayOrchestrator
+(Tier 4)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="220" y="50" width="140" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_man" value=":ManifestValidator
+(Framework)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="50" width="140" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_fetch_a" value=":FetchAngelOne
+(Tier 2)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#E0F2FE;strokeColor=#0284C7;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="620" y="50" width="130" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_fetch_i" value=":FetchIndmoneyUs
+(Tier 2)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#E0F2FE;strokeColor=#0284C7;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="810" y="50" width="140" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_blender" value=":HoldingBlender
+(Tier 4)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="50" width="130" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_xirr" value=":StrategyXirr
+(Tier 4)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="50" width="130" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_tt" value=":ProviderTickertape
+(Tier 2)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#E0F2FE;strokeColor=#0284C7;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1390" y="50" width="140" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_fg" value=":ForensicGov
+(Tier 3 Gatekeeper)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#FFE4E6;strokeColor=#E11D48;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1590" y="50" width="140" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_val" value=":ValuationEngines
+(Graham/Lynch/BM/KS)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#EDE9FE;strokeColor=#7C3AED;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1790" y="50" width="150" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_gr" value=":GuardrailEngine
+(Tier 4)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2000" y="50" width="130" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_embed" value=":AuditEmbedder
+(Tier 4)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2190" y="50" width="130" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_harness" value=":ArtifactHarness
+(Framework)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2380" y="50" width="130" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_fs" value=":FileSystem
+(Reports)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=2;fontFamily=Segoe UI;fontSize=12;fontStyle=1;fontColor=#0F172A;size=40;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2570" y="50" width="110" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="s_msg1" value="executePipeline(fundamental_lts)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_user" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="100" y="130" />
+              <mxPoint x="290" y="130" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg2" value="loadManifestFile(&quot;config/investment_ways.yaml&quot;)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_man">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="160" />
+              <mxPoint x="490" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret2" value="return ValidatedManifest {accounts, principles, weights}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_man" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="490" y="195" />
+              <mxPoint x="290" y="195" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="frame_par_ingest" value="par [Parallel Broker Demat Ingestion]" style="shape=umlFrame;whiteSpace=wrap;html=1;width=100;height=25;fontFamily=Segoe UI;fontSize=11;fontStyle=1;align=center;fillColor=none;strokeColor=#0284C7;strokeWidth=1.5;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="250" y="220" width="680" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="s_msg3" value="fetchHoldings({ refresh: false })" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_fetch_a">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="255" />
+              <mxPoint x="685" y="255" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret3" value="return AccountHoldingsSnapshot (IN Equities, Cash)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_fetch_a" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="685" y="300" />
+              <mxPoint x="290" y="300" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg4" value="fetchHoldings({ refresh: false })" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_fetch_i">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="345" />
+              <mxPoint x="880" y="345" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret4" value="return AccountHoldingsSnapshot (US Equities, FX=86.2)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_fetch_i" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="880" y="395" />
+              <mxPoint x="290" y="395" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg5" value="blendPositions([angelone_snap, indmoney_snap])" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_blender">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="465" />
+              <mxPoint x="1075" y="465" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret5" value="return StrategyHoldingsBlended (WAC, Pooled Cash, Lots)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_blender" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1075" y="515" />
+              <mxPoint x="290" y="515" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg6" value="calculateStrategyXirr(blendedHoldings, bankLedger)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_xirr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="565" />
+              <mxPoint x="1265" y="565" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret6" value="return StrategyXirrReport {xirr: 24.8%, frictionSummary}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_xirr" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1265" y="615" />
+              <mxPoint x="290" y="615" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="frame_loop_sec" value="loop [For each distinct holding ticker in portfolio]" style="shape=umlFrame;whiteSpace=wrap;html=1;width=100;height=25;fontFamily=Segoe UI;fontSize=11;fontStyle=1;align=center;fillColor=none;strokeColor=#6D28D9;strokeWidth=1.5;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="240" y="660" width="1920" height="890" as="geometry" />
+        </mxCell>
+        <mxCell id="s_msg7" value="ingestCompany(ticker, market)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_tt">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="700" />
+              <mxPoint x="1460" y="700" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret7" value="return NormalizedCompanyFinancials (P&amp;L, BS, CF, Forensics)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_tt" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1460" y="750" />
+              <mxPoint x="290" y="750" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg8" value="evaluate(financials)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_fg">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="800" />
+              <mxPoint x="1660" y="800" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret8" value="return UniformVerdictContract {stance: PASS|FLAG|VETO_DISQUALIFIED}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_fg" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1660" y="850" />
+              <mxPoint x="290" y="850" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="frame_alt_veto" value="alt [Gatekeeper Stance == VETO_DISQUALIFIED]" style="shape=umlFrame;whiteSpace=wrap;html=1;width=100;height=25;fontFamily=Segoe UI;fontSize=11;fontStyle=1;align=center;fillColor=none;strokeColor=#E11D48;strokeWidth=1.5;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="260" y="890" width="1870" height="630" as="geometry" />
+        </mxCell>
+        <mxCell id="s_msg9a" value="shortCircuitDisqualification(ticker, reason)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#E11D48;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#BE123C;" edge="1" parent="1" source="ll_orch" target="ll_gr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="940" />
+              <mxPoint x="2065" y="940" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret9a" value="return SynthesizedVerdict {stance: DISQUALIFIED, target_weight: 0.0%}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_gr" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2065" y="990" />
+              <mxPoint x="290" y="990" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="alt_else_div" value="[else: Gatekeeper PASS or FLAG]" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontFamily=Segoe UI;fontSize=11;fontStyle=1;fontColor=#047857;" vertex="1" parent="1">
+          <mxGeometry x="280" y="1040" width="220" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="frame_par_val" value="par [Evaluate 4 Valuation Principles in Parallel]" style="shape=umlFrame;whiteSpace=wrap;html=1;width=100;height=25;fontFamily=Segoe UI;fontSize=11;fontStyle=1;align=center;fillColor=none;strokeColor=#7C3AED;strokeWidth=1.5;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="270" y="1080" width="1600" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="s_msg10a" value="evaluateGraham(financials)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_val">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1120" />
+              <mxPoint x="1865" y="1120" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg10b" value="evaluateLynch(financials)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_val">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1160" />
+              <mxPoint x="1865" y="1160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg10c" value="evaluateBuffettMunger(financials)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_val">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1200" />
+              <mxPoint x="1865" y="1200" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg10d" value="evaluateKlarmanSolvency(financials)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_val">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1240" />
+              <mxPoint x="1865" y="1240" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret10" value="return [GrahamVerdict, LynchVerdict, BuffettVerdict, KlarmanVerdict]" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_val" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1865" y="1300" />
+              <mxPoint x="290" y="1300" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg11" value="evaluateSecurity(ticker, gatekeeper, valuationVerdicts, weights)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_gr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1400" />
+              <mxPoint x="2065" y="1400" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret11" value="return SynthesizedVerdict {stance, guardrail_flags, synthesized_score}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_gr" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2065" y="1470" />
+              <mxPoint x="290" y="1470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg12" value="compileEmbeddedAudits(portfolioVerdicts)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_embed">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1600" />
+              <mxPoint x="2255" y="1600" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret12" value="return EmbeddedAuditsMap {tabs, payloads, metrics}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_embed" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2255" y="1650" />
+              <mxPoint x="290" y="1650" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg13" value="compileConsolidatedPortfolio({ blended, xirr, synthesis, audits })" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1700" />
+              <mxPoint x="350" y="1700" />
+              <mxPoint x="350" y="1730" />
+              <mxPoint x="290" y="1730" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg14" value="verifyArtifactPair(jsonArtifact, renderedHtmlDashboard)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_harness">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1780" />
+              <mxPoint x="2445" y="1780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg15" value="auditOfflineSelfContainment(html): check zero external scripts/CDNs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_harness" target="ll_harness">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2445" y="1820" />
+              <mxPoint x="2505" y="1820" />
+              <mxPoint x="2505" y="1850" />
+              <mxPoint x="2445" y="1850" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret14" value="return { schemaValid: true, offlineVerified: true, leaksCount: 0 }" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_harness" target="ll_orch">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2445" y="1890" />
+              <mxPoint x="290" y="1890" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg16" value="writeFileSync(&quot;reports/strategies/fundamental_lts.json&quot;, jsonPayload)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_fs">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="1950" />
+              <mxPoint x="2625" y="1950" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_msg17" value="writeFileSync(&quot;reports/strategies/fundamental_lts.html&quot;, htmlPayload)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1E293B;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Segoe UI;fontSize=11;fontColor=#0F172A;" edge="1" parent="1" source="ll_orch" target="ll_fs">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="2000" />
+              <mxPoint x="2625" y="2000" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s_ret_final" value="Emit CLI Summary &amp; Dashboard URL (Exit Code 0)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;dashed=1;endArrow=open;endSize=8;fontFamily=Segoe UI;fontSize=11;fontColor=#475569;" edge="1" parent="1" source="ll_orch" target="ll_user">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="2080" />
+              <mxPoint x="100" y="2080" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

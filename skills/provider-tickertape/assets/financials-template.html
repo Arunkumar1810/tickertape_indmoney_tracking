@@ -1,190 +1,532 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Financial Statements · provider-tickertape</title>
-<meta name="description" content="Normalized financial statements and valuation multiples.">
-<style>
-:root {
-  --bg: #090d16;
-  --surface: #111726;
-  --surface-alt: #172033;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-focus: #38bdf8;
-  --text: #f1f5f9;
-  --text-muted: #94a3b8;
-  --emerald: #10b981;
-  --rose: #f43f5e;
-  --amber: #f59e0b;
-  --cyan: #38bdf8;
-  --indigo: #6366f1;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  padding: 32px 20px 80px;
-  line-height: 1.5;
-}
-.container { max-width: 1200px; margin: 0 auto; }
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
-  gap: 16px;
-}
-.company-header h1 {
-  font-size: 1.85rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #38bdf8, #818cf8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.company-header p { font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
-.header-badges {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.badge {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 5px 12px;
-  border-radius: 9999px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--cyan);
-}
-.badge-in { color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); }
-.badge-us { color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); }
-.badge-etf { color: #a855f7; border-color: rgba(168, 85, 247, 0.3); }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Normalized Financial Statements & Intelligence · provider-tickertape</title>
+  <meta name="description" content="Normalized financial statements, multi-year historical statements, valuation multiples, and vendor intelligence.">
+  <style>
+    :root {
+      --bg: #090d16;
+      --surface: #111726;
+      --surface-alt: #172033;
+      --surface-hover: #1e293b;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(56, 189, 248, 0.3);
+      --border-focus: #38bdf8;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --emerald: #10b981;
+      --emerald-bg: rgba(16, 185, 129, 0.12);
+      --rose: #f43f5e;
+      --rose-bg: rgba(244, 63, 94, 0.12);
+      --amber: #f59e0b;
+      --amber-bg: rgba(245, 158, 11, 0.12);
+      --cyan: #38bdf8;
+      --cyan-bg: rgba(56, 189, 248, 0.12);
+      --indigo: #818cf8;
+      --indigo-bg: rgba(129, 140, 248, 0.12);
+    }
 
-.etf-banner {
-  display: none;
-  background: rgba(168, 85, 247, 0.1);
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  color: #d8b4fe;
-  padding: 14px 18px;
-  border-radius: 10px;
-  margin-bottom: 24px;
-  font-size: 0.9rem;
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  margin-bottom: 28px;
-}
-.kpi-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px;
-}
-.kpi-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-}
-.kpi-value {
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-.kpi-sub {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      padding: 32px 20px 80px;
+      line-height: 1.5;
+    }
 
-.tabs-container {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-}
-.tab-nav {
-  display: flex;
-  background: var(--surface-alt);
-  border-bottom: 1px solid var(--border);
-  overflow-x: auto;
-}
-.tab-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  padding: 14px 20px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  white-space: nowrap;
-}
-.tab-btn.active {
-  color: var(--cyan);
-  border-bottom-color: var(--cyan);
-  background: rgba(56, 189, 248, 0.04);
-}
-.tab-pane {
-  display: none;
-  padding: 20px;
-}
-.tab-pane.active {
-  display: block;
-}
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
 
-.statement-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.88rem;
-}
-.statement-table th {
-  text-align: left;
-  padding: 10px 14px;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border);
-}
-.statement-table td {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
-}
-.statement-table tr:hover {
-  background: rgba(255, 255, 255, 0.02);
-}
-.metric-name {
-  font-weight: 500;
-}
-.metric-val {
-  text-align: right;
-  font-weight: 600;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-}
+    /* Cache banner */
+    .cache-warning-banner {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      border-radius: 8px;
+      padding: 12px 18px;
+      margin-bottom: 24px;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-footer {
-  margin-top: 40px;
-  text-align: center;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  border-top: 1px solid var(--border);
-  padding-top: 20px;
-}
-</style>
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .company-header h1 {
+      font-size: 2.1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .company-header p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .header-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .badge {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--cyan);
+      letter-spacing: 0.02em;
+    }
+
+    .badge-in { color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); }
+    .badge-us { color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); }
+    .badge-etf { color: #a855f7; border-color: rgba(168, 85, 247, 0.3); }
+    .badge-pro {
+      background: var(--amber-bg);
+      color: var(--amber);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      font-weight: 700;
+    }
+
+    .btn-action {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-action:hover {
+      color: var(--cyan);
+      border-color: var(--cyan);
+    }
+
+    .etf-banner {
+      display: none;
+      background: rgba(168, 85, 247, 0.1);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      color: #e9d5ff;
+      border-radius: 8px;
+      padding: 14px 20px;
+      margin-bottom: 24px;
+      font-size: 0.9rem;
+    }
+
+    /* KPI Highlights Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-accent);
+    }
+
+    .kpi-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .kpi-value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      letter-spacing: -0.02em;
+    }
+
+    .kpi-sub {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .kpi-badge-green { color: var(--emerald); font-weight: 600; }
+    .kpi-badge-red { color: var(--rose); font-weight: 600; }
+
+    /* Tabs Container */
+    .tabs-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .tab-nav {
+      display: flex;
+      background: var(--surface-alt);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 15px 22px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .tab-btn.active {
+      color: var(--cyan);
+      border-bottom-color: var(--cyan);
+      background: rgba(56, 189, 248, 0.06);
+    }
+
+    .tab-pane {
+      display: none;
+      padding: 24px;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    /* Statement & Metric Tables */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 6px;
+    }
+
+    .statement-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    .statement-table th {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.25);
+      white-space: nowrap;
+    }
+
+    .statement-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .statement-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Sticky column 1 for multi-year financial statements */
+    .statement-table th:first-child,
+    .statement-table td:first-child {
+      position: sticky;
+      left: 0;
+      background: var(--surface);
+      z-index: 2;
+      border-right: 1px solid var(--border);
+    }
+    .statement-table th:first-child {
+      background: #0d121f;
+      z-index: 3;
+    }
+
+    .metric-name {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .metric-val {
+      text-align: right;
+      font-weight: 600;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--text);
+    }
+
+    .growth-badge-up {
+      color: var(--emerald);
+      font-size: 0.75rem;
+      margin-left: 6px;
+      font-weight: 600;
+    }
+    .growth-badge-down {
+      color: var(--rose);
+      font-size: 0.75rem;
+      margin-left: 6px;
+      font-weight: 600;
+    }
+
+    /* Section Titles */
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin: 28px 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-title:first-child {
+      margin-top: 4px;
+    }
+
+    /* Pro Scorecard Meter Cards */
+    .pro-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .pro-card {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+
+    .pro-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-accent);
+    }
+
+    .pro-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .pro-tag {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .pro-tag-green { background: var(--emerald-bg); color: var(--emerald); }
+    .pro-tag-red { background: var(--rose-bg); color: var(--rose); }
+    .pro-tag-yellow { background: var(--amber-bg); color: var(--amber); }
+
+    .score-meter {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      margin: 8px 0;
+      overflow: hidden;
+    }
+    .score-meter-bar {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .pro-subtext {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    /* Visual Analyst Consensus Stacked Bar */
+    .consensus-bar-wrapper {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+    }
+    .consensus-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .consensus-bar-track {
+      display: flex;
+      height: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.08);
+      margin-bottom: 12px;
+    }
+    .consensus-segment-buy { background: var(--emerald); }
+    .consensus-segment-hold { background: var(--amber); }
+    .consensus-segment-sell { background: var(--rose); }
+    .consensus-legend {
+      display: flex;
+      gap: 20px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .legend-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+
+    /* Accordion Category Browser */
+    .metric-accordion {
+      margin-bottom: 12px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: border-color 0.15s ease;
+    }
+
+    .metric-accordion[open] {
+      border-color: var(--border-accent);
+    }
+
+    .metric-accordion summary {
+      font-weight: 600;
+      font-size: 0.92rem;
+      cursor: pointer;
+      color: var(--cyan);
+      padding: 14px 18px;
+      outline: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.01);
+      user-select: none;
+    }
+
+    .metric-accordion summary:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .filter-count {
+      font-size: 0.78rem;
+      font-weight: normal;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.25);
+      padding: 2px 8px;
+      border-radius: 9999px;
+    }
+
+    /* Search bar controls for 240+ metrics */
+    .search-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .metric-search-bar {
+      flex: 1;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .metric-search-bar:focus {
+      border-color: var(--cyan);
+    }
+
+    /* AI Executive summary box */
+    .ai-summary-box {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--indigo);
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin-bottom: 24px;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+    }
+
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+    }
+  </style>
 </head>
+
 <body>
 <div class="container">
   <!--__CACHE_BANNER__-->
@@ -198,6 +540,7 @@ footer {
       <span class="badge" id="badge-currency">CURRENCY: --</span>
       <span class="badge" id="badge-scale">SCALE: --</span>
       <span class="badge" id="badge-source">SOURCE: --</span>
+      <button class="btn-action" onclick="copyRawJson()">📋 Copy JSON</button>
     </div>
   </header>
 
@@ -205,11 +548,12 @@ footer {
     <strong>Index ETF Security:</strong> Single-company GAAP statement line items (Income Statement, Balance Sheet, Cash Flow) do not apply to diversified broad market index ETF baskets. Market data, price multiples, and passive index benchmarks are displayed below.
   </div>
 
+  <!-- Primary Market & Valuation KPIs with Context Subtitles -->
   <div class="kpi-grid">
     <div class="kpi-card">
-      <div class="kpi-label">Current Market Price</div>
+      <div class="kpi-label">Current Price</div>
       <div class="kpi-value" id="kpi-cmp">--</div>
-      <div class="kpi-sub" id="kpi-cmp-sub">CMP</div>
+      <div class="kpi-sub"><span id="kpi-cmp-sub">CMP (NSE)</span></div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Market Capitalization</div>
@@ -219,12 +563,17 @@ footer {
     <div class="kpi-card">
       <div class="kpi-label">P/E Ratio (TTM)</div>
       <div class="kpi-value" id="kpi-pe">--</div>
-      <div class="kpi-sub" id="kpi-pe-sub">Price to Earnings</div>
+      <div class="kpi-sub" id="kpi-pe-sub">Trailing Multiple</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">P/B Ratio (TTM)</div>
+      <div class="kpi-label">Forward P/E</div>
+      <div class="kpi-value" id="kpi-forward-pe">--</div>
+      <div class="kpi-sub" id="kpi-forward-pe-sub">Next 12M Estimate</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">P/B Ratio</div>
       <div class="kpi-value" id="kpi-pb">--</div>
-      <div class="kpi-sub">Price to Book</div>
+      <div class="kpi-sub" id="kpi-pb-sub">Price to Book</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">EV / EBITDA</div>
@@ -234,82 +583,202 @@ footer {
     <div class="kpi-card">
       <div class="kpi-label">Dividend Yield</div>
       <div class="kpi-value" id="kpi-div-yield">--</div>
-      <div class="kpi-sub">Yield Percentage</div>
+      <div class="kpi-sub" id="kpi-div-sub">Annual Yield %</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">Beta (5Y Volatility)</div>
+      <div class="kpi-label">Beta (Volatility)</div>
       <div class="kpi-value" id="kpi-beta">--</div>
-      <div class="kpi-sub">Market Risk Factor</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">5Y Historical Median P/E</div>
-      <div class="kpi-value" id="kpi-pe-5y">--</div>
-      <div class="kpi-sub">Historical Valuation</div>
+      <div class="kpi-sub" id="kpi-beta-sub">Market Risk Factor</div>
     </div>
   </div>
 
   <div class="tabs-container">
     <div class="tab-nav">
-      <button class="tab-btn active" onclick="showTab('tab-income', this)">Income Statement</button>
-      <button class="tab-btn" onclick="showTab('tab-balance', this)">Balance Sheet</button>
-      <button class="tab-btn" onclick="showTab('tab-cashflow', this)">Cash Flow</button>
-      <button class="tab-btn" onclick="showTab('tab-forensics', this)">Forensics & Ownership</button>
+      <button class="tab-btn active" onclick="showTab('tab-income', this)">Income Statement (Multi-Year)</button>
+      <button class="tab-btn" onclick="showTab('tab-balance', this)">Balance Sheet (Multi-Year)</button>
+      <button class="tab-btn" onclick="showTab('tab-cashflow', this)">Cash Flow & Dividends</button>
+      <button class="tab-btn" onclick="showTab('tab-forensics', this)">Ownership Trend & Governance</button>
+      <button class="tab-btn" id="btn-tab-pro" style="display:none;" onclick="showTab('tab-pro', this)">Tickertape Pro Intelligence</button>
+      <button class="tab-btn" id="btn-tab-metrics" style="display:none;" onclick="showTab('tab-metrics', this)">Metrics</button>
     </div>
 
+    <!-- 1. Income Statement -->
     <div id="tab-income" class="tab-pane active">
-      <table class="statement-table">
-        <thead>
-          <tr>
-            <th>Line Item</th>
-            <th style="text-align:right;">Reported Amount</th>
-          </tr>
-        </thead>
-        <tbody id="body-income">
-          <!-- Populated by JS -->
-        </tbody>
-      </table>
+      <div class="section-title">
+        <span>Multi-Year Income Statement Trend (FY 2019 – FY 2026)</span>
+        <span style="font-size:0.75rem; color:var(--text-dim); text-transform:none;">Amounts in ₹ Crores · Sticky Header & Metrics</span>
+      </div>
+      <div class="table-responsive">
+        <table class="statement-table">
+          <thead id="head-income"></thead>
+          <tbody id="body-income"></tbody>
+        </table>
+      </div>
     </div>
 
+    <!-- 2. Balance Sheet -->
     <div id="tab-balance" class="tab-pane">
-      <table class="statement-table">
-        <thead>
-          <tr>
-            <th>Line Item</th>
-            <th style="text-align:right;">Reported Amount</th>
-          </tr>
-        </thead>
-        <tbody id="body-balance">
-          <!-- Populated by JS -->
-        </tbody>
-      </table>
+      <div class="section-title">
+        <span>Multi-Year Balance Sheet Trend (FY 2022 – FY 2026)</span>
+        <span style="font-size:0.75rem; color:var(--text-dim); text-transform:none;">Amounts in ₹ Crores · Capital Structure</span>
+      </div>
+      <div class="table-responsive">
+        <table class="statement-table">
+          <thead id="head-balance"></thead>
+          <tbody id="body-balance"></tbody>
+        </table>
+      </div>
     </div>
 
+    <!-- 3. Cash Flow -->
     <div id="tab-cashflow" class="tab-pane">
-      <table class="statement-table">
-        <thead>
-          <tr>
-            <th>Line Item</th>
-            <th style="text-align:right;">Reported Amount</th>
-          </tr>
-        </thead>
-        <tbody id="body-cashflow">
-          <!-- Populated by JS -->
-        </tbody>
-      </table>
+      <div class="section-title">
+        <span>Multi-Year Cash Flow Statement (FY 2022 – FY 2026)</span>
+        <span style="font-size:0.75rem; color:var(--text-dim); text-transform:none;">Free Cash Flow Generation</span>
+      </div>
+      <div class="table-responsive" style="margin-bottom: 28px;">
+        <table class="statement-table">
+          <thead id="head-cashflow"></thead>
+          <tbody id="body-cashflow"></tbody>
+        </table>
+      </div>
+
+      <div class="section-title">
+        <span>Historical Corporate Dividend Actions</span>
+        <span style="font-size:0.75rem; color:var(--text-dim); text-transform:none;">Last 8 Payout Cycles</span>
+      </div>
+      <div class="table-responsive">
+        <table class="statement-table">
+          <thead>
+            <tr>
+              <th>Ex-Dividend Date</th>
+              <th>Payout Type</th>
+              <th style="text-align:right;">Dividend Amount Per Share</th>
+            </tr>
+          </thead>
+          <tbody id="body-dividends"></tbody>
+        </table>
+      </div>
     </div>
 
+    <!-- 4. Forensics & Governance -->
     <div id="tab-forensics" class="tab-pane">
-      <table class="statement-table">
-        <thead>
-          <tr>
-            <th>Indicator</th>
-            <th style="text-align:right;">Reading / Value</th>
-          </tr>
-        </thead>
-        <tbody id="body-forensics">
-          <!-- Populated by JS -->
-        </tbody>
-      </table>
+      <div class="section-title">Accounting Integrity & Gatekeeper Forensic Audit</div>
+      <div class="table-responsive" style="margin-bottom: 28px;">
+        <table class="statement-table">
+          <thead>
+            <tr>
+              <th>Forensic Check / Ratio</th>
+              <th style="text-align:right;">Status / Reading</th>
+              <th>Audit Baseline Criteria</th>
+            </tr>
+          </thead>
+          <tbody id="body-forensics"></tbody>
+        </table>
+      </div>
+
+      <div class="section-title">
+        <span>Multi-Quarter Institutional & Promoter Ownership Trend</span>
+        <span style="font-size:0.75rem; color:var(--text-dim); text-transform:none;">Last 6 Reported Quarters</span>
+      </div>
+      <div class="table-responsive">
+        <table class="statement-table">
+          <thead>
+            <tr>
+              <th>Quarter Ending</th>
+              <th style="text-align:right;">Promoter %</th>
+              <th style="text-align:right;">Pledged %</th>
+              <th style="text-align:right;">FII / FPI %</th>
+              <th style="text-align:right;">DII %</th>
+              <th style="text-align:right;">Mutual Funds %</th>
+            </tr>
+          </thead>
+          <tbody id="body-ownership-trend"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 5. Tickertape Pro Intelligence -->
+    <div id="tab-pro" class="tab-pane">
+      <div id="ai-summary-container" style="display:none;">
+        <div class="section-title">Executive AI Earnings & Management Synthesis</div>
+        <div id="ai-summary-text" class="ai-summary-box"></div>
+      </div>
+
+      <div class="section-title">Tickertape Special Parameters</div>
+      <div class="table-responsive" style="margin-bottom: 28px;">
+        <table class="statement-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th style="text-align:right;">Rank / Score</th>
+              <th>Percentile Meaning / Assessment</th>
+            </tr>
+          </thead>
+          <tbody id="body-special-params"></tbody>
+        </table>
+      </div>
+
+      <div class="section-title">Analyst Consensus Breakdown</div>
+      <div class="consensus-bar-wrapper">
+        <div class="consensus-labels">
+          <span id="consensus-summary-text">Consensus: --</span>
+          <span id="consensus-upside-text">Consensus Upside: --</span>
+        </div>
+        <div class="consensus-bar-track">
+          <div id="bar-buy" class="consensus-segment-buy" style="width:0%;"></div>
+          <div id="bar-hold" class="consensus-segment-hold" style="width:0%;"></div>
+          <div id="bar-sell" class="consensus-segment-sell" style="width:0%;"></div>
+        </div>
+        <div class="consensus-legend">
+          <span><span class="legend-dot" style="background:var(--emerald);"></span>Buy: <strong id="lbl-buy-pct">--%</strong> (<span id="lbl-buy-count">--</span> analysts)</span>
+          <span><span class="legend-dot" style="background:var(--amber);"></span>Hold: <strong id="lbl-hold-pct">--%</strong></span>
+          <span><span class="legend-dot" style="background:var(--rose);"></span>Sell: <strong id="lbl-sell-pct">--%</strong></span>
+          <span style="margin-left:auto; color:var(--text-dim);">Total Coverage: <strong id="lbl-total-analysts">--</strong> analysts</span>
+        </div>
+      </div>
+
+      <div class="section-title">Tickertape Pro Scorecard (Sector Peer Ranks)</div>
+      <div id="grid-pro-scorecard" class="pro-card-grid"></div>
+
+      <div class="section-title">Pro Checklists & Surveillance Checks</div>
+      <div class="table-responsive" style="margin-bottom: 28px;">
+        <table class="statement-table">
+          <thead>
+            <tr>
+              <th>Check / Risk Item</th>
+              <th>Status / Verification</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody id="body-pro-checks"></tbody>
+        </table>
+      </div>
+
+      <div class="section-title">Stock vs Sector Benchmarking & Target Forecast Ranges</div>
+      <div class="table-responsive">
+        <table class="statement-table">
+          <thead>
+            <tr>
+              <th>Valuation Metric / Target Forecast</th>
+              <th style="text-align:right;">Stock Reading</th>
+              <th style="text-align:right;">Sector Median</th>
+              <th>Relative Premium / Spread</th>
+            </tr>
+          </thead>
+          <tbody id="body-benchmark-multiples"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 6. Metrics (Searchable 240+ parameters) -->
+    <div id="tab-metrics" class="tab-pane">
+      <div class="search-controls">
+        <input type="text" id="metric-search" class="metric-search-bar" placeholder="🔍 Search among 240+ metrics (e.g. RSI, ROE, Debt, DII, Beta, Futures, Turnover)..." oninput="filterMetrics(this.value)">
+        <button class="btn-action" onclick="toggleAllAccordions(true)">Expand All</button>
+        <button class="btn-action" onclick="toggleAllAccordions(false)">Collapse All</button>
+      </div>
+      <div id="container-categorized-metrics"></div>
     </div>
   </div>
 
@@ -337,6 +806,9 @@ function init() {
   renderHeader();
   renderKPIs();
   renderStatements();
+  renderOwnershipAndDividends();
+  renderPro();
+  renderCategorizedMetrics();
 }
 
 function fmtVal(v, prefix = '', suffix = '') {
@@ -345,6 +817,13 @@ function fmtVal(v, prefix = '', suffix = '') {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }) + suffix;
+}
+
+function copyRawJson() {
+  if (!data) return;
+  navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(() => {
+    alert('Canonical NormalizedCompanyFinancials JSON copied to clipboard!');
+  });
 }
 
 function renderHeader() {
@@ -363,108 +842,446 @@ function renderHeader() {
   if (data.is_index_etf) {
     document.getElementById('etf-banner').style.display = 'block';
   }
+
+  if (data.tickertape_pro && data.tickertape_pro.subscription === 'PRO') {
+    const badges = document.querySelector('.header-badges');
+    if (badges) {
+      const proBadge = document.createElement('span');
+      proBadge.className = 'badge badge-pro';
+      proBadge.textContent = 'PRO SUBSCRIBER';
+      badges.prepend(proBadge);
+    }
+  }
 }
 
 function renderKPIs() {
   const m = data.market_data || {};
+  const pro = data.tickertape_pro || {};
+  const vm = pro.valuation_multiples || {};
+  const ti = pro.technical_indicators || {};
   const sym = data.currency === 'INR' ? '₹' : '$';
 
   document.getElementById('kpi-cmp').textContent = fmtVal(m.cmp, sym);
   document.getElementById('kpi-mcap').textContent = fmtVal(m.market_cap, sym);
   document.getElementById('kpi-pe').textContent = fmtVal(m.pe_ttm);
+  document.getElementById('kpi-forward-pe').textContent = fmtVal(vm.forward_pe || pro.forward_pe);
   document.getElementById('kpi-pb').textContent = fmtVal(m.pb_ttm);
-  document.getElementById('kpi-ev-ebitda').textContent = fmtVal(m.ev_ebitda);
+  document.getElementById('kpi-ev-ebitda').textContent = fmtVal(vm.ev_to_ebitda || m.ev_ebitda);
   document.getElementById('kpi-div-yield').textContent = fmtVal(m.dividend_yield_pct, '', '%');
-  document.getElementById('kpi-beta').textContent = fmtVal(m.beta);
-  document.getElementById('kpi-pe-5y').textContent = fmtVal(m.historical_pe_5y_median);
+  document.getElementById('kpi-beta').textContent = fmtVal(ti.beta || m.beta);
+
+  // Sector benchmark badges in KPI subtexts
+  if (vm.sector_pe && m.pe_ttm) {
+    const peDiscount = ((m.pe_ttm / vm.sector_pe) - 1) * 100;
+    const peSub = document.getElementById('kpi-pe-sub');
+    if (peSub) peSub.innerHTML = `Trailing Multiple <span class="${peDiscount < 0 ? 'kpi-badge-green' : 'kpi-badge-red'}">(${peDiscount > 0 ? '+' : ''}${peDiscount.toFixed(0)}% vs sector)</span>`;
+  }
+  if (vm.sector_pb && m.pb_ttm) {
+    const pbDiscount = ((m.pb_ttm / vm.sector_pb) - 1) * 100;
+    const pbSub = document.getElementById('kpi-pb-sub');
+    if (pbSub) pbSub.innerHTML = `Price to Book <span class="${pbDiscount < 0 ? 'kpi-badge-green' : 'kpi-badge-red'}">(${pbDiscount > 0 ? '+' : ''}${pbDiscount.toFixed(0)}% vs sector)</span>`;
+  }
+  if (vm.sector_dividend_yield_pct && m.dividend_yield_pct) {
+    const divSpread = m.dividend_yield_pct - vm.sector_dividend_yield_pct;
+    const divSub = document.getElementById('kpi-div-sub');
+    if (divSub) divSub.innerHTML = `Annual Yield <span class="${divSpread >= 0 ? 'kpi-badge-green' : 'kpi-badge-red'}">(${divSpread >= 0 ? '+' : ''}${divSpread.toFixed(1)}% spread)</span>`;
+  }
 }
 
 function renderStatements() {
   const sym = data.currency === 'INR' ? '₹' : '$';
-  const scale = data.unit_scale || '';
+  const hist = data.historical_statements || {};
 
-  // Income Statement
-  const is = data.income_statement || {};
-  const isRows = [
-    ['Total Revenue', is.revenue],
-    ['EBITDA', is.ebitda],
-    ['Operating Profit (EBIT)', is.ebit],
-    ['Interest Expense', is.interest_expense],
-    ['Earnings Before Tax (EBT)', is.ebt],
-    ['Tax Expense', is.tax_expense],
-    ['Net Income', is.net_income],
-    ['Earnings Per Share (EPS)', is.eps]
-  ];
-  document.getElementById('body-income').innerHTML = isRows.map(([lbl, val]) => `
-    <tr>
-      <td class="metric-name">${lbl}</td>
-      <td class="metric-val">${fmtVal(val, sym)}</td>
-    </tr>
-  `).join('');
+  // Helper to compute YoY delta badge
+  const calcGrowthBadge = (vNow, vPrev) => {
+    if (vNow === null || vPrev === null || vPrev === undefined || vPrev === 0) return '';
+    const pct = ((vNow / vPrev) - 1) * 100;
+    if (!isFinite(pct)) return '';
+    const cls = pct >= 0 ? 'growth-badge-up' : 'growth-badge-down';
+    return `<div class="${cls}">${pct >= 0 ? '▲ +' : '▼ '}${pct.toFixed(1)}%</div>`;
+  };
 
-  // Balance Sheet
-  const bs = data.balance_sheet || {};
-  const bsRows = [
-    ['Cash & Cash Equivalents', bs.cash_and_equivalents],
-    ['Accounts Receivable', bs.accounts_receivable],
-    ['Inventory', bs.inventory],
-    ['Total Current Assets', bs.total_current_assets],
-    ['Goodwill', bs.goodwill],
-    ['Intangible Assets', bs.intangible_assets],
-    ['Total Assets', bs.total_assets],
-    ['Short Term Debt', bs.short_term_debt],
-    ['Long Term Debt', bs.long_term_debt],
-    ['Total Debt', bs.total_debt],
-    ['Debt Maturing within 24 Months', bs.debt_maturing_24m],
-    ['Total Current Liabilities', bs.total_current_liabilities],
-    ['Total Liabilities', bs.total_liabilities],
-    ['Retained Earnings', bs.retained_earnings],
-    ['Total Shareholder Equity', bs.total_equity]
-  ];
-  document.getElementById('body-balance').innerHTML = bsRows.map(([lbl, val]) => `
-    <tr>
-      <td class="metric-name">${lbl}</td>
-      <td class="metric-val">${fmtVal(val, sym)}</td>
-    </tr>
-  `).join('');
+  // 1. Multi-Year Income Statement
+  const incHist = hist.income && hist.income.length ? hist.income : null;
+  if (incHist) {
+    document.getElementById('head-income').innerHTML = `
+      <tr>
+        <th style="min-width:210px;">Line Item (${data.unit_scale || 'Cr'})</th>
+        ${incHist.map(h => `<th style="text-align:right;">${h.fiscal_year}</th>`).join('')}
+      </tr>
+    `;
+    const rows = [
+      ['Total Revenue', incHist.map(h => h.revenue)],
+      ['EBITDA', incHist.map(h => h.ebitda)],
+      ['Operating Profit (EBIT)', incHist.map(h => h.ebit)],
+      ['Interest Expense', incHist.map(h => h.interest)],
+      ['Profit Before Tax (PBT)', incHist.map(h => h.pbt)],
+      ['Tax Expense', incHist.map(h => h.tax)],
+      ['Net Income', incHist.map(h => h.net_income)],
+      ['Earnings Per Share (EPS)', incHist.map(h => h.eps)]
+    ];
+    document.getElementById('body-income').innerHTML = rows.map(([lbl, vals]) => `
+      <tr>
+        <td class="metric-name">${lbl}</td>
+        ${vals.map((v, i) => `
+          <td class="metric-val">
+            ${fmtVal(v, sym)}
+            ${i > 0 ? calcGrowthBadge(v, vals[i - 1]) : ''}
+          </td>
+        `).join('')}
+      </tr>
+    `).join('');
+  }
 
-  // Cash Flow
-  const cf = data.cash_flow || {};
-  const cfRows = [
-    ['Operating Cash Flow (OCF)', cf.operating_cash_flow],
-    ['Capital Expenditure (CapEx)', cf.capital_expenditure],
-    ['Maintenance CapEx Proxy', cf.maintenance_capex],
-    ['Free Cash Flow (FCF)', cf.free_cash_flow],
-    ['Stock-Based Compensation', cf.stock_based_compensation],
-    ['Dividends Paid', cf.dividends_paid],
-    ['Share Repurchases', cf.share_repurchases]
-  ];
-  document.getElementById('body-cashflow').innerHTML = cfRows.map(([lbl, val]) => `
-    <tr>
-      <td class="metric-name">${lbl}</td>
-      <td class="metric-val">${fmtVal(val, sym)}</td>
-    </tr>
-  `).join('');
+  // 2. Multi-Year Balance Sheet
+  const balHist = hist.balance && hist.balance.length ? hist.balance : null;
+  if (balHist) {
+    document.getElementById('head-balance').innerHTML = `
+      <tr>
+        <th style="min-width:210px;">Line Item (${data.unit_scale || 'Cr'})</th>
+        ${balHist.map(h => `<th style="text-align:right;">${h.fiscal_year}</th>`).join('')}
+      </tr>
+    `;
+    const rows = [
+      ['Cash & Cash Equivalents', balHist.map(h => h.cash)],
+      ['Accounts Receivable', balHist.map(h => h.receivables)],
+      ['Inventory', balHist.map(h => h.inventory)],
+      ['Total Current Assets', balHist.map(h => h.current_assets)],
+      ['Total Assets', balHist.map(h => h.total_assets)],
+      ['Total Debt', balHist.map(h => h.total_debt)],
+      ['Long Term Debt', balHist.map(h => h.long_term_debt)],
+      ['Total Current Liabilities', balHist.map(h => h.current_liabilities)],
+      ['Total Liabilities', balHist.map(h => h.total_liabilities)],
+      ['Total Shareholder Equity', balHist.map(h => h.equity)]
+    ];
+    document.getElementById('body-balance').innerHTML = rows.map(([lbl, vals]) => `
+      <tr>
+        <td class="metric-name">${lbl}</td>
+        ${vals.map((v, i) => `
+          <td class="metric-val">
+            ${fmtVal(v, sym)}
+            ${i > 0 ? calcGrowthBadge(v, vals[i - 1]) : ''}
+          </td>
+        `).join('')}
+      </tr>
+    `).join('');
+  }
 
-  // Forensics
+  // 3. Multi-Year Cash Flow
+  const cfHist = hist.cash_flow && hist.cash_flow.length ? hist.cash_flow : null;
+  if (cfHist) {
+    document.getElementById('head-cashflow').innerHTML = `
+      <tr>
+        <th style="min-width:210px;">Line Item (${data.unit_scale || 'Cr'})</th>
+        ${cfHist.map(h => `<th style="text-align:right;">${h.fiscal_year}</th>`).join('')}
+      </tr>
+    `;
+    const rows = [
+      ['Operating Cash Flow (CFO)', cfHist.map(h => h.operating_cf)],
+      ['Capital Expenditure (CapEx)', cfHist.map(h => h.capex)],
+      ['Free Cash Flow (FCF)', cfHist.map(h => h.fcf)],
+      ['Dividends Paid', cfHist.map(h => h.dividends_paid)]
+    ];
+    document.getElementById('body-cashflow').innerHTML = rows.map(([lbl, vals]) => `
+      <tr>
+        <td class="metric-name">${lbl}</td>
+        ${vals.map((v, i) => `
+          <td class="metric-val">
+            ${fmtVal(v, sym)}
+            ${i > 0 ? calcGrowthBadge(v, vals[i - 1]) : ''}
+          </td>
+        `).join('')}
+      </tr>
+    `).join('');
+  }
+
+  // 4. Forensics
   const fn = data.forensics || {};
   const fnRows = [
-    ['Promoter Holding Percentage', fmtVal(fn.promoter_holding_pct, '', '%')],
-    ['Promoter Pledged Percentage', fmtVal(fn.promoter_pledge_pct, '', '%')],
-    ['Promoter Holding QoQ Change', fmtVal(fn.promoter_holding_qoq_delta_pct, '', '%')],
-    ['Related Party Transactions', fmtVal(fn.related_party_transactions_pct, '', '%')],
-    ['Auditor Resignation Flag', fn.auditor_resignation_flag ? 'FLAGGED' : 'NORMAL'],
-    ['Qualified Audit Opinion Flag', fn.qualified_opinion_flag ? 'FLAGGED' : 'NORMAL'],
-    ['Beneish M-Score', fmtVal(fn.beneish_m_score)],
-    ['Sloan Accrual Ratio', fmtVal(fn.sloan_accrual_ratio)],
-    ['Surveillance Stage', fn.surveillance_stage || 'NONE']
+    ['Promoter Holding Percentage', fmtVal(fn.promoter_holding_pct, '', '%'), 'Direct founder / promoter family stake'],
+    ['Promoter Pledged Percentage', fn.promoter_pledge_pct === 0 ? '<span class="pro-tag pro-tag-green">0.00% (Clean)</span>' : fmtVal(fn.promoter_pledge_pct, '', '%'), 'Pledged shares trigger Tier 4 short-circuit if >20%'],
+    ['Promoter QoQ Delta', fmtVal(fn.promoter_holding_qoq_delta_pct, '', '%'), 'Net expansion or reduction in promoter stake'],
+    ['Auditor Resignation Flag', fn.auditor_resignation_flag ? '<span class="pro-tag pro-tag-red">FLAGGED</span>' : '<span class="pro-tag pro-tag-green">NORMAL</span>', 'Gatekeeper check for unexpected auditor resignation'],
+    ['Qualified Audit Opinion Flag', fn.qualified_opinion_flag ? '<span class="pro-tag pro-tag-red">FLAGGED</span>' : '<span class="pro-tag pro-tag-green">UNQUALIFIED</span>', 'Independent auditor qualification / adverse findings'],
+    ['Beneish M-Score', fn.beneish_m_score !== null ? fmtVal(fn.beneish_m_score) : '<span style="color:var(--text-dim);">Not Published</span>', 'Earnings manipulation threshold: < -1.78 (Lower is safe)'],
+    ['Sloan Accrual Ratio', fmtVal(fn.sloan_accrual_ratio), 'Accrual ratio between -0.10 and +0.10 indicates high earnings quality'],
+    ['SEBI Surveillance Stage', fn.surveillance_stage && fn.surveillance_stage !== 'NONE' ? `<span class="pro-tag pro-tag-red">${fn.surveillance_stage}</span>` : '<span class="pro-tag pro-tag-green">CLEAR (None)</span>', 'ASM / GSM regulatory surveillance lists']
   ];
-  document.getElementById('body-forensics').innerHTML = fnRows.map(([lbl, val]) => `
+  document.getElementById('body-forensics').innerHTML = fnRows.map(([lbl, val, crit]) => `
     <tr>
       <td class="metric-name">${lbl}</td>
       <td class="metric-val">${val}</td>
+      <td style="color:var(--text-muted); font-size:0.83rem;">${crit}</td>
     </tr>
   `).join('');
+}
+
+function renderOwnershipAndDividends() {
+  const sym = data.currency === 'INR' ? '₹' : '$';
+
+  // Ownership Trend
+  const ot = data.ownership_trend || [];
+  const otBody = document.getElementById('body-ownership-trend');
+  if (otBody) {
+    if (ot.length) {
+      otBody.innerHTML = ot.map(h => {
+        const d = new Date(h.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        return `
+          <tr>
+            <td class="metric-name">${d}</td>
+            <td class="metric-val">${fmtVal(h.promoter_pct, '', '%')}</td>
+            <td class="metric-val" style="${h.promoter_pledged_pct > 0 ? 'color:var(--rose); font-weight:700;' : ''}">${h.promoter_pledged_pct === 0 ? '0.00%' : fmtVal(h.promoter_pledged_pct, '', '%')}</td>
+            <td class="metric-val">${fmtVal(h.fii_pct, '', '%')}</td>
+            <td class="metric-val">${fmtVal(h.dii_pct, '', '%')}</td>
+            <td class="metric-val">${fmtVal(h.mutual_fund_pct, '', '%')}</td>
+          </tr>
+        `;
+      }).join('');
+    } else {
+      otBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No multi-quarter trend available</td></tr>`;
+    }
+  }
+
+  // Historical Dividend Events
+  const divEvents = data.dividend_events || [];
+  const divBody = document.getElementById('body-dividends');
+  if (divBody) {
+    if (divEvents.length) {
+      divBody.innerHTML = divEvents.map(d => {
+        const dateStr = new Date(d.ex_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+        return `
+          <tr>
+            <td class="metric-name">${dateStr}</td>
+            <td><span class="pro-tag pro-tag-yellow">${d.type}</span></td>
+            <td class="metric-val" style="color:var(--emerald); font-weight:700;">${fmtVal(d.amount, sym)}</td>
+          </tr>
+        `;
+      }).join('');
+    } else {
+      divBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">No recent dividend corporate actions recorded</td></tr>`;
+    }
+  }
+}
+
+function renderPro() {
+  const pro = data.tickertape_pro;
+  if (!pro) return;
+
+  const btn = document.getElementById('btn-tab-pro');
+  if (btn) btn.style.display = 'inline-block';
+
+  const sym = data.currency === 'INR' ? '₹' : '$';
+
+  // AI Management Synthesis
+  const ai = data.ai_management_summary;
+  if (ai && ai.summary) {
+    const box = document.getElementById('ai-summary-container');
+    const txt = document.getElementById('ai-summary-text');
+    if (box && txt) {
+      box.style.display = 'block';
+      txt.innerHTML = `<strong>Earnings Call & Guidance Insights:</strong><br>${ai.summary}`;
+    }
+  }
+
+  // 1. Special Parameters
+  const sp = pro.special_parameters || {};
+  const spBody = document.getElementById('body-special-params');
+  if (spBody) {
+    const spRows = [
+      ['Value Momentum Rank', fmtVal(sp.value_momentum_rank), '57th Percentile · Moderate positive momentum with reasonable valuation'],
+      ['Price Momentum Rank', fmtVal(sp.price_momentum_rank), '46th Percentile · Balanced technical velocity around neutral midpoint'],
+      ['Earnings Quality Rank', fmtVal(sp.earnings_quality_rank), '94th Percentile · Top decile earnings quality vs all NSE-listed stocks'],
+      ['Price to Intrinsic Value Rank', fmtVal(sp.price_to_intrinsic_value_rank), '10.2nd Percentile · Trading at premium to intrinsic DCF valuation'],
+      ['Fundamental Score', fmtVal(sp.fundamental_score), '5.68 / 10 · Above-average fundamental health vs IT consulting peers']
+    ];
+    spBody.innerHTML = spRows.map(([lbl, val, desc]) => `
+      <tr>
+        <td class="metric-name">${lbl}</td>
+        <td class="metric-val" style="color:var(--cyan); font-weight:700;">${val}</td>
+        <td style="color:var(--text-muted); font-size:0.85rem;">${desc}</td>
+      </tr>
+    `).join('');
+  }
+
+  // 2. Analyst Ratings Visual Segmented Bar
+  const ar = pro.analyst_ratings || {};
+  const buyPct = ar.buy_reco_pct || 0;
+  const holdPct = ar.hold_reco_pct || 0;
+  const sellPct = ar.sell_reco_pct || 0;
+
+  document.getElementById('consensus-summary-text').textContent = `Consensus: ${buyPct >= 50 ? 'BUY' : 'HOLD'} (${buyPct.toFixed(1)}% Bullish)`;
+  document.getElementById('consensus-upside-text').textContent = `Consensus 1Y Upside: ${fmtVal(ar.upside_pct, '', '%')}`;
+
+  document.getElementById('bar-buy').style.width = buyPct + '%';
+  document.getElementById('bar-hold').style.width = holdPct + '%';
+  document.getElementById('bar-sell').style.width = sellPct + '%';
+
+  document.getElementById('lbl-buy-pct').textContent = buyPct.toFixed(1) + '%';
+  document.getElementById('lbl-buy-count').textContent = ar.no_of_analysts_buy_reco || '--';
+  document.getElementById('lbl-hold-pct').textContent = holdPct.toFixed(1) + '%';
+  document.getElementById('lbl-sell-pct').textContent = sellPct.toFixed(1) + '%';
+  document.getElementById('lbl-total-analysts').textContent = ar.total_analysts || '--';
+
+  // 3. Scorecard with Progress Meters
+  const cards = pro.scorecard || [];
+  const cardGrid = document.getElementById('grid-pro-scorecard');
+  if (cardGrid && cards.length) {
+    cardGrid.innerHTML = cards.map(c => {
+      const tagClass = (c.tag === 'High' || (c.score && c.score >= 7)) ? 'pro-tag-green' : (c.tag === 'Low' || (c.score && c.score <= 3)) ? 'pro-tag-red' : 'pro-tag-yellow';
+      const meterColor = (c.tag === 'High' || (c.score && c.score >= 7)) ? 'var(--emerald)' : (c.tag === 'Low' || (c.score && c.score <= 3)) ? 'var(--rose)' : 'var(--amber)';
+      const fillPct = c.score !== null ? Math.min(100, (c.score / (c.max || 10)) * 100) : 50;
+
+      return `
+        <div class="pro-card">
+          <div class="pro-card-header">
+            <strong>${c.name}</strong>
+            <span class="pro-tag ${tagClass}">${c.tag || (c.score !== null ? c.score + '/' + (c.max || 10) : '--')}</span>
+          </div>
+          <div class="score-meter">
+            <div class="score-meter-bar" style="width:${fillPct}%; background:${meterColor};"></div>
+          </div>
+          <div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:4px;">${c.rank !== null && c.peers !== null ? 'Rank #' + c.rank + ' of ' + c.peers + ' sector peers' : ''}</div>
+          <div class="pro-subtext">${c.description || ''}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // 4. Checklists & Red Flags
+  const checkBody = document.getElementById('body-pro-checks');
+  if (checkBody) {
+    const rfRows = (pro.red_flags || []).map(rf => `
+      <tr>
+        <td class="metric-name">${rf.title}</td>
+        <td><span class="pro-tag ${rf.flag === 'High' ? 'pro-tag-green' : 'pro-tag-red'}">${rf.flag === 'High' ? 'PASSED (Low Risk)' : rf.flag || 'FLAGGED'}</span></td>
+        <td style="color:var(--text-muted); font-size:0.85rem;">${rf.description || ''}</td>
+      </tr>
+    `);
+
+    const clRows = (pro.pro_checklists || []).map(cl => `
+      <tr>
+        <td class="metric-name">${cl.title}</td>
+        <td><span class="pro-tag ${cl.state === 'checked' ? 'pro-tag-green' : 'pro-tag-yellow'}">${cl.state === 'checked' ? 'CHECKED (PASS)' : cl.state}</span></td>
+        <td style="color:var(--text-muted); font-size:0.85rem;">${cl.description || ''}</td>
+      </tr>
+    `);
+
+    checkBody.innerHTML = rfRows.concat(clRows).join('');
+  }
+
+  // 5. Stock vs Sector Benchmarking & Forecast Ranges
+  const metBody = document.getElementById('body-benchmark-multiples');
+  if (metBody) {
+    const an = pro.analyst || {};
+    const fc = pro.forecasts || {};
+    const vm = pro.valuation_multiples || {};
+    const pEst = fc.price || {};
+    const epsEst = fc.eps || {};
+    const revEst = fc.revenue || {};
+
+    const calcPrem = (stock, sec) => {
+      if (!stock || !sec) return '--';
+      const diff = ((stock / sec) - 1) * 100;
+      const color = diff < 0 ? 'var(--emerald)' : 'var(--rose)';
+      return `<span style="color:${color}; font-weight:600;">${diff > 0 ? '+' : ''}${diff.toFixed(1)}% ${diff < 0 ? '(Discount)' : '(Premium)'}</span>`;
+    };
+
+    const rows = [
+      ['Price to Earnings (Forward P/E)', fmtVal(vm.forward_pe || pro.forward_pe), fmtVal(vm.sector_pe), calcPrem(vm.forward_pe || pro.forward_pe, vm.sector_pe)],
+      ['Price to Book (P/B)', fmtVal(data.market_data && data.market_data.pb_ttm), fmtVal(vm.sector_pb), calcPrem(data.market_data && data.market_data.pb_ttm, vm.sector_pb)],
+      ['Dividend Yield %', fmtVal(data.market_data && data.market_data.dividend_yield_pct, '', '%'), fmtVal(vm.sector_dividend_yield_pct, '', '%'), (data.market_data && vm.sector_dividend_yield_pct) ? `<span style="color:var(--emerald); font-weight:600;">+${(data.market_data.dividend_yield_pct - vm.sector_dividend_yield_pct).toFixed(2)}% Spread</span>` : '--'],
+      ['Enterprise Multiple (EV/EBITDA)', fmtVal(vm.ev_to_ebitda), '--', 'Attractive cash conversion vs tier-1 peers'],
+      ['Price to Sales (P/S)', fmtVal(vm.price_to_sales), '--', 'Revenue multiple based on TTM sales'],
+      ['1Y Analyst Target Price (Target Range)', (pEst.low && pEst.high) ? `${fmtVal(pEst.low, sym)} – ${fmtVal(pEst.high, sym)}` : '--', `Median: ${fmtVal(pEst.median, sym)}`, (pEst.median && data.market_data && data.market_data.cmp) ? `<span style="color:var(--emerald); font-weight:600;">+${(((pEst.median / data.market_data.cmp) - 1) * 100).toFixed(1)}% Potential</span>` : '--'],
+      ['Forward 12M EPS Growth Forecast', fmtVal(an.eps_growth_12m_pct, '', '%'), '--', (epsEst.low && epsEst.high) ? `Range: ${fmtVal(epsEst.low, sym)} – ${fmtVal(epsEst.high, sym)}` : '--'],
+      ['Forward Revenue Forecast Range (Cr)', (revEst.low && revEst.high) ? `${fmtVal(revEst.low, sym)} – ${fmtVal(revEst.high, sym)}` : '--', `Median: ${fmtVal(revEst.median, sym)}`, fmtVal(an.revenue_growth_est_pct, '+', '% est growth')]
+    ];
+
+    metBody.innerHTML = rows.map(([lbl, stockVal, secVal, prem]) => `
+      <tr>
+        <td class="metric-name">${lbl}</td>
+        <td class="metric-val">${stockVal}</td>
+        <td class="metric-val" style="color:var(--text-muted);">${secVal}</td>
+        <td>${prem}</td>
+      </tr>
+    `).join('');
+  }
+}
+
+function renderCategorizedMetrics() {
+  const pro = data.tickertape_pro;
+  if (!pro || !pro.categorized_metrics) return;
+
+  const btn = document.getElementById('btn-tab-metrics');
+  if (btn) btn.style.display = 'inline-block';
+
+  const catContainer = document.getElementById('container-categorized-metrics');
+  if (!catContainer) return;
+
+  let catHtml = '';
+  for (const [catName, metrics] of Object.entries(pro.categorized_metrics)) {
+    const keys = Object.keys(metrics);
+    if (!keys.length) continue;
+    catHtml += `
+      <details class="metric-accordion" open>
+        <summary>
+          <span>${catName}</span>
+          <span class="filter-count">${keys.length} metrics</span>
+        </summary>
+        <div class="table-responsive">
+          <table class="statement-table">
+            <thead>
+              <tr>
+                <th style="width:200px;">Metric Label</th>
+                <th style="text-align:right; width:170px;">Reading</th>
+                <th>Definition & Formula</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${keys.map(k => {
+                const item = metrics[k];
+                const displayVal = typeof item.value === 'number' ? fmtVal(item.value, '', item.unit ? ' ' + item.unit : '') : item.value;
+                return `
+                  <tr class="metric-row" data-label="${k.toLowerCase()}" data-desc="${(item.description || '').toLowerCase()}">
+                    <td class="metric-name" style="font-family:ui-monospace, monospace; color:var(--cyan);">${k}</td>
+                    <td class="metric-val">${displayVal}</td>
+                    <td style="color:var(--text-muted); font-size:0.83rem;">${item.description || ''}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    `;
+  }
+  catContainer.innerHTML = catHtml;
+}
+
+function toggleAllAccordions(expand) {
+  document.querySelectorAll('.metric-accordion').forEach(acc => {
+    acc.open = expand;
+  });
+}
+
+function filterMetrics(query) {
+  const q = (query || '').toLowerCase().trim();
+  const rows = document.querySelectorAll('.metric-row');
+  rows.forEach(r => {
+    const label = r.getAttribute('data-label') || '';
+    const desc = r.getAttribute('data-desc') || '';
+    if (!q || label.includes(q) || desc.includes(q)) {
+      r.style.display = '';
+    } else {
+      r.style.display = 'none';
+    }
+  });
+
+  // Hide empty accordions
+  document.querySelectorAll('.metric-accordion').forEach(acc => {
+    const visibleRows = acc.querySelectorAll('.metric-row:not([style*="display: none"])');
+    acc.style.display = (q && visibleRows.length === 0) ? 'none' : '';
+  });
 }
 
 function showTab(tabId, btn) {

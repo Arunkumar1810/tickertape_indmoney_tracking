@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Combined Portfolio Holdings · fetch-all</title>
+  <meta name="description" content="Consolidated domestic (Angel One) and foreign (INDmoney US) portfolio holdings and valuation.">
+  <style>
+    :root {
+      --bg: #090d16;
+      --surface: #111726;
+      --surface-alt: #172033;
+      --border: #1f293d;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --cyan: #38bdf8;
+      --emerald: #34d399;
+      --rose: #fb7185;
+      --indigo: #818cf8;
+      --amber: #fbbf24;
+      --purple: #c084fc;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.5;
+      padding: 24px 20px 60px;
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .title-group h1 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+
+    .title-group p {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      margin-top: 4px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .currency-toggle {
+      display: inline-flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2px;
+    }
+
+    .currency-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.78rem;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .currency-btn.active {
+      background: var(--cyan);
+      color: #090d16;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .badge-primary {
+      color: var(--cyan);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+
+    .badge-accent {
+      color: var(--indigo);
+      border-color: rgba(129, 140, 248, 0.3);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    .kpi-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .kpi-value {
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .kpi-sub {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .pos {
+      color: var(--emerald);
+    }
+
+    .neg {
+      color: var(--rose);
+    }
+
+    .composition-section {
+      margin-bottom: 24px;
+    }
+
+    .composition-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .composition-card:hover {
+      border-color: rgba(56, 189, 248, 0.35);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .comp-header {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .comp-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .comp-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .comp-subtitle {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .comp-badges {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .comp-badge {
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      color: var(--cyan);
+    }
+
+    .comp-badge-alt {
+      color: var(--indigo);
+    }
+
+    .comp-body {
+      display: grid;
+      grid-template-columns: minmax(360px, 450px) 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .comp-body {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+    }
+
+    .comp-chart-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      width: 100%;
+      position: sticky;
+      top: 16px;
+    }
+
+    .sunburst-wrapper {
+      position: relative;
+      width: 440px;
+      height: 440px;
+      max-width: 100%;
+      aspect-ratio: 1 / 1;
+      margin: 0 auto;
+    }
+
+    .sunburst-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .pie-slice {
+      cursor: pointer;
+      transition: opacity 0.15s ease, filter 0.15s ease;
+    }
+
+    .pie-slice:hover,
+    .pie-slice.active {
+      filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.75)) brightness(1.25);
+    }
+
+    .pie-slice.dimmed {
+      opacity: 0.22;
+    }
+
+    .ring-slice-sector {
+      cursor: pointer;
+      transition: opacity 0.15s ease, filter 0.15s ease;
+    }
+
+    .ring-slice-sector:hover,
+    .ring-slice-sector.active {
+      filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.85)) brightness(1.25);
+    }
+
+    .ring-slice-sector.dimmed {
+      opacity: 0.22;
+    }
+
+    .ring-guides {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      margin-top: 14px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .ring-guide-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .guide-circle {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .guide-outer {
+      border: 2px solid var(--cyan);
+      background: transparent;
+    }
+
+    .guide-inner {
+      background: var(--indigo);
+    }
+
+    .chart-inspector {
+      width: 100%;
+      max-width: 440px;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 20px;
+      margin-top: 16px;
+      text-align: center;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .chart-inspector:hover {
+      border-color: rgba(56, 189, 248, 0.3);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .inspector-kicker {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--cyan);
+      letter-spacing: 0.08em;
+      margin-bottom: 3px;
+    }
+
+    .inspector-metric {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin: 3px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .inspector-tag {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .comp-legend-container {
+      max-height: 560px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 8px;
+      scrollbar-width: thin;
+      scrollbar-color: #38bdf8 rgba(255, 255, 255, 0.08);
+    }
+
+    .comp-legend-container::-webkit-scrollbar {
+      width: 7px;
+    }
+
+    .comp-legend-container::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 9999px;
+    }
+
+    .comp-legend-container::-webkit-scrollbar-thumb {
+      background: #38bdf8;
+      border-radius: 9999px;
+    }
+
+    .comp-legend-container::-webkit-scrollbar-thumb:hover {
+      background: #0ea5e9;
+    }
+
+    .sector-card-group {
+      flex: 0 0 auto;
+      flex-shrink: 0;
+      min-height: fit-content;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.15s ease;
+    }
+
+    .sector-card-group:hover,
+    .sector-card-group.active {
+      border-color: rgba(56, 189, 248, 0.4);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .sector-card-group.collapsed .stock-nested-list {
+      display: none;
+    }
+
+    .sec-hdr-chevron {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+      margin-left: 4px;
+      display: inline-block;
+    }
+
+    .sector-card-group.collapsed .sec-hdr-chevron {
+      transform: rotate(-90deg);
+    }
+
+    .sector-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      cursor: pointer;
+      background: var(--surface-alt);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .sec-hdr-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sec-bar-indicator {
+      width: 4px;
+      height: 14px;
+      border-radius: 2px;
+    }
+
+    .sec-hdr-name {
+      font-weight: 700;
+      font-size: 0.84rem;
+      color: var(--text);
+    }
+
+    .sec-hdr-count {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .sec-hdr-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sec-hdr-val {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+    }
+
+    .sec-hdr-pct {
+      font-weight: 700;
+      color: var(--cyan);
+      font-size: 0.82rem;
+      font-variant-numeric: tabular-nums;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(56, 189, 248, 0.1);
+    }
+
+    .stock-nested-list {
+      display: flex;
+      flex-direction: column;
+      padding: 4px 8px 6px;
+      gap: 2px;
+    }
+
+    .stock-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .stock-row:hover,
+    .stock-row.active {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .stock-row-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .stock-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .stock-sym {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 0.8rem;
+    }
+
+    .stock-company {
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .stock-origin-pill {
+      font-size: 0.65rem;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .stock-origin-pill.in {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+    }
+
+    .stock-origin-pill.us {
+      color: #818cf8;
+      background: rgba(129, 140, 248, 0.12);
+    }
+
+    .stock-row-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .stock-row-val {
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      font-size: 0.75rem;
+    }
+
+    .stock-row-pct {
+      font-weight: 600;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+      font-size: 0.75rem;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 260px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .search-input:focus {
+      border-color: var(--cyan);
+    }
+
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 30px;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+      text-align: left;
+    }
+
+    th {
+      background: var(--surface-alt);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    th:hover {
+      color: var(--cyan);
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .num-cell {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ticker-cell {
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .name-cell {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .weight-bar {
+      height: 4px;
+      background: var(--cyan);
+      border-radius: 2px;
+      margin-top: 4px;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!--__CACHE_BANNER__-->
+    <header>
+      <div class="title-group">
+        <h1>Combined Portfolio Holdings</h1>
+        <p>Consolidated Domestic (Angel One) &amp; Foreign (INDmoney US) Portfolios</p>
+      </div>
+      <div class="header-actions">
+        <div class="currency-toggle">
+          <button id="btn-inr" class="currency-btn active" onclick="setCurrency('INR')">INR (₹)</button>
+          <button id="btn-usd" class="currency-btn" onclick="setCurrency('USD')">USD ($)</button>
+        </div>
+        <div class="badge badge-primary" id="account-badge">Combined Portfolio</div>
+        <div class="badge badge-accent" id="fx-badge">1 USD = ₹--.--</div>
+      </div>
+    </header>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Market Value</div>
+        <div class="kpi-value" id="kpi-current">--</div>
+        <div class="kpi-sub" id="kpi-current-sub">Combined equity value</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Invested Cost</div>
+        <div class="kpi-value" id="kpi-invested">--</div>
+        <div class="kpi-sub" id="kpi-invested-sub">Total cost basis</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Unrealized P&amp;L</div>
+        <div class="kpi-value" id="kpi-pnl">--</div>
+        <div class="kpi-sub" id="kpi-pnl-pct">--</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Pooled Cash Margin</div>
+        <div class="kpi-value" id="kpi-cash">--</div>
+        <div class="kpi-sub" id="kpi-cash-sub">Settled purchasing power</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Account Equity</div>
+        <div class="kpi-value" id="kpi-equity">--</div>
+        <div class="kpi-sub" id="kpi-equity-sub">Holdings + Cash</div>
+      </div>
+    </div>
+
+    <!-- Hierarchical Portfolio Structure: Inner Pie (Stock Composition) & Enclosing Outer Ring (Sector Composition) -->
+    <section class="composition-section">
+      <div class="composition-card">
+        <div class="comp-header">
+          <div class="comp-title-group">
+            <h3 class="comp-title">Portfolio Structure · Stock &amp; Sector Composition</h3>
+            <p class="comp-subtitle">Inner pie: Stock Composition · Outer ring: Sector Composition (enclosing constituent stocks)</p>
+          </div>
+          <div class="comp-badges">
+            <span class="comp-badge" id="stockBadge">- Stocks</span>
+            <span class="comp-badge comp-badge-alt" id="sectorBadge">- Sectors</span>
+          </div>
+        </div>
+
+        <div class="comp-body">
+          <div class="comp-chart-col">
+            <div class="sunburst-wrapper">
+              <svg id="concentricDonutSvg" class="sunburst-svg" viewBox="0 0 320 320">
+                <!-- Outer track reference (radius 100 to 146) -->
+                <circle cx="160" cy="160" r="123" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="46" />
+                <!-- Outer Ring: Sector Composition -->
+                <g id="sectorDonutSvg" class="ring-group ring-sectors"></g>
+                <!-- Inner Pie: Stock Composition -->
+                <g id="stockDonutSvg" class="ring-group ring-stocks"></g>
+              </svg>
+            </div>
+            <div class="ring-guides">
+              <span class="ring-guide-item"><span class="guide-circle guide-inner"></span> Inner Pie: Stocks</span>
+              <span class="ring-guide-item"><span class="guide-circle guide-outer"></span> Outer Ring: Sectors</span>
+            </div>
+            <div class="chart-inspector" id="chartInspector">
+              <div class="inspector-kicker" id="centerKicker">Total Portfolio</div>
+              <div class="inspector-metric" id="centerMetric">-</div>
+              <div class="inspector-tag" id="centerTag">100% Allocated</div>
+            </div>
+          </div>
+
+          <div class="comp-legend-container" id="compLegend"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="controls">
+      <input type="text" id="search" class="search-input" placeholder="Search by ticker, company, exchange, or broker...">
+    </div>
+
+    <div class="table-card">
+      <div class="table-responsive">
+        <table id="holdings-table">
+          <thead>
+            <tr>
+              <th onclick="sortTable('ticker')">Stock</th>
+              <th class="num-cell" onclick="sortTable('quantity')">Qty</th>
+              <th class="num-cell" onclick="sortTable('average_price')">Avg Buy</th>
+              <th class="num-cell" onclick="sortTable('cmp')">CMP</th>
+              <th class="num-cell" onclick="sortTable('invested_value')">Invested</th>
+              <th class="num-cell" onclick="sortTable('current_value')">Value</th>
+              <th class="num-cell" onclick="sortTable('unrealized_pnl')">P&amp;L</th>
+              <th class="num-cell" onclick="sortTable('unrealized_pnl_pct')">Return</th>
+              <th class="num-cell" onclick="sortTable('weight_pct')">Weight</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <footer>
+      <p>Generated by <strong>fetch-all</strong> · Tier 1 Multi-Broker Portfolio Consolidator · Offline Self-Contained Report</p>
+    </footer>
+  </div>
+
+  <script id="snapshot-data" type="application/json">/*__DATA__*/null</script>
+
+  <script>
+    let snapshot = null;
+    let currentCurrency = 'INR';
+    let sortField = 'current_value';
+    let sortAsc = false;
+
+    function init() {
+      const dataEl = document.getElementById('snapshot-data');
+      if (dataEl && dataEl.textContent.trim() && dataEl.textContent.trim() !== '/*__DATA__*/null') {
+        try {
+          snapshot = JSON.parse(dataEl.textContent);
+        } catch (e) {
+          console.error('Failed to parse snapshot JSON', e);
+        }
+      }
+      if (!snapshot) return;
+
+      const fx = snapshot.usd_to_inr || snapshot.fx_rate || 93.91;
+      document.getElementById('fx-badge').textContent = `1 USD = ₹${fx.toFixed(2)}`;
+      const inCount = (snapshot.holdings || []).filter(h => h.broker === 'angelone').length;
+      const usCount = (snapshot.holdings || []).filter(h => h.broker === 'indmoney').length;
+      document.getElementById('account-badge').textContent = `Combined: ${inCount} IN · ${usCount} US`;
+
+      renderKPIs();
+      renderConcentricSunburst();
+      renderTable();
+
+      document.getElementById('search').addEventListener('input', () => {
+        renderTable();
+      });
+    }
+
+    function getFx() {
+      return (snapshot && snapshot.usd_to_inr) || 93.91;
+    }
+
+    function fmtMoney(amountINR, currency = currentCurrency) {
+      if (amountINR === null || amountINR === undefined || isNaN(amountINR)) return '--';
+      const fx = getFx();
+      if (currency === 'USD') {
+        const valUSD = amountINR / fx;
+        return '$' + valUSD.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+      }
+      return '₹' + Number(amountINR).toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function setCurrency(cur) {
+      currentCurrency = cur;
+      document.getElementById('btn-usd').classList.toggle('active', cur === 'USD');
+      document.getElementById('btn-inr').classList.toggle('active', cur === 'INR');
+      renderKPIs();
+      renderConcentricSunburst();
+      renderTable();
+    }
+
+    function renderKPIs() {
+      if (!snapshot || !snapshot.summary) return;
+      const s = snapshot.summary;
+      const fx = getFx();
+
+      document.getElementById('kpi-current').textContent = fmtMoney(s.total_current_value);
+      document.getElementById('kpi-current-sub').textContent = currentCurrency === 'INR'
+        ? `≈ $${(s.total_current_value / fx).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : `≈ ₹${Number(s.total_current_value).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+
+      document.getElementById('kpi-invested').textContent = fmtMoney(s.total_invested);
+      document.getElementById('kpi-invested-sub').textContent = currentCurrency === 'INR'
+        ? `≈ $${(s.total_invested / fx).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : `≈ ₹${Number(s.total_invested).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+
+      const pnlEl = document.getElementById('kpi-pnl');
+      pnlEl.textContent = (s.unrealized_pnl >= 0 ? '+' : '') + fmtMoney(s.unrealized_pnl);
+      pnlEl.className = 'kpi-value ' + (s.unrealized_pnl >= 0 ? 'pos' : 'neg');
+
+      const pnlPctEl = document.getElementById('kpi-pnl-pct');
+      pnlPctEl.textContent = `${s.unrealized_pnl >= 0 ? '+' : ''}${s.unrealized_pnl_pct.toFixed(2)}% overall`;
+      pnlPctEl.className = 'kpi-sub ' + (s.unrealized_pnl >= 0 ? 'pos' : 'neg');
+
+      document.getElementById('kpi-cash').textContent = fmtMoney(s.available_cash);
+      document.getElementById('kpi-cash-sub').textContent = currentCurrency === 'INR'
+        ? `≈ $${(s.available_cash / fx).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : `≈ ₹${Number(s.available_cash).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+
+      document.getElementById('kpi-equity').textContent = fmtMoney(s.total_account_equity);
+      document.getElementById('kpi-equity-sub').textContent = currentCurrency === 'INR'
+        ? `≈ $${(s.total_account_equity / fx).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : `≈ ₹${Number(s.total_account_equity).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+    }
+
+    const SECTOR_THEMES = {
+      'Information Technology': {
+        color: '#818cf8',
+        subColors: ['#6366f1', '#818cf8', '#a5b4fc', '#4f46e5', '#c7d2fe', '#4338ca', '#3730a3']
+      },
+      'Communication Services': {
+        color: '#fb923c',
+        subColors: ['#f97316', '#fb923c', '#fdba74', '#ea580c', '#fed7aa']
+      },
+      'Financial Services': {
+        color: '#38bdf8',
+        subColors: ['#0ea5e9', '#38bdf8', '#7dd3fc', '#0284c7', '#bae6fd']
+      },
+      'Financials': {
+        color: '#38bdf8',
+        subColors: ['#0ea5e9', '#38bdf8', '#7dd3fc', '#0284c7', '#bae6fd']
+      },
+      'Consumer Discretionary': {
+        color: '#f472b6',
+        subColors: ['#ec4899', '#f472b6', '#f9a8d4', '#db2777', '#fbcfe8']
+      },
+      'Consumer Staples': {
+        color: '#fbbf24',
+        subColors: ['#f59e0b', '#fbbf24', '#fcd34d', '#d97706', '#fde68a']
+      },
+      'Healthcare': {
+        color: '#34d399',
+        subColors: ['#10b981', '#34d399', '#6ee7b7', '#059669', '#a7f3d0']
+      },
+      'Index ETF': {
+        color: '#2dd4bf',
+        subColors: ['#14b8a6', '#2dd4bf', '#5eead4', '#0d9488', '#99f6e4']
+      },
+      'Other': {
+        color: '#94a3b8',
+        subColors: ['#64748b', '#94a3b8', '#cbd5e1', '#475569', '#e2e8f0']
+      }
+    };
+
+    const FALLBACK_PALETTE = [
+      '#38bdf8', '#818cf8', '#34d399', '#fbbf24', '#f472b6',
+      '#2dd4bf', '#fb923c', '#a78bfa', '#e879f9', '#4ade80'
+    ];
+
+    function renderConcentricSunburst() {
+      const sectorSvg = document.getElementById('sectorDonutSvg');
+      const stockSvg = document.getElementById('stockDonutSvg');
+      const legend = document.getElementById('compLegend');
+      const kickerEl = document.getElementById('centerKicker');
+      const metricEl = document.getElementById('centerMetric');
+      const tagEl = document.getElementById('centerTag');
+
+      if (!sectorSvg || !stockSvg || !legend) return;
+
+      sectorSvg.innerHTML = '';
+      stockSvg.innerHTML = '';
+      legend.innerHTML = '';
+
+      if (!snapshot || !Array.isArray(snapshot.holdings)) return;
+      const holdings = snapshot.holdings;
+      const s = snapshot.summary || {};
+      const totalVal = s.total_current_value || holdings.reduce((sum, h) => sum + (h.current_value || 0), 0);
+
+      // Group holdings by sector
+      const sectorGroupMap = {};
+      for (const h of holdings) {
+        const secName = h.sector || 'Other';
+        if (!sectorGroupMap[secName]) {
+          sectorGroupMap[secName] = {
+            name: secName,
+            value: 0,
+            stocks: []
+          };
+        }
+        sectorGroupMap[secName].value += (h.current_value || 0);
+        sectorGroupMap[secName].stocks.push(h);
+      }
+
+      const sectorList = Object.values(sectorGroupMap);
+      sectorList.sort((a, b) => b.value - a.value);
+
+      let totalStockCount = 0;
+      for (const sec of sectorList) {
+        sec.stocks.sort((a, b) => (b.current_value || 0) - (a.current_value || 0));
+        sec.pct = totalVal > 0 ? (sec.value / totalVal) * 100 : 0;
+        totalStockCount += sec.stocks.length;
+      }
+
+      const stockBadge = document.getElementById('stockBadge');
+      if (stockBadge) stockBadge.textContent = `${totalStockCount} Stocks`;
+      const sectorBadge = document.getElementById('sectorBadge');
+      if (sectorBadge) sectorBadge.textContent = `${sectorList.length} Sectors`;
+
+      const resetCenter = () => {
+        kickerEl.textContent = 'Total Portfolio';
+        metricEl.textContent = fmtMoney(totalVal);
+        tagEl.textContent = `${totalStockCount} Positions · ${sectorList.length} Sectors · 100% Allocated`;
+
+        const allSlices = document.querySelectorAll('.pie-slice, .ring-slice-sector');
+        allSlices.forEach(sl => sl.classList.remove('active', 'dimmed'));
+
+        const allCards = document.querySelectorAll('.sector-card-group');
+        allCards.forEach(c => c.classList.remove('active'));
+        const allStockRows = document.querySelectorAll('.stock-row');
+        allStockRows.forEach(r => r.classList.remove('active'));
+      };
+
+      const highlightSector = (secIdx) => {
+        const sec = sectorList[secIdx];
+        if (!sec) return;
+        kickerEl.textContent = `Sector · ${sec.name}`;
+        metricEl.textContent = fmtMoney(sec.value);
+        tagEl.textContent = `${sec.pct.toFixed(1)}% of portfolio · ${sec.stocks.length} ${sec.stocks.length === 1 ? 'equity' : 'equities'}`;
+
+        const allSlices = document.querySelectorAll('.pie-slice, .ring-slice-sector');
+        allSlices.forEach(sl => {
+          const sIdx = Number(sl.getAttribute('data-sec-idx'));
+          if (sIdx === secIdx) {
+            sl.classList.add('active');
+            sl.classList.remove('dimmed');
+          } else {
+            sl.classList.remove('active');
+            sl.classList.add('dimmed');
+          }
+        });
+
+        const allCards = document.querySelectorAll('.sector-card-group');
+        allCards.forEach((c, idx) => {
+          c.classList.toggle('active', idx === secIdx);
+        });
+      };
+
+      const highlightStock = (secIdx, stockTicker) => {
+        const sec = sectorList[secIdx];
+        if (!sec) return;
+        const stk = sec.stocks.find(st => st.ticker === stockTicker);
+        if (!stk) return;
+        const stkPct = totalVal > 0 ? ((stk.current_value || 0) / totalVal) * 100 : 0;
+
+        const origin = stk.broker === 'angelone' ? 'Angel One · IN' : 'INDmoney · US';
+        kickerEl.textContent = `Stock · ${stk.ticker}`;
+        metricEl.textContent = fmtMoney(stk.current_value);
+        tagEl.textContent = `${stkPct.toFixed(1)}% of portfolio · ${stk.name || stk.ticker} · ${origin}`;
+
+        const allSlices = document.querySelectorAll('.pie-slice, .ring-slice-sector');
+        allSlices.forEach(sl => {
+          const slTicker = sl.getAttribute('data-ticker');
+          const slSecIdx = Number(sl.getAttribute('data-sec-idx'));
+          const isSectorSlice = sl.classList.contains('ring-slice-sector');
+
+          if (slTicker === stockTicker || (isSectorSlice && slSecIdx === secIdx)) {
+            sl.classList.add('active');
+            sl.classList.remove('dimmed');
+          } else {
+            sl.classList.remove('active');
+            sl.classList.add('dimmed');
+          }
+        });
+
+        const allStockRows = document.querySelectorAll('.stock-row');
+        allStockRows.forEach(r => {
+          r.classList.toggle('active', r.getAttribute('data-ticker') === stockTicker);
+        });
+      };
+
+      resetCenter();
+
+      // Radii for viewBox 320x320 centered at (160, 160)
+      const rSectorIn = 100;
+      const rSectorOut = 146;
+      const rPie = 88;
+
+      function getAnnularSectorPath(cx, cy, rIn, rOut, startAngle, endAngle) {
+        if (endAngle - startAngle >= 2 * Math.PI - 0.0001) {
+          return `M ${cx} ${cy - rOut} ` +
+            `A ${rOut} ${rOut} 0 1 0 ${cx} ${cy + rOut} ` +
+            `A ${rOut} ${rOut} 0 1 0 ${cx} ${cy - rOut} ` +
+            `M ${cx} ${cy - rIn} ` +
+            `A ${rIn} ${rIn} 0 1 1 ${cx} ${cy + rIn} ` +
+            `A ${rIn} ${rIn} 0 1 1 ${cx} ${cy - rIn} Z`;
+        }
+        const x1_out = cx + rOut * Math.cos(startAngle);
+        const y1_out = cy + rOut * Math.sin(startAngle);
+        const x2_out = cx + rOut * Math.cos(endAngle);
+        const y2_out = cy + rOut * Math.sin(endAngle);
+
+        const x2_in = cx + rIn * Math.cos(endAngle);
+        const y2_in = cy + rIn * Math.sin(endAngle);
+        const x1_in = cx + rIn * Math.cos(startAngle);
+        const y1_in = cy + rIn * Math.sin(startAngle);
+
+        const largeArc = (endAngle - startAngle > Math.PI) ? 1 : 0;
+
+        return `M ${x1_out.toFixed(3)} ${y1_out.toFixed(3)} ` +
+          `A ${rOut} ${rOut} 0 ${largeArc} 1 ${x2_out.toFixed(3)} ${y2_out.toFixed(3)} ` +
+          `L ${x2_in.toFixed(3)} ${y2_in.toFixed(3)} ` +
+          `A ${rIn} ${rIn} 0 ${largeArc} 0 ${x1_in.toFixed(3)} ${y1_in.toFixed(3)} Z`;
+      }
+
+      function getPieSlicePath(cx, cy, r, startAngle, endAngle) {
+        const x1 = cx + r * Math.cos(startAngle);
+        const y1 = cy + r * Math.sin(startAngle);
+        const x2 = cx + r * Math.cos(endAngle);
+        const y2 = cy + r * Math.sin(endAngle);
+        const largeArc = (endAngle - startAngle > Math.PI) ? 1 : 0;
+        return `M ${cx} ${cy} L ${x1.toFixed(3)} ${y1.toFixed(3)} A ${r} ${r} 0 ${largeArc} 1 ${x2.toFixed(3)} ${y2.toFixed(3)} Z`;
+      }
+
+      let currentAngle = -Math.PI / 2; // Start inner pie & outer ring at 12 o'clock
+
+      sectorList.forEach((sec, secIdx) => {
+        const theme = SECTOR_THEMES[sec.name] || {
+          color: FALLBACK_PALETTE[secIdx % FALLBACK_PALETTE.length],
+          subColors: [FALLBACK_PALETTE[secIdx % FALLBACK_PALETTE.length]]
+        };
+        sec.color = theme.color;
+
+        const secAngleDelta = (sec.pct / 100) * 2 * Math.PI;
+        const secStartAngle = currentAngle;
+        const secEndAngle = currentAngle + secAngleDelta;
+
+        // 1. Outer Ring: Annular Sector Path (Donut Wedge)
+        const secPathD = getAnnularSectorPath(160, 160, rSectorIn, rSectorOut, secStartAngle, secEndAngle);
+        const secSlice = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        secSlice.setAttribute('d', secPathD);
+        secSlice.setAttribute('fill', sec.color);
+        secSlice.setAttribute('stroke', 'rgba(11, 18, 33, 0.95)');
+        secSlice.setAttribute('stroke-width', '1.5');
+        secSlice.setAttribute('class', 'ring-slice-sector');
+        secSlice.setAttribute('data-sec-idx', secIdx);
+
+        secSlice.addEventListener('mouseenter', () => highlightSector(secIdx));
+        secSlice.addEventListener('mouseleave', resetCenter);
+        sectorSvg.appendChild(secSlice);
+
+        // 2. Inner Ring: Solid Pie Chart Slices for constituent stocks
+        let stockAngle = secStartAngle;
+        sec.stocks.forEach((stk, stkIdx) => {
+          const stkPct = totalVal > 0 ? ((stk.current_value || 0) / totalVal) * 100 : 0;
+          stk.pct = stkPct;
+
+          const subColors = theme.subColors && theme.subColors.length > 0 ? theme.subColors : [theme.color];
+          stk.color = subColors[stkIdx % subColors.length];
+
+          const stkAngleDelta = (stkPct / 100) * 2 * Math.PI;
+          const stkStartAngle = stockAngle;
+          const stkEndAngle = stockAngle + stkAngleDelta;
+          stockAngle += stkAngleDelta;
+
+          let pieEl;
+          if (totalStockCount === 1 || stkPct >= 99.999) {
+            pieEl = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            pieEl.setAttribute('cx', '160');
+            pieEl.setAttribute('cy', '160');
+            pieEl.setAttribute('r', rPie);
+            pieEl.setAttribute('fill', stk.color);
+            pieEl.setAttribute('stroke', 'rgba(11, 18, 33, 0.95)');
+            pieEl.setAttribute('stroke-width', '1.5');
+          } else {
+            const d = getPieSlicePath(160, 160, rPie, stkStartAngle, stkEndAngle);
+            pieEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            pieEl.setAttribute('d', d);
+            pieEl.setAttribute('fill', stk.color);
+            pieEl.setAttribute('stroke', 'rgba(11, 18, 33, 0.95)');
+            pieEl.setAttribute('stroke-width', '1.5');
+          }
+
+          pieEl.setAttribute('class', 'pie-slice pie-slice-stock');
+          pieEl.setAttribute('data-sec-idx', secIdx);
+          pieEl.setAttribute('data-ticker', stk.ticker);
+
+          pieEl.addEventListener('mouseenter', () => highlightStock(secIdx, stk.ticker));
+          pieEl.addEventListener('mouseleave', resetCenter);
+          stockSvg.appendChild(pieEl);
+        });
+
+        currentAngle = secEndAngle;
+
+        // 3. Hierarchical Legend Card for this Sector
+        const card = document.createElement('div');
+        card.className = 'sector-card-group';
+        card.setAttribute('data-sec-idx', secIdx);
+
+        card.innerHTML = `
+          <div class="sector-header-bar" data-sec-idx="${secIdx}">
+            <div class="sec-hdr-left">
+              <span class="sec-bar-indicator" style="background:${sec.color};"></span>
+              <span class="sec-hdr-name">${sec.name}</span>
+              <span class="sec-hdr-count">(${sec.stocks.length} ${sec.stocks.length === 1 ? 'stock' : 'stocks'})</span>
+            </div>
+            <div class="sec-hdr-right">
+              <span class="sec-hdr-val">${fmtMoney(sec.value)}</span>
+              <span class="sec-hdr-pct">${sec.pct.toFixed(1)}%</span>
+              <span class="sec-hdr-chevron">▾</span>
+            </div>
+          </div>
+          <div class="stock-nested-list">
+            ${sec.stocks.map(stk => `
+              <div class="stock-row" data-sec-idx="${secIdx}" data-ticker="${stk.ticker}">
+                <div class="stock-row-left">
+                  <span class="stock-dot" style="background:${stk.color};"></span>
+                  <span class="stock-sym">${stk.ticker}</span>
+                  <span class="stock-company">${stk.name || stk.ticker}</span>
+                  <span class="stock-origin-pill ${stk.broker === 'angelone' ? 'in' : 'us'}">${stk.broker === 'angelone' ? 'IN' : 'US'}</span>
+                </div>
+                <div class="stock-row-right">
+                  <span class="stock-row-val">${fmtMoney(stk.current_value)}</span>
+                  <span class="stock-row-pct">${stk.pct.toFixed(1)}%</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        const hdr = card.querySelector('.sector-header-bar');
+        hdr.addEventListener('mouseenter', () => highlightSector(secIdx));
+        hdr.addEventListener('mouseleave', resetCenter);
+        hdr.addEventListener('click', () => {
+          card.classList.toggle('collapsed');
+        });
+
+        const rows = card.querySelectorAll('.stock-row');
+        rows.forEach(r => {
+          const ticker = r.getAttribute('data-ticker');
+          r.addEventListener('mouseenter', (e) => {
+            e.stopPropagation();
+            highlightStock(secIdx, ticker);
+          });
+          r.addEventListener('mouseleave', resetCenter);
+        });
+
+        legend.appendChild(card);
+      });
+    }
+
+    function sortTable(field) {
+      if (sortField === field) {
+        sortAsc = !sortAsc;
+      } else {
+        sortField = field;
+        sortAsc = (field === 'ticker' || field === 'name');
+      }
+      renderTable();
+    }
+
+    function renderTable() {
+      if (!snapshot || !Array.isArray(snapshot.holdings)) return;
+      const tbody = document.getElementById('table-body');
+      const query = (document.getElementById('search').value || '').trim().toLowerCase();
+
+      let list = [...snapshot.holdings];
+      if (query) {
+        list = list.filter(h =>
+          (h.ticker && h.ticker.toLowerCase().includes(query)) ||
+          (h.name && h.name.toLowerCase().includes(query)) ||
+          (h.exchange && h.exchange.toLowerCase().includes(query)) ||
+          (h.broker && h.broker.toLowerCase().includes(query)) ||
+          (h.sector && h.sector.toLowerCase().includes(query))
+        );
+      }
+
+      list.sort((a, b) => {
+        let va = a[sortField];
+        let vb = b[sortField];
+        if (typeof va === 'string') va = va.toLowerCase();
+        if (typeof vb === 'string') vb = vb.toLowerCase();
+        if (va < vb) return sortAsc ? -1 : 1;
+        if (va > vb) return sortAsc ? 1 : -1;
+        return 0;
+      });
+
+      tbody.innerHTML = '';
+      for (const h of list) {
+        const tr = document.createElement('tr');
+        const pnlCls = (h.unrealized_pnl >= 0) ? 'pos' : 'neg';
+        const isUS = h.broker === 'indmoney';
+
+        tr.innerHTML = `
+          <td>
+            <div class="ticker-cell">
+              <span>${h.ticker}</span>
+              <span class="stock-origin-pill ${isUS ? 'us' : 'in'}">${isUS ? 'US' : 'IN'}</span>
+            </div>
+            <div class="name-cell">${h.name || h.ticker} · ${h.exchange || (isUS ? 'NASDAQ' : 'NSE')}</div>
+          </td>
+          <td class="num-cell">${typeof h.quantity === 'number' ? (Number.isInteger(h.quantity) ? h.quantity : h.quantity.toFixed(4)) : h.quantity}</td>
+          <td class="num-cell">${fmtMoney(h.average_price)}</td>
+          <td class="num-cell">${fmtMoney(h.cmp)}</td>
+          <td class="num-cell">${fmtMoney(h.invested_value)}</td>
+          <td class="num-cell" style="font-weight:600;">${fmtMoney(h.current_value)}</td>
+          <td class="num-cell ${pnlCls}">${(h.unrealized_pnl >= 0 ? '+' : '')}${fmtMoney(h.unrealized_pnl)}</td>
+          <td class="num-cell ${pnlCls}">${(h.unrealized_pnl_pct >= 0 ? '+' : '')}${h.unrealized_pnl_pct.toFixed(2)}%</td>
+          <td class="num-cell">
+            <div>${(h.weight_pct || 0).toFixed(1)}%</div>
+            <div class="weight-bar" style="width: ${Math.min(100, (h.weight_pct || 0) * 2.5)}%;"></div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+
+</html>

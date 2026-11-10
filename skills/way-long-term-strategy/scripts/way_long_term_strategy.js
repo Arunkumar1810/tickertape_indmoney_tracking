@@ -419,6 +419,33 @@ function processOfflineFiles(blendedPath, xirrPath, synthesisPath, options = {})
     (blendedHoldings && blendedHoldings.eval_date) ||
     new Date().toISOString().slice(0, 10);
 
+  const rawVerdictsByTicker = options.rawVerdictsByTicker || {};
+  if (Object.keys(rawVerdictsByTicker).length === 0) {
+    const verdictsDir = path.join(REPO_ROOT, 'reports', 'verdicts');
+    if (fs.existsSync(verdictsDir)) {
+      const files = fs.readdirSync(verdictsDir);
+      for (const f of files) {
+        if (!f.endsWith('.json')) continue;
+        try {
+          const content = JSON.parse(fs.readFileSync(path.join(verdictsDir, f), 'utf8'));
+          if (content.principle && Array.isArray(content.verdicts)) {
+            for (const v of content.verdicts) {
+              if (v.ticker) {
+                if (!rawVerdictsByTicker[v.ticker]) rawVerdictsByTicker[v.ticker] = [];
+                rawVerdictsByTicker[v.ticker].push(v);
+              }
+            }
+          } else if (content.ticker && content.principle) {
+            if (!rawVerdictsByTicker[content.ticker]) rawVerdictsByTicker[content.ticker] = [];
+            rawVerdictsByTicker[content.ticker].push(content);
+          }
+        } catch {
+          // ignore corrupted/non-verdict files
+        }
+      }
+    }
+  }
+
   const portfolio = compileConsolidatedPortfolio({
     strategyId,
     baseCurrency,
@@ -426,7 +453,8 @@ function processOfflineFiles(blendedPath, xirrPath, synthesisPath, options = {})
     blendedHoldings,
     performance,
     verdictSynthesis,
-    embeddedAudits: options.embeddedAudits
+    embeddedAudits: options.embeddedAudits,
+    rawVerdictsByTicker
   });
 
   let artifacts = null;

@@ -41,7 +41,12 @@ const FINANCIALS_TOP_KEYS = new Set([
   'income_statement',
   'balance_sheet',
   'cash_flow',
-  'forensics'
+  'forensics',
+  'tickertape_pro',
+  'historical_statements',
+  'ownership_trend',
+  'dividend_events',
+  'ai_management_summary'
 ]);
 
 const MARKET_DATA_KEYS = new Set([
@@ -152,7 +157,7 @@ const VERDICT_TOP_KEYS = new Set([
 
 const VERDICT_BATCH_TOP_KEYS = new Set(['principle', 'timestamp', 'verdicts']);
 
-const HOLDINGS_SNAPSHOT_TOP_KEYS = new Set([
+const HOLDINGS_SNAPSHOT_REQUIRED_KEYS = new Set([
   'account_id',
   'broker',
   'currency',
@@ -160,6 +165,11 @@ const HOLDINGS_SNAPSHOT_TOP_KEYS = new Set([
   'summary',
   'margin',
   'holdings'
+]);
+
+const HOLDINGS_SNAPSHOT_TOP_KEYS = new Set([
+  ...HOLDINGS_SNAPSHOT_REQUIRED_KEYS,
+  'ledger'
 ]);
 
 const HOLDINGS_SUMMARY_REQUIRED_KEYS = new Set([
@@ -170,6 +180,12 @@ const HOLDINGS_SUMMARY_REQUIRED_KEYS = new Set([
   'available_cash',
   'total_account_equity',
   'holdings_count'
+]);
+
+const HOLDINGS_SUMMARY_ALL_KEYS = new Set([
+  ...HOLDINGS_SUMMARY_REQUIRED_KEYS,
+  'funds_invested',
+  'account_xirr'
 ]);
 
 const HOLDINGS_MARGIN_REQUIRED_KEYS = new Set([
@@ -197,7 +213,8 @@ const HOLDING_ITEM_REQUIRED_KEYS = new Set([
 const HOLDING_ITEM_ALL_KEYS = new Set([
   ...HOLDING_ITEM_REQUIRED_KEYS,
   'fractional_shares',
-  'buy_date'
+  'buy_date',
+  'sector'
 ]);
 
 const BLENDED_HOLDINGS_TOP_KEYS = new Set([
@@ -538,6 +555,67 @@ function validateNormalizedFinancials(payload) {
     if (!FINANCIALS_TOP_KEYS.has(key)) {
       addError('ERR_UNKNOWN_FIELD', key, `Unknown top-level field "${key}"`);
     }
+  }
+
+  // Optional vendor-specific enrichment block (Tickertape Pro readings)
+  if (
+    payload.tickertape_pro !== undefined &&
+    payload.tickertape_pro !== null &&
+    !isPlainObject(payload.tickertape_pro)
+  ) {
+    addError(
+      'ERR_SCHEMA_INVALID',
+      'tickertape_pro',
+      'Field "tickertape_pro" must be an object or null when present'
+    );
+  }
+
+  if (
+    payload.historical_statements !== undefined &&
+    payload.historical_statements !== null &&
+    !isPlainObject(payload.historical_statements)
+  ) {
+    addError(
+      'ERR_SCHEMA_INVALID',
+      'historical_statements',
+      'Field "historical_statements" must be an object or null when present'
+    );
+  }
+
+  if (
+    payload.ownership_trend !== undefined &&
+    payload.ownership_trend !== null &&
+    !Array.isArray(payload.ownership_trend)
+  ) {
+    addError(
+      'ERR_SCHEMA_INVALID',
+      'ownership_trend',
+      'Field "ownership_trend" must be an array or null when present'
+    );
+  }
+
+  if (
+    payload.dividend_events !== undefined &&
+    payload.dividend_events !== null &&
+    !Array.isArray(payload.dividend_events)
+  ) {
+    addError(
+      'ERR_SCHEMA_INVALID',
+      'dividend_events',
+      'Field "dividend_events" must be an array or null when present'
+    );
+  }
+
+  if (
+    payload.ai_management_summary !== undefined &&
+    payload.ai_management_summary !== null &&
+    !isPlainObject(payload.ai_management_summary)
+  ) {
+    addError(
+      'ERR_SCHEMA_INVALID',
+      'ai_management_summary',
+      'Field "ai_management_summary" must be an object or null when present'
+    );
   }
 
   // Required identity fields
@@ -1115,7 +1193,7 @@ function validateAccountHoldingsSnapshot(payload) {
     }
   }
 
-  for (const reqKey of HOLDINGS_SNAPSHOT_TOP_KEYS) {
+  for (const reqKey of HOLDINGS_SNAPSHOT_REQUIRED_KEYS) {
     if (!(reqKey in payload)) {
       addError('ERR_MISSING_REQUIRED_FIELD', reqKey, `Missing required top-level field "${reqKey}"`);
     }
@@ -1144,7 +1222,7 @@ function validateAccountHoldingsSnapshot(payload) {
     addError('ERR_TYPE_MISMATCH', 'summary', 'Field "summary" must be an object');
   } else {
     for (const key of Object.keys(summary)) {
-      if (!HOLDINGS_SUMMARY_REQUIRED_KEYS.has(key)) {
+      if (!HOLDINGS_SUMMARY_ALL_KEYS.has(key)) {
         addError('ERR_UNKNOWN_FIELD', `summary.${key}`, `Unknown field "${key}" in summary`);
       }
     }
@@ -1164,6 +1242,12 @@ function validateAccountHoldingsSnapshot(payload) {
     }
     if (summary.holdings_count !== undefined && (!Number.isInteger(summary.holdings_count) || summary.holdings_count < 0)) {
       addError('ERR_NUMERIC_CONSTRAINT', 'summary.holdings_count', 'Field "summary.holdings_count" must be an integer >= 0');
+    }
+    if (summary.funds_invested !== undefined && !isFiniteNumber(summary.funds_invested)) {
+      addError('ERR_TYPE_MISMATCH', 'summary.funds_invested', 'Field "summary.funds_invested" must be a number');
+    }
+    if (summary.account_xirr !== undefined && summary.account_xirr !== null && !isFiniteNumber(summary.account_xirr)) {
+      addError('ERR_TYPE_MISMATCH', 'summary.account_xirr', 'Field "summary.account_xirr" must be a number or null');
     }
   }
 
@@ -1239,6 +1323,34 @@ function validateAccountHoldingsSnapshot(payload) {
       }
       if (h.fractional_shares !== undefined && typeof h.fractional_shares !== 'boolean') {
         addError('ERR_TYPE_MISMATCH', `${hPath}.fractional_shares`, `Field "${hPath}.fractional_shares" must be a boolean`);
+      }
+      if (h.sector !== undefined && typeof h.sector !== 'string') {
+        addError('ERR_TYPE_MISMATCH', `${hPath}.sector`, `Field "${hPath}.sector" must be a string`);
+      }
+    }
+  }
+
+  // Validate optional ledger
+  if (payload.ledger !== undefined) {
+    if (!Array.isArray(payload.ledger)) {
+      addError('ERR_TYPE_MISMATCH', 'ledger', 'Field "ledger" must be an array of bank transactions');
+    } else {
+      for (let i = 0; i < payload.ledger.length; i++) {
+        const item = payload.ledger[i];
+        const lPath = `ledger[${i}]`;
+        if (!isPlainObject(item)) {
+          addError('ERR_TYPE_MISMATCH', lPath, `Ledger transaction at ${lPath} must be an object`);
+          continue;
+        }
+        if (!isNonEmptyString(item.date)) {
+          addError('ERR_INVALID_FIELD', `${lPath}.date`, `Field "${lPath}.date" must be a non-empty date string`);
+        }
+        if (!isFiniteNumber(item.amount)) {
+          addError('ERR_NUMERIC_CONSTRAINT', `${lPath}.amount`, `Field "${lPath}.amount" must be a valid number`);
+        }
+        if (!isNonEmptyString(item.category)) {
+          addError('ERR_INVALID_FIELD', `${lPath}.category`, `Field "${lPath}.category" must be a non-empty category string`);
+        }
       }
     }
   }
