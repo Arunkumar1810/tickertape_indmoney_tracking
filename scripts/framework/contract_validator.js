@@ -147,7 +147,9 @@ const VERDICT_OPTIONAL_KEYS = new Set([
   'positive',
   'negative',
   'observations',
-  'warnings'
+  'warnings',
+  'advisor_verdict',
+  'portfolio_status'
 ]);
 
 const VERDICT_TOP_KEYS = new Set([

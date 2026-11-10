@@ -1,0 +1,51 @@
+[
+  {
+    "query": "ask Buffett about INFY",
+    "should_trigger": true
+  },
+  {
+    "query": "what would Warren Buffett do with AAPL?",
+    "should_trigger": true
+  },
+  {
+    "query": "analyze stock with Buffett",
+    "should_trigger": true
+  },
+  {
+    "query": "audit economic moats and ROIC hurdles for this business",
+    "should_trigger": true
+  },
+  {
+    "query": "calculate true Owner Earnings net of maintenance CapEx and SBC dilution",
+    "should_trigger": true
+  },
+  {
+    "query": "decompose ROE quality using 5-step DuPont model to check for artificial debt leverage",
+    "should_trigger": true
+  },
+  {
+    "query": "run Buffett compounding valuation for my portfolio",
+    "should_trigger": true
+  },
+  {
+    "query": "talk to Buffett about our current cash till and position sizing",
+    "should_trigger": true
+  },
+  {
+    "query": "calculate Graham Number and Net Current Asset Value (NCAV) floor",
+    "should_trigger": false
+  },
+  {
+    "query": "calculate Peter Lynch PEG ratio and categorize company lifecycle",
+    "should_trigger": false
+  },
+  {
+    "query": "run forensic governance audit for promoter pledging and accounting fraud",
+    "should_trigger": false
+  },
+  {
+    "query": "calculate Altman Z-Score and stress test debt maturity cliff",
+    "should_trigger": false
+  }
+]
+

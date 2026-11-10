@@ -7,7 +7,7 @@ const REPO_GEMINI_SKILLS = path.join(REPO_GEMINI_DIR, 'skills');
 const REPO_GEMINI_SHARED = path.join(REPO_GEMINI_DIR, 'shared');
 
 const SKILLS = [
-  'analyze-buffett-munger',
+  'agent-buffet',
   'analyze-graham',
   'analyze-klarman-solvency',
   'analyze-lts-holdings',

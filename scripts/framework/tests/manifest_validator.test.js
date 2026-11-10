@@ -157,7 +157,7 @@ test('Scenario: Weights do not sum to 1.0 fails with ERR_WEIGHT_SUM_MISMATCH', (
   manifest.investment_ways.fundamental_lts.weights = {
     'analyze-graham': 0.25,
     'analyze-lynch': 0.25,
-    'analyze-buffett-munger': 0.20,
+    'agent-buffet': 0.20,
     'analyze-klarman-solvency': 0.15
   };
 

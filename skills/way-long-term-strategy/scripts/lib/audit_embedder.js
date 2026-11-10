@@ -8,14 +8,16 @@
  */
 
 /**
- * Normalize principle identifier between skill format (analyze-buffett-munger)
+ * Normalize principle identifier between skill format (agent-buffet, analyze-buffett-munger)
  * and canonical principle format (buffett_munger).
  * @param {string} name
  * @returns {string}
  */
 function normalizePrincipleName(name) {
   if (!name || typeof name !== 'string') return '';
-  return name.replace(/^analyze[-_]/, '').replace(/[-]/g, '_');
+  const clean = name.replace(/^analyze[-_]/, '').replace(/^agent[-_]/, '').replace(/[-]/g, '_');
+  if (clean === 'buffet' || clean === 'buffett') return 'buffett_munger';
+  return clean;
 }
 
 /**

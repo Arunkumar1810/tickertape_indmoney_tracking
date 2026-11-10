@@ -321,6 +321,7 @@ async function fetchTickertapePro(client, sid, overview) {
  */
 async function fetchLiveIndianEquity(client, ticker) {
   let sid = null;
+  let resolvedTicker = ticker;
   for (const exchange of ['NSE', 'BSE']) {
     let resolved;
     try {
@@ -339,6 +340,64 @@ async function fetchLiveIndianEquity(client, ticker) {
       break;
     }
   }
+
+  // Fallback: search universe by entity name or query if direct SID resolution fails
+  if (!sid) {
+    const cleanQ = (ticker || '').trim().toLowerCase();
+    const qTokens = cleanQ.split(/[\s_-]+/).filter(Boolean);
+    const firstChar = (cleanQ[0] || '').toUpperCase();
+    const lettersToTry = firstChar && /[A-Z]/.test(firstChar) ? [firstChar] : ['T', 'D', 'I', 'M', 'R', 'S', 'A'];
+
+    let bestMatch = null;
+    let bestScore = -1;
+
+    for (const letter of lettersToTry) {
+      try {
+        const searchRes = await client.call('in_stock_search_read', { letter });
+        const text = typeof searchRes === 'string' ? searchRes : JSON.stringify(searchRes);
+        for (const line of text.split('\n')) {
+          const parts = {};
+          for (const seg of line.split('|')) {
+            const idx = seg.indexOf(':');
+            if (idx !== -1) parts[seg.slice(0, idx)] = seg.slice(idx + 1);
+          }
+          if (!parts.sid || !parts.ticker) continue;
+          const sTicker = (parts.ticker || '').toLowerCase();
+          const sName = (parts.name || '').toLowerCase();
+          const sSlug = (parts.slug || '').toLowerCase();
+
+          let score = 0;
+          if (sTicker === cleanQ) score += 100;
+          if (sName === cleanQ) score += 90;
+          if (sName.startsWith(cleanQ)) score += 70;
+          else if (sName.includes(cleanQ)) score += 50;
+          if (sSlug.includes(cleanQ)) score += 40;
+
+          // Initials matching (e.g. TMCV for Tata Motors Commercial Vehicles)
+          const initials = qTokens.map(t => t[0]).join('');
+          if (sTicker === initials) score += 80;
+
+          let matched = 0;
+          for (const token of qTokens) {
+            if (sName.includes(token) || sTicker.includes(token) || sSlug.includes(token)) matched++;
+          }
+          score += matched * 20;
+
+          if (score > bestScore && score >= 20) {
+            bestScore = score;
+            bestMatch = parts;
+          }
+        }
+        if (bestMatch && bestScore >= 70) break;
+      } catch { }
+    }
+
+    if (bestMatch) {
+      sid = bestMatch.sid;
+      resolvedTicker = bestMatch.ticker;
+    }
+  }
+
   if (!sid) throw new Error(`Tickertape could not resolve "${ticker}" to an Indian stock SID`);
 
   const fin = (type, extra = {}) =>
@@ -405,6 +464,7 @@ async function fetchLiveIndianEquity(client, ticker) {
   const tickertapePro = await fetchTickertapePro(client, sid, overview);
 
   return {
+    _resolved_ticker: resolvedTicker,
     tickertape_pro: tickertapePro,
     name: (profile.info && profile.info.name) || ticker,
     exchange: (profile.info && profile.info.exchange) || 'NSE',
@@ -1074,12 +1134,13 @@ async function processTicker(ticker, market, options = {}) {
   fs.mkdirSync(financialsDir, { recursive: true });
 
   const rawData = await fetchRawFinancials(ticker, market, { refresh, mockData, allowFixtures });
-  const normalized = normalizeFinancials(rawData, ticker, market);
+  const effectiveTicker = (rawData && rawData._resolved_ticker) ? rawData._resolved_ticker : ticker;
+  const normalized = normalizeFinancials(rawData, effectiveTicker, market);
 
   // Validate against canonical contract schema
   const validation = validateNormalizedFinancials(normalized);
   if (!validation.ok) {
-    throw new Error(`Validation failed for ${ticker}: ${JSON.stringify(validation.errors)}`);
+    throw new Error(`Validation failed for ${effectiveTicker}: ${JSON.stringify(validation.errors)}`);
   }
 
   // Render HTML statement report
@@ -1100,8 +1161,8 @@ async function processTicker(ticker, market, options = {}) {
     htmlContent = htmlContent.replace('<!--__CACHE_BANNER__-->', '');
   }
 
-  const jsonPath = path.join(financialsDir, `${ticker}.json`);
-  const htmlPath = path.join(financialsDir, `${ticker}.html`);
+  const jsonPath = path.join(financialsDir, `${effectiveTicker}.json`);
+  const htmlPath = path.join(financialsDir, `${effectiveTicker}.html`);
 
   fs.writeFileSync(jsonPath, jsonContent, 'utf8');
   fs.writeFileSync(htmlPath, htmlContent, 'utf8');
@@ -1114,12 +1175,12 @@ async function processTicker(ticker, market, options = {}) {
   });
 
   if (!harnessResult.ok) {
-    throw new Error(`Harness verification failed for ${ticker}: ${JSON.stringify(harnessResult.errors)}`);
+    throw new Error(`Harness verification failed for ${effectiveTicker}: ${JSON.stringify(harnessResult.errors)}`);
   }
 
   return {
     ok: true,
-    ticker,
+    ticker: effectiveTicker,
     market,
     currency: normalized.currency,
     is_index_etf: normalized.is_index_etf,

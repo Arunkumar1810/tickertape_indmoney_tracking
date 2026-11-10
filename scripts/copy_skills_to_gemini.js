@@ -10,7 +10,7 @@ const GEMINI_CONFIG_SHARED = path.join(GEMINI_ROOT, 'config', 'shared');
 const GEMINI_SHARED = path.join(GEMINI_ROOT, 'shared');
 
 const SKILLS = [
-  'analyze-buffett-munger',
+  'agent-buffet',
   'analyze-graham',
   'analyze-klarman-solvency',
   'analyze-lts-holdings',

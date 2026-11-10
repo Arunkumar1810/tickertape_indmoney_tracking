@@ -52,7 +52,7 @@ Rather than fragmenting portfolio analysis into dozens of individual per-stock o
 - **Forensic Governance**: Promoter pledge checks, auditor continuity, Beneish M-Score, Sloan accrual ratios.
 - **Benjamin Graham**: Net Current Asset Value (NCAV), Graham Number floor, Margin of Safety.
 - **Peter Lynch**: PEG ratio, growth categorization, inventory-to-sales velocity divergence.
-- **Buffett & Munger**: True Owner Earnings, 5-Step DuPont ROE decomposition, ROIC economic moat.
+- **Warren Buffett (`agent-buffet`)**: True Owner Earnings, 5-Step DuPont ROE decomposition, ROIC economic moat.
 - **Seth Klarman Solvency**: Altman Z-Score, Net Debt/EBITDA, 24-month debt maturity cliff exposure.
 
 ## Interactive Master Dashboard Capabilities

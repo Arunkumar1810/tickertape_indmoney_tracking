@@ -1,26 +1,25 @@
 ---
 name: analyze-buffett-munger
-description: Tier 3 Warren Buffett & Charlie Munger compounding valuation engine computing true Owner Earnings (CFO - CapEx - SBC), 5-step DuPont ROE decomposition, Return on Invested Capital (ROIC), and economic moat durability. Emits canonical UniformVerdictContract and offline HTML audit dashboard. Use when auditing economic moats, evaluating capital allocation efficiency, calculating true Owner Earnings, or decomposing ROE quality.
+description: Deprecated alias for agent-buffet. Replaced by agent-buffet (Warren Buffett Value Investing Advisor). Evaluates true Owner Earnings, 5-step DuPont ROE decomposition, Return on Invested Capital (ROIC), and economic moat durability.
 ---
 
-# analyze-buffett-munger
+# analyze-buffett-munger (Replaced by agent-buffet)
 
-Tier 3 Warren Buffett & Charlie Munger Compounding Valuation Engine establishing whether a company possesses a durable economic moat, demonstrates disciplined capital allocation, and generates authentic cash earnings net of dilution.
+> [!NOTE]
+> This skill has been replaced by **`agent-buffet`** (`skills/agent-buffet/`).
+> All active investment ways and valuation workflows execute through `agent-buffet`.
 
-Operates as a primary quantitative valuation pillar of the 5-pillar valuation suite under `AID-BMAD-MODULAR-STOCK-V1`. Evaluates normalized financial statements against classic Buffett-Munger principles, decomposes ROE via the 5-step DuPont model to uncover artificial leverage, calculates true Owner Earnings $(\text{CFO} - \text{Maintenance CapEx} - \text{SBC})$, and emits canonical `UniformVerdictContract` (SingleVerdict or Option C VerdictBatch) alongside self-contained offline HTML audit dashboards with 0 external network leaks.
-
-## Run
+Please use `agent-buffet` directly:
 
 ```bash
-# Pattern C Offline Mode: evaluate local NormalizedCompanyFinancials JSON
-node .agents/skills/analyze-buffett-munger/scripts/analyze_buffett_munger.js --data reports/financials/INFY.json
+# Analyze Indian equity:
+node skills/agent-buffet/scripts/orchestrate_buffett_analysis.js --ticker INFY
 
-# Pattern C Autonomous Mode: query Tier 2 provider and evaluate
-node .agents/skills/analyze-buffett-munger/scripts/analyze_buffett_munger.js --ticker INFY --market IN
-node .agents/skills/analyze-buffett-munger/scripts/analyze_buffett_munger.js --ticker AAPL --market US
+# Analyze US equity:
+node skills/agent-buffet/scripts/orchestrate_buffett_analysis.js --ticker AAPL --market US
 
-# Option C Portfolio Batch Mode: evaluate all holdings in an account snapshot
-node .agents/skills/analyze-buffett-munger/scripts/analyze_buffett_munger.js --holdings reports/accounts/angelone.json
+# Portfolio batch mode:
+node skills/agent-buffet/scripts/orchestrate_buffett_analysis.js --holdings reports/accounts/angelone.json
 ```
 
 | Flag | Meaning |

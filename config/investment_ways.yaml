@@ -37,10 +37,10 @@ analysis_principles:
     skill: "analyze-lynch"
     category: "garp"
     description: "Peter Lynch PEG Ratio, Stock Categorization & Inventory Velocity"
-  analyze-buffett-munger:
-    skill: "analyze-buffett-munger"
+  agent-buffet:
+    skill: "agent-buffet"
     category: "compounding_moat"
-    description: "Buffett-Munger Owner Earnings, 5-Step DuPont ROE & ROIC Moat"
+    description: "Warren Buffett Owner Earnings, 5-Step DuPont ROE & ROIC Moat"
   analyze-klarman-solvency:
     skill: "analyze-klarman-solvency"
     category: "solvency_stress"
@@ -57,12 +57,12 @@ investment_ways:
     analysis_principles:
       - "analyze-graham"
       - "analyze-lynch"
-      - "analyze-buffett-munger"
+      - "agent-buffet"
       - "analyze-klarman-solvency"
     weights:
       analyze-graham: 0.25
       analyze-lynch: 0.25
-      analyze-buffett-munger: 0.30
+      agent-buffet: 0.30
       analyze-klarman-solvency: 0.20
 
   fundamental_foreign:
@@ -75,11 +75,11 @@ investment_ways:
     analysis_principles:
       - "analyze-graham"
       - "analyze-lynch"
-      - "analyze-buffett-munger"
+      - "agent-buffet"
       - "analyze-klarman-solvency"
     weights:
       analyze-graham: 0.20
       analyze-lynch: 0.25
-      analyze-buffett-munger: 0.35
+      agent-buffet: 0.35
       analyze-klarman-solvency: 0.20
 

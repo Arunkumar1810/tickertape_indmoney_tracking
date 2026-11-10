@@ -123,7 +123,7 @@ test('3. synthesizeSecurityVerdicts: Evaluates fixtures accurately', () => {
   const appRes = synthesizeSecurityVerdicts(appFixture, {
     'analyze-graham': 0.25,
     'analyze-lynch': 0.25,
-    'analyze-buffett-munger': 0.30,
+    'agent-buffet': 0.30,
     'analyze-klarman-solvency': 0.20
   });
   assert.equal(appRes.ticker, 'INFY');
@@ -165,7 +165,7 @@ test('5. synthesizePortfolio: Multi-stock portfolio posture and allocation rebal
     manifestWeights: {
       'analyze-graham': 0.25,
       'analyze-lynch': 0.25,
-      'analyze-buffett-munger': 0.30,
+      'agent-buffet': 0.30,
       'analyze-klarman-solvency': 0.20
     }
   });
