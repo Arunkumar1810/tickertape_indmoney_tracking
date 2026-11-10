@@ -13,16 +13,16 @@ Portfolio tracking and multi-pillar fundamental valuation across Indian and US e
 
 ## Where things are
 
-- Tier 2 Providers: Tickertape ingestion at `skills/provider-tickertape/`, Angel One at `skills/fetch-account/fetch-angelone/`, INDmoney US at `skills/fetch-account/fetch-indmoney-us/`, Combined at `skills/fetch-account/fetch-all/`.
-- Tier 3 Valuation Engines: `skills/analyze-graham/`, `skills/analyze-lynch/`, `skills/agents/agent-buffet/`, `skills/agents/agent-munger/`, `skills/analyze-klarman-solvency/`, `skills/forensic-governance/`.
+- Tier 2 Providers: Tickertape ingestion at `skills/stat-provider/provider-tickertape/`, Angel One at `skills/fetch-account/fetch-angelone/`, INDmoney US at `skills/fetch-account/fetch-indmoney-us/`, Combined at `skills/fetch-account/fetch-all/`.
+- Tier 3 Valuation Engines: `skills/agents/agent-graham/`, `skills/agents/agent-lynch/`, `skills/agents/agent-buffet/`, `skills/agents/agent-munger/`, `skills/agents/agent-klarman/`, `skills/agents/agent-schilit/`.
 - Tier 4 Orchestrators: `skills/way-long-term-strategy/`, `skills/guardrail-engine/`, `skills/holding-blender/`, `skills/strategy-xirr/`.
 - Canonical output reports: `reports/financials/<TICKER>.json` and offline visual dashboard `reports/financials/<TICKER>.html`.
 
 ## Running and verifying
 
-- Ingest and normalize market data: `node skills/provider-tickertape/scripts/provider_tickertape.js --ticker <TICKER> --market <IN|US> [--refresh]`.
+- Ingest and normalize market data: `node skills/stat-provider/provider-tickertape/scripts/provider_tickertape.js --ticker <TICKER> --market <IN|US> [--refresh]`.
 - Execute provider scripts directly from `skills/`, not `.agents/skills/`.
-- Run single test files directly with Node: `node skills/provider-tickertape/tests/provider_tickertape.test.js`.
+- Run single test files directly with Node: `node skills/stat-provider/provider-tickertape/tests/provider_tickertape.test.js`.
 - Do not run `npm test` at repository root — no root test runner is configured.
 
 ## Conventions that differ from defaults

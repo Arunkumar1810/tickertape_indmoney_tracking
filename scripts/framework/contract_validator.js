@@ -15,7 +15,8 @@ const VALUATION_PRINCIPLES = new Set([
   'buffett',
   'buffett_munger',
   'munger',
-  'klarman_solvency'
+  'klarman_solvency',
+  'klarman'
 ]);
 const ALL_PRINCIPLES = new Set([...GATEKEEPER_PRINCIPLES, ...VALUATION_PRINCIPLES]);
 

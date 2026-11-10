@@ -38,9 +38,13 @@ const {
 // Optional direct provider import
 let providerTickertape;
 try {
-  providerTickertape = require(path.join(REPO_ROOT, 'skills', 'provider-tickertape', 'scripts', 'provider_tickertape'));
+  providerTickertape = require(path.join(REPO_ROOT, 'skills', 'stat-provider', 'provider-tickertape', 'scripts', 'provider_tickertape'));
 } catch {
-  providerTickertape = null;
+  try {
+    providerTickertape = require(path.join(REPO_ROOT, 'skills', 'provider-tickertape', 'scripts', 'provider_tickertape'));
+  } catch {
+    providerTickertape = null;
+  }
 }
 
 // Decoupled principle engines
@@ -563,7 +567,9 @@ function resolveFinancials(ticker, market, refresh, customOutDir) {
 
   // 2. Always run provider-tickertape with the entity name / query
   try {
-    const providerScript = path.join(REPO_ROOT, 'skills', 'provider-tickertape', 'scripts', 'provider_tickertape.js');
+    const providerScript = fs.existsSync(path.join(REPO_ROOT, 'skills', 'stat-provider', 'provider-tickertape', 'scripts', 'provider_tickertape.js'))
+      ? path.join(REPO_ROOT, 'skills', 'stat-provider', 'provider-tickertape', 'scripts', 'provider_tickertape.js')
+      : path.join(REPO_ROOT, 'skills', 'provider-tickertape', 'scripts', 'provider_tickertape.js');
     if (fs.existsSync(providerScript)) {
       const escapedQuery = clean.replace(/"/g, '\\"');
       const cmd = `node "${providerScript}" --ticker "${escapedQuery}" --market ${market}${refresh ? ' --refresh' : ''}`;

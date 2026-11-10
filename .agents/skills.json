@@ -8,6 +8,12 @@
     },
     {
       "path": "skills/agents"
+    },
+    {
+      "path": "skills/stat-provider"
+    },
+    {
+      "path": "skills/principles"
     }
   ]
 }

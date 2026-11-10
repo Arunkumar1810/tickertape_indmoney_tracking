@@ -24,27 +24,42 @@ data_providers:
     description: "Tickertape Pro Financial Statements & Valuation Metrics Provider"
 
 gatekeepers:
+  agent-schilit:
+    skill: "agent-schilit"
+    description: "Howard Schilit Forensic Accounting & Corporate Governance Veto Gatekeeper"
   forensic-governance:
-    skill: "forensic-governance"
-    description: "Forensic Accounting & Corporate Governance Veto Filter"
+    skill: "agent-schilit"
+    description: "Howard Schilit Forensic Accounting & Corporate Governance Veto Filter (Alias to agent-schilit)"
 
 analysis_principles:
-  analyze-graham:
-    skill: "analyze-graham"
+  agent-graham:
+    skill: "agent-graham"
     category: "deep_value"
     description: "Benjamin Graham Net-Net Working Capital & Graham Number Floor"
-  analyze-lynch:
-    skill: "analyze-lynch"
+  analyze-graham:
+    skill: "agent-graham"
+    category: "deep_value"
+    description: "Benjamin Graham Net-Net Working Capital & Graham Number Floor (Alias to agent-graham)"
+  agent-lynch:
+    skill: "agent-lynch"
     category: "garp"
     description: "Peter Lynch PEG Ratio, Stock Categorization & Inventory Velocity"
+  analyze-lynch:
+    skill: "agent-lynch"
+    category: "garp"
+    description: "Peter Lynch PEG Ratio, Stock Categorization & Inventory Velocity (Alias to agent-lynch)"
   agent-buffet:
     skill: "agent-buffet"
     category: "compounding_moat"
     description: "Warren Buffett Owner Earnings, 5-Step DuPont ROE & ROIC Moat"
-  analyze-klarman-solvency:
-    skill: "analyze-klarman-solvency"
+  agent-klarman:
+    skill: "agent-klarman"
     category: "solvency_stress"
     description: "Seth Klarman Altman Z-Score, Debt Maturity Wall & Liquidation Stress"
+  analyze-klarman-solvency:
+    skill: "agent-klarman"
+    category: "solvency_stress"
+    description: "Seth Klarman Altman Z-Score, Debt Maturity Wall & Liquidation Stress (Alias to agent-klarman)"
 
 investment_ways:
   fundamental_lts:

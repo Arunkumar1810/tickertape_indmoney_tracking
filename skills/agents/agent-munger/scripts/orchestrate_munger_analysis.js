@@ -42,9 +42,13 @@ const {
 // Optional direct provider import
 let providerTickertape;
 try {
-  providerTickertape = require(path.join(REPO_ROOT, 'skills', 'provider-tickertape', 'scripts', 'provider_tickertape'));
+  providerTickertape = require(path.join(REPO_ROOT, 'skills', 'stat-provider', 'provider-tickertape', 'scripts', 'provider_tickertape'));
 } catch {
-  providerTickertape = null;
+  try {
+    providerTickertape = require(path.join(REPO_ROOT, 'skills', 'provider-tickertape', 'scripts', 'provider_tickertape'));
+  } catch {
+    providerTickertape = null;
+  }
 }
 
 // Decoupled principle engines
@@ -252,7 +256,7 @@ function evaluateMungerValuation(financials) {
     timestamp,
     score: totalScore,
     stance,
-    is_veto: stance === 'STRONG_SELL',
+    is_veto: false,
     metrics: {
       inversion_score: inversionEval.score,
       moat_score: moatEval.score,
@@ -271,7 +275,7 @@ function evaluateMungerValuation(financials) {
       timestamp,
       stance,
       score: totalScore,
-      is_veto: stance === 'STRONG_SELL',
+      is_veto: false,
       summary: `${stance} (${totalScore}/100): Inversion & failure mode resilience combined with moat pricing power and aligned incentives.`
     },
     audit,

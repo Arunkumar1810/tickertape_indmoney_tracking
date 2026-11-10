@@ -18,7 +18,8 @@
         "buffett",
         "buffett_munger",
         "munger",
-        "klarman_solvency"
+        "klarman_solvency",
+        "klarman"
       ]
     },
     "GatekeeperStanceEnum": {
