@@ -119,7 +119,7 @@ INDmoney MCP session token has expired or is missing.
 
 Steps to renew:
 1. Run interactive OAuth browser login directly via the skill:
-   node skills/fetch-indmoney-us/scripts/fetch_indmoney_us.js --login
+   node skills/fetch-account/fetch-indmoney-us/scripts/fetch_indmoney_us.js --login
    # Or via renewal helper:
    node scripts/framework/renew_token.js --service indmoney --login
 2. Or manually update INDMONEY_MCP_TOKEN in the repository root .env file:

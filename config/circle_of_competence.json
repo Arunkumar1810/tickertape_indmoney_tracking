@@ -1,0 +1,17 @@
+{
+  "assessments": {
+    "INFY": {
+      "ticker": "INFY",
+      "score": 100,
+      "scores": {
+        "q1": 5,
+        "q2": 5,
+        "q3": 5,
+        "q4": 5,
+        "q5": 5
+      },
+      "notes": "IT Services Digital Transformation",
+      "updated_at": "2026-11-10T12:26:24.074Z"
+    }
+  }
+}

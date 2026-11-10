@@ -50,6 +50,7 @@ const { evaluateDuPontROE } = require(path.join(REPO_ROOT, 'skills', 'principles
 const { evaluateMarginOfSafety } = require(path.join(REPO_ROOT, 'skills', 'principles', 'principle-margin-of-safety', 'scripts', 'evaluate_margin_of_safety'));
 const { evaluateDCF } = require(path.join(REPO_ROOT, 'skills', 'principles', 'principle-dcf-valuation', 'scripts', 'evaluate_dcf'));
 const { evaluatePE } = require(path.join(REPO_ROOT, 'skills', 'principles', 'principle-pe-relative', 'scripts', 'evaluate_pe'));
+const { evaluateCircleOfCompetence, QUESTIONS: COMPETENCE_QUESTIONS } = require(path.join(REPO_ROOT, 'skills', 'principles', 'principle-circle-of-competence', 'scripts', 'evaluate_competence'));
 
 const INDEX_ETF_TICKERS = new Set([
   'VOO', 'QQQ', 'SPY', 'IVV', 'VTI', 'RSP', 'DIA', 'IWM'
@@ -813,10 +814,26 @@ function analyzeStockWithBuffett(ticker, options = {}) {
     }
   }
 
+  // Circle of Competence Diagnostic Evaluation
+  const competenceEval = isIndexEtf
+    ? { in_circle: true, status: 'IN_CIRCLE', max_position_weight_pct: 15.0, score: 100 }
+    : evaluateCircleOfCompetence(clean);
+  const competenceStatus = competenceEval.status || 'NEEDS_ASSESSMENT';
+  const competenceScore = competenceEval.score || 0;
+  const competenceMaxWeight = competenceEval.max_position_weight_pct !== undefined ? competenceEval.max_position_weight_pct : 15.0;
+
   // 4. Decision Logic & Strict Portfolio Gating
   let call = 'HOLD';
   let callReason = '';
   const portfolioWarnings = [];
+
+  if (competenceStatus === 'NEEDS_ASSESSMENT') {
+    portfolioWarnings.push(`CIRCLE OF COMPETENCE UNASSESSED: You have not yet completed the 5-point Buffett business questionnaire for ${clean}. Consult with Warren to expand your circle of competence.`);
+  } else if (competenceStatus === 'OUTSIDE_CIRCLE') {
+    portfolioWarnings.push(`OUTSIDE CIRCLE OF COMPETENCE: Comprehension score ${competenceScore}/100 indicates high ambiguity on unit economics or terminal risk. Position capped at HOLD/WATCHLIST.`);
+  } else if (competenceStatus === 'EXPANDING_CIRCLE') {
+    portfolioWarnings.push(`EXPANDING CIRCLE OF COMPETENCE: Comprehension score ${competenceScore}/100. Maximum allowed position allocation capped at ${competenceMaxWeight.toFixed(1)}%.`);
+  }
 
   if (!portfolioKnown) {
     if (compositeScore >= 75) {
@@ -831,11 +848,14 @@ function analyzeStockWithBuffett(ticker, options = {}) {
       callReason = 'Sub-par fundamentals and capital destruction. Avoid allocating capital.';
     }
   } else {
-    const MAX_CONCENTRATION_PCT = 15.0; // 15% single-stock ceiling
+    const MAX_CONCENTRATION_PCT = Math.min(15.0, competenceMaxWeight); // Capped by circle of competence
     const MIN_CASH_REQUIRED = 500.0;     // Minimum cash till
 
     if (compositeScore >= 75) {
-      if (currentWeightPct >= MAX_CONCENTRATION_PCT) {
+      if (competenceStatus === 'NEEDS_ASSESSMENT' || competenceStatus === 'OUTSIDE_CIRCLE') {
+        call = 'HOLD';
+        callReason = `Wonderful enterprise (${compositeScore}/100), but currently outside your evaluated circle of competence. Rule: Never swing at a pitch you cannot value with clarity. Answer the 5-point business questionnaire before committing capital.`;
+      } else if (currentWeightPct >= MAX_CONCENTRATION_PCT) {
         call = 'HOLD';
         callReason = `Exceptional business (${compositeScore}/100), but your portfolio already has ${currentWeightPct.toFixed(1)}% allocated (exceeds ${MAX_CONCENTRATION_PCT}% concentration ceiling). Prudent risk management mandates holding rather than adding.`;
         portfolioWarnings.push(`Concentration limit reached: Current weight is ${currentWeightPct.toFixed(1)}% (max ${MAX_CONCENTRATION_PCT}%).`);

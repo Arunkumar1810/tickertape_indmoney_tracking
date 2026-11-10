@@ -2,7 +2,12 @@
   "entries": [
     {
       "path": "skills"
+    },
+    {
+      "path": "skills/fetch-account"
+    },
+    {
+      "path": "skills/agents"
     }
   ]
 }
-
