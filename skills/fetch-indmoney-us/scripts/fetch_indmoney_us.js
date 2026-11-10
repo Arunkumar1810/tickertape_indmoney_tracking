@@ -476,7 +476,7 @@ function generateSnapshot(rawData, options = {}) {
       weight_pct,
       fractional_shares: isFractional,
       buy_date: h.buy_date || h.buyDate || null,
-      sector: KNOWN_US_SECTORS[ticker] || h.sector || 'Other'
+      sector: (KNOWN_US_SECTORS[ticker] === 'Financial Services' || h.sector === 'Financial Services') ? 'Financials' : (KNOWN_US_SECTORS[ticker] || h.sector || 'Other')
     };
   });
 
@@ -546,6 +546,10 @@ function generateSnapshot(rawData, options = {}) {
     }
   }
 
+  const totalAccountEquity = round2(totalCurrent + availableCash);
+  const accountGain = round2(totalAccountEquity - fundsInvested);
+  const accountGainPct = fundsInvested > 0 ? round2((accountGain / fundsInvested) * 100) : 0;
+
   const snapshot = {
     account_id: 'indmoney_us',
     broker: 'indmoney',
@@ -557,9 +561,11 @@ function generateSnapshot(rawData, options = {}) {
       unrealized_pnl: totalPnl,
       unrealized_pnl_pct: totalReturnPct,
       available_cash: availableCash,
-      total_account_equity: round2(totalCurrent + availableCash),
+      total_account_equity: totalAccountEquity,
       holdings_count: holdings.length,
       funds_invested: round2(fundsInvested),
+      account_gain: accountGain,
+      account_gain_pct: accountGainPct,
       account_xirr: accountXirr !== null ? round2(accountXirr) : null
     },
     margin: {
@@ -709,6 +715,9 @@ async function main(argv = process.argv.slice(2)) {
     process.stdout.write(`   • Total Invested Cost:  $${s.total_invested.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`);
     if (s.funds_invested !== undefined) {
       process.stdout.write(`   • Funds Invested:       $${s.funds_invested.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`);
+    }
+    if (s.account_gain !== undefined) {
+      process.stdout.write(`   • Account Gain:         ${s.account_gain >= 0 ? '+' : ''}$${s.account_gain.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${s.account_gain_pct.toFixed(2)}%)\n`);
     }
     if (s.account_xirr !== undefined && s.account_xirr !== null) {
       process.stdout.write(`   • Account XIRR:         ${s.account_xirr >= 0 ? '+' : ''}${s.account_xirr.toFixed(2)}%\n`);

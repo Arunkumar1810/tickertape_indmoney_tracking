@@ -185,7 +185,9 @@ const HOLDINGS_SUMMARY_REQUIRED_KEYS = new Set([
 const HOLDINGS_SUMMARY_ALL_KEYS = new Set([
   ...HOLDINGS_SUMMARY_REQUIRED_KEYS,
   'funds_invested',
-  'account_xirr'
+  'account_xirr',
+  'account_gain',
+  'account_gain_pct'
 ]);
 
 const HOLDINGS_MARGIN_REQUIRED_KEYS = new Set([
@@ -1248,6 +1250,12 @@ function validateAccountHoldingsSnapshot(payload) {
     }
     if (summary.account_xirr !== undefined && summary.account_xirr !== null && !isFiniteNumber(summary.account_xirr)) {
       addError('ERR_TYPE_MISMATCH', 'summary.account_xirr', 'Field "summary.account_xirr" must be a number or null');
+    }
+    if (summary.account_gain !== undefined && !isFiniteNumber(summary.account_gain)) {
+      addError('ERR_TYPE_MISMATCH', 'summary.account_gain', 'Field "summary.account_gain" must be a number');
+    }
+    if (summary.account_gain_pct !== undefined && !isFiniteNumber(summary.account_gain_pct)) {
+      addError('ERR_TYPE_MISMATCH', 'summary.account_gain_pct', 'Field "summary.account_gain_pct" must be a number');
     }
   }
 

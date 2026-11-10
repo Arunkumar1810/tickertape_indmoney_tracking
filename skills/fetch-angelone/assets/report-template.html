@@ -861,6 +861,11 @@
         <div class="kpi-value" id="kpiFundsInvested">-</div>
         <div class="kpi-sub">Net deposited capital</div>
       </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Account Gain</div>
+        <div class="kpi-value" id="kpiAccountGain">-</div>
+        <div class="kpi-sub" id="kpiAccountGainSub">Total lifetime profit</div>
+      </div>
       <div class="kpi-card kpi-card-clickable" id="cardXirr" onclick="openLedgerModal()" title="Click to view bank transactions ledger">
         <div class="kpi-label">Account XIRR</div>
         <div class="kpi-value" id="kpiAccountXirr">-</div>
@@ -1035,6 +1040,20 @@
 
       const fundsVal = s.funds_invested !== undefined ? s.funds_invested : s.total_invested;
       document.getElementById('kpiFundsInvested').textContent = fmtINR(fundsVal);
+
+      const totalEq = s.total_account_equity !== undefined ? s.total_account_equity : (s.total_current_value + (s.available_cash || 0));
+      const accGain = s.account_gain !== undefined ? s.account_gain : (totalEq - fundsVal);
+      const accGainPct = s.account_gain_pct !== undefined ? s.account_gain_pct : (fundsVal > 0 ? (accGain / fundsVal) * 100 : 0);
+      const gainEl = document.getElementById('kpiAccountGain');
+      const gainSubEl = document.getElementById('kpiAccountGainSub');
+      if (gainEl) {
+        gainEl.textContent = (accGain >= 0 ? '+' : '') + fmtINR(accGain);
+        gainEl.className = 'kpi-value ' + (accGain >= 0 ? 'pos' : 'neg');
+      }
+      if (gainSubEl) {
+        gainSubEl.textContent = `${accGain >= 0 ? '+' : ''}${accGainPct.toFixed(2)}% on capital`;
+        gainSubEl.className = 'kpi-sub ' + (accGain >= 0 ? 'pos' : 'neg');
+      }
 
       const xirrEl = document.getElementById('kpiAccountXirr');
       const xirrSubEl = document.getElementById('kpiAccountXirrSub');
@@ -1251,9 +1270,9 @@
       TCS: 'Information Technology',
       WIPRO: 'Information Technology',
       HCLTECH: 'Information Technology',
-      HDFCBANK: 'Financial Services',
-      SOUTHBANK: 'Financial Services',
-      IDFCFIRSTB: 'Financial Services',
+      HDFCBANK: 'Financials',
+      SOUTHBANK: 'Financials',
+      IDFCFIRSTB: 'Financials',
       ITC: 'Consumer Staples',
       ZYDUSLIFE: 'Healthcare',
       NATCOPHARM: 'Healthcare'
@@ -1279,7 +1298,8 @@
       // Group holdings by sector
       const sectorGroupMap = {};
       for (const h of holdings) {
-        const secName = h.sector || COMPANY_SECTORS[h.ticker] || 'Other';
+        let secName = h.sector || COMPANY_SECTORS[h.ticker] || 'Other';
+        if (secName === 'Financial Services') secName = 'Financials';
         if (!sectorGroupMap[secName]) {
           sectorGroupMap[secName] = {
             name: secName,

@@ -363,7 +363,7 @@ function generateSnapshot(rawData, options = {}) {
       weight_pct,
       fractional_shares: false,
       buy_date: h.buyDate || buyDateMap[ticker] || null,
-      sector: meta.sector || h.sector || 'Other'
+      sector: (meta.sector === 'Financial Services' || h.sector === 'Financial Services') ? 'Financials' : (meta.sector || h.sector || 'Other')
     };
   });
 
@@ -440,6 +440,10 @@ function generateSnapshot(rawData, options = {}) {
     }
   }
 
+  const totalAccountEquity = round2(totalCurrent + availableCash);
+  const accountGain = round2(totalAccountEquity - fundsInvested);
+  const accountGainPct = fundsInvested > 0 ? round2((accountGain / fundsInvested) * 100) : 0;
+
   const snapshot = {
     account_id: 'angelone',
     broker: 'angelone',
@@ -451,9 +455,11 @@ function generateSnapshot(rawData, options = {}) {
       unrealized_pnl: totalPnl,
       unrealized_pnl_pct: totalReturnPct,
       available_cash: availableCash,
-      total_account_equity: round2(totalCurrent + availableCash),
+      total_account_equity: totalAccountEquity,
       holdings_count: holdings.length,
       funds_invested: fundsInvested,
+      account_gain: accountGain,
+      account_gain_pct: accountGainPct,
       account_xirr: accountXirr
     },
     margin: {
@@ -569,6 +575,9 @@ async function main(argv = process.argv.slice(2)) {
     process.stdout.write(`   • Equity Value:         ₹${s.total_current_value.toLocaleString('en-IN')}\n`);
     process.stdout.write(`   • Total Invested Cost:  ₹${s.total_invested.toLocaleString('en-IN')}\n`);
     process.stdout.write(`   • Funds Invested:       ₹${s.funds_invested.toLocaleString('en-IN')}\n`);
+    if (s.account_gain !== undefined) {
+      process.stdout.write(`   • Account Gain:         ${s.account_gain >= 0 ? '+' : ''}₹${s.account_gain.toLocaleString('en-IN')} (${s.account_gain_pct.toFixed(2)}%)\n`);
+    }
     process.stdout.write(`   • Account XIRR:         ${s.account_xirr !== null ? (s.account_xirr >= 0 ? '+' : '') + s.account_xirr.toFixed(2) + '%' : 'N/A'}\n`);
     process.stdout.write(`   • Unrealized P&L:       ${s.unrealized_pnl >= 0 ? '+' : ''}₹${s.unrealized_pnl.toLocaleString('en-IN')} (${s.unrealized_pnl_pct.toFixed(2)}%)\n`);
     process.stdout.write(`   • Available Cash:       ₹${s.available_cash.toLocaleString('en-IN')}\n`);

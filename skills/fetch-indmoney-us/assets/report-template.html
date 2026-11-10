@@ -945,6 +945,11 @@
         <div class="kpi-value" id="kpi-funds-invested">--</div>
         <div class="kpi-sub" id="kpi-funds-invested-sub">Net deposited capital</div>
       </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Account Gain</div>
+        <div class="kpi-value" id="kpi-account-gain">--</div>
+        <div class="kpi-sub" id="kpi-account-gain-pct">--</div>
+      </div>
       <div class="kpi-card kpi-card-clickable" id="cardXirr" onclick="openLedgerModal()" title="Click to view bank transactions ledger">
         <div class="kpi-label">Account XIRR</div>
         <div class="kpi-value" id="kpi-account-xirr">--</div>
@@ -1173,6 +1178,23 @@
       document.getElementById('kpi-funds-invested-sub').textContent = currentCurrency === 'USD'
         ? `≈ ₹${(fundsVal * fx).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
         : `≈ $${fundsVal.toFixed(2)}`;
+
+      const totalEq = s.total_account_equity !== undefined ? s.total_account_equity : (s.total_current_value + (s.available_cash || 0));
+      const accGain = s.account_gain !== undefined ? s.account_gain : (totalEq - fundsVal);
+      const accGainPct = s.account_gain_pct !== undefined ? s.account_gain_pct : (fundsVal > 0 ? (accGain / fundsVal) * 100 : 0);
+      const gainEl = document.getElementById('kpi-account-gain');
+      const gainPctEl = document.getElementById('kpi-account-gain-pct');
+      if (gainEl) {
+        gainEl.textContent = (accGain >= 0 ? '+' : '') + fmtMoney(accGain);
+        gainEl.className = 'kpi-value ' + (accGain >= 0 ? 'pos' : 'neg');
+      }
+      if (gainPctEl) {
+        const dualSub = currentCurrency === 'USD'
+          ? `≈ ₹${(accGain * fx).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+          : `≈ $${accGain.toFixed(2)}`;
+        gainPctEl.textContent = `${accGain >= 0 ? '+' : ''}${accGainPct.toFixed(2)}% (${dualSub})`;
+        gainPctEl.className = 'kpi-sub ' + (accGain >= 0 ? 'pos' : 'neg');
+      }
 
       const xirrEl = document.getElementById('kpi-account-xirr');
       const xirrSubEl = document.getElementById('kpi-account-xirr-sub');
@@ -1470,7 +1492,8 @@
       // Group holdings by sector
       const sectorGroupMap = {};
       for (const h of holdings) {
-        const secName = h.sector || KNOWN_US_SECTORS[h.ticker] || 'Other';
+        let secName = h.sector || KNOWN_US_SECTORS[h.ticker] || 'Other';
+        if (secName === 'Financial Services') secName = 'Financials';
         if (!sectorGroupMap[secName]) {
           sectorGroupMap[secName] = {
             name: secName,

@@ -139,6 +139,217 @@
       border-color: rgba(56, 189, 248, 0.4);
     }
 
+    .kpi-card-clickable {
+      cursor: pointer;
+      position: relative;
+    }
+
+    .kpi-card-clickable:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.2);
+    }
+
+    .kpi-action-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--cyan);
+      padding: 2px 7px;
+      border-radius: 9999px;
+      margin-top: 6px;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .kpi-card-clickable:hover .kpi-action-pill {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: var(--cyan);
+    }
+
+    /* Modal Backdrop & Dialog */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(4, 7, 13, 0.82);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-dialog {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      max-width: 860px;
+      width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.96) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-alt);
+    }
+
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .modal-close-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      font-size: 1.25rem;
+      cursor: pointer;
+      border-radius: 6px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .modal-close-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .modal-body {
+      padding: 20px 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .ledger-summary-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .ledger-stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ledger-stat-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .ledger-stat-val {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ledger-filter-strip {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .ledger-filter-btn {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .ledger-filter-btn:hover {
+      color: var(--text);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    .ledger-filter-btn.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .badge-category {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: inline-block;
+    }
+
+    .badge-payin {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-payout {
+      background: rgba(244, 63, 94, 0.15);
+      color: var(--rose);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .badge-dividend {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--cyan);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .badge-other {
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--text-muted);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
     .kpi-label {
       font-size: 0.78rem;
       font-weight: 600;
@@ -721,6 +932,22 @@
         <div class="kpi-sub" id="kpi-invested-sub">Total cost basis</div>
       </div>
       <div class="kpi-card">
+        <div class="kpi-label">Funds Invested</div>
+        <div class="kpi-value" id="kpi-funds-invested">--</div>
+        <div class="kpi-sub" id="kpi-funds-invested-sub">Net deposited capital</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Account Gain</div>
+        <div class="kpi-value" id="kpi-account-gain">--</div>
+        <div class="kpi-sub" id="kpi-account-gain-pct">--</div>
+      </div>
+      <div class="kpi-card kpi-card-clickable" id="cardXirr" onclick="openLedgerModal()" title="Click to view bank transactions ledger">
+        <div class="kpi-label">Account XIRR</div>
+        <div class="kpi-value" id="kpi-account-xirr">--</div>
+        <div class="kpi-sub" id="kpi-account-xirr-sub">Annualized return</div>
+        <div class="kpi-action-pill">Ledger ↗</div>
+      </div>
+      <div class="kpi-card">
         <div class="kpi-label">Unrealized P&amp;L</div>
         <div class="kpi-value" id="kpi-pnl">--</div>
         <div class="kpi-sub" id="kpi-pnl-pct">--</div>
@@ -733,7 +960,7 @@
       <div class="kpi-card">
         <div class="kpi-label">Total Account Equity</div>
         <div class="kpi-value" id="kpi-equity">--</div>
-        <div class="kpi-sub" id="kpi-equity-sub">Holdings + Cash</div>
+        <div class="kpi-sub" id="kpi-count">-- positions</div>
       </div>
     </div>
 
@@ -804,6 +1031,61 @@
       </div>
     </div>
 
+    <!-- Bank Transactions Ledger Modal -->
+    <div class="modal-backdrop" id="ledgerModal" onclick="handleBackdropClick(event)">
+      <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-header">
+          <div class="modal-title" id="modalTitle">
+            <span>🏦 Bank Transactions Ledger (Combined)</span>
+          </div>
+          <button type="button" class="modal-close-btn" onclick="closeLedgerModal()" aria-label="Close modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="ledger-summary-strip">
+            <div class="ledger-stat-item">
+              <span class="ledger-stat-label">Total Pay-ins</span>
+              <span class="ledger-stat-val pos" id="ledgerStatPayin">₹0.00</span>
+            </div>
+            <div class="ledger-stat-item">
+              <span class="ledger-stat-label">Total Pay-outs</span>
+              <span class="ledger-stat-val neg" id="ledgerStatPayout">₹0.00</span>
+            </div>
+            <div class="ledger-stat-item">
+              <span class="ledger-stat-label">Net Funds Invested</span>
+              <span class="ledger-stat-val" id="ledgerStatNet">₹0.00</span>
+            </div>
+            <div class="ledger-stat-item">
+              <span class="ledger-stat-label">Account XIRR</span>
+              <span class="ledger-stat-val" id="ledgerStatXirr">--%</span>
+            </div>
+          </div>
+
+          <div class="ledger-filter-strip">
+            <button class="ledger-filter-btn active" id="btnFilterAll" onclick="setLedgerFilter('ALL')">All Transactions</button>
+            <button class="ledger-filter-btn" id="btnFilterBank" onclick="setLedgerFilter('BANK')">Bank Pay-ins &amp; Payouts</button>
+            <button class="ledger-filter-btn" id="btnFilterAngel" onclick="setLedgerFilter('ANGELONE')">Angel One (IN)</button>
+            <button class="ledger-filter-btn" id="btnFilterIND" onclick="setLedgerFilter('INDMONEY')">INDmoney (US)</button>
+          </div>
+
+          <div class="table-wrap" style="background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Broker</th>
+                  <th>Category</th>
+                  <th>Description / Particulars</th>
+                  <th class="num-cell">Amount</th>
+                </tr>
+              </thead>
+              <tbody id="ledgerTableBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <footer>
       <p>Generated by <strong>fetch-all</strong> · Tier 1 Multi-Broker Portfolio Consolidator · Offline Self-Contained Report</p>
     </footer>
@@ -870,6 +1152,10 @@
       renderKPIs();
       renderConcentricSunburst();
       renderTable();
+      const modal = document.getElementById('ledgerModal');
+      if (modal && modal.classList.contains('open')) {
+        renderLedgerTable();
+      }
     }
 
     function renderKPIs() {
@@ -887,6 +1173,42 @@
         ? `≈ $${(s.total_invested / fx).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         : `≈ ₹${Number(s.total_invested).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 
+      const fundsVal = s.funds_invested !== undefined ? s.funds_invested : s.total_invested;
+      document.getElementById('kpi-funds-invested').textContent = fmtMoney(fundsVal);
+      document.getElementById('kpi-funds-invested-sub').textContent = currentCurrency === 'INR'
+        ? `≈ $${(fundsVal / fx).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : `≈ ₹${Number(fundsVal).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+
+      const totalEq = s.total_account_equity !== undefined ? s.total_account_equity : (s.total_current_value + (s.available_cash || 0));
+      const accGain = s.account_gain !== undefined ? s.account_gain : (totalEq - fundsVal);
+      const accGainPct = s.account_gain_pct !== undefined ? s.account_gain_pct : (fundsVal > 0 ? (accGain / fundsVal) * 100 : 0);
+      const gainEl = document.getElementById('kpi-account-gain');
+      const gainPctEl = document.getElementById('kpi-account-gain-pct');
+      if (gainEl) {
+        gainEl.textContent = (accGain >= 0 ? '+' : '') + fmtMoney(accGain);
+        gainEl.className = 'kpi-value ' + (accGain >= 0 ? 'pos' : 'neg');
+      }
+      if (gainPctEl) {
+        const dualSub = currentCurrency === 'INR'
+          ? `≈ $${(accGain / fx).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          : `≈ ₹${Number(accGain).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+        gainPctEl.textContent = `${accGain >= 0 ? '+' : ''}${accGainPct.toFixed(2)}% (${dualSub})`;
+        gainPctEl.className = 'kpi-sub ' + (accGain >= 0 ? 'pos' : 'neg');
+      }
+
+      const xirrEl = document.getElementById('kpi-account-xirr');
+      const xirrSubEl = document.getElementById('kpi-account-xirr-sub');
+      if (s.account_xirr !== undefined && s.account_xirr !== null) {
+        const xVal = Number(s.account_xirr);
+        xirrEl.textContent = (xVal >= 0 ? '+' : '') + xVal.toFixed(2) + '%';
+        xirrEl.className = 'kpi-value ' + (xVal >= 0 ? 'pos' : 'neg');
+        xirrSubEl.textContent = 'Annualized return (Click for ledger)';
+      } else {
+        xirrEl.textContent = 'N/A';
+        xirrEl.className = 'kpi-value';
+        xirrSubEl.textContent = 'Insufficient ledger data';
+      }
+
       const pnlEl = document.getElementById('kpi-pnl');
       pnlEl.textContent = (s.unrealized_pnl >= 0 ? '+' : '') + fmtMoney(s.unrealized_pnl);
       pnlEl.className = 'kpi-value ' + (s.unrealized_pnl >= 0 ? 'pos' : 'neg');
@@ -901,9 +1223,151 @@
         : `≈ ₹${Number(s.available_cash).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 
       document.getElementById('kpi-equity').textContent = fmtMoney(s.total_account_equity);
-      document.getElementById('kpi-equity-sub').textContent = currentCurrency === 'INR'
-        ? `≈ $${(s.total_account_equity / fx).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-        : `≈ ₹${Number(s.total_account_equity).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+      const countEl = document.getElementById('kpi-count');
+      if (countEl) {
+        countEl.textContent = `${s.holdings_count || (snapshot.holdings || []).length} positions`;
+      }
+    }
+
+    function openLedgerModal() {
+      const modal = document.getElementById('ledgerModal');
+      if (modal) {
+        modal.classList.add('open');
+        renderLedgerTable();
+      }
+    }
+
+    function closeLedgerModal() {
+      const modal = document.getElementById('ledgerModal');
+      if (modal) {
+        modal.classList.remove('open');
+      }
+    }
+
+    function handleBackdropClick(e) {
+      if (e.target && e.target.id === 'ledgerModal') {
+        closeLedgerModal();
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeLedgerModal();
+      }
+    });
+
+    let currentLedgerFilter = 'ALL';
+
+    function setLedgerFilter(filter) {
+      currentLedgerFilter = filter;
+      const bAll = document.getElementById('btnFilterAll');
+      const bBank = document.getElementById('btnFilterBank');
+      const bAngel = document.getElementById('btnFilterAngel');
+      const bIND = document.getElementById('btnFilterIND');
+      if (bAll) bAll.classList.toggle('active', filter === 'ALL');
+      if (bBank) bBank.classList.toggle('active', filter === 'BANK');
+      if (bAngel) bAngel.classList.toggle('active', filter === 'ANGELONE');
+      if (bIND) bIND.classList.toggle('active', filter === 'INDMONEY');
+      renderLedgerTable();
+    }
+
+    function renderLedgerTable() {
+      if (!snapshot) return;
+      const ledger = Array.isArray(snapshot.ledger) ? snapshot.ledger : [];
+      const s = snapshot.summary || {};
+      const tbody = document.getElementById('ledgerTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      let totalPayin = 0;
+      let totalPayout = 0;
+
+      for (const t of ledger) {
+        const amt = Number(t.amount || 0); // Amount in INR
+        const cat = (t.category || '').toUpperCase();
+        if (cat === 'DEPOSIT' || cat === 'PAYIN') {
+          totalPayin += Math.abs(amt);
+        } else if (cat === 'WITHDRAWAL' || cat === 'PAYOUT') {
+          totalPayout += Math.abs(amt);
+        }
+      }
+
+      const netInvested = s.funds_invested !== undefined ? s.funds_invested : (totalPayin - totalPayout || s.total_invested || 0);
+      document.getElementById('ledgerStatPayin').textContent = fmtMoney(totalPayin);
+      document.getElementById('ledgerStatPayout').textContent = fmtMoney(totalPayout);
+      document.getElementById('ledgerStatNet').textContent = fmtMoney(netInvested);
+
+      const xirrStatEl = document.getElementById('ledgerStatXirr');
+      if (s.account_xirr !== undefined && s.account_xirr !== null) {
+        const xVal = Number(s.account_xirr);
+        xirrStatEl.textContent = (xVal >= 0 ? '+' : '') + xVal.toFixed(2) + '%';
+        xirrStatEl.className = 'ledger-stat-val ' + (xVal >= 0 ? 'pos' : 'neg');
+      } else {
+        xirrStatEl.textContent = 'N/A';
+        xirrStatEl.className = 'ledger-stat-val';
+      }
+
+      if (ledger.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="5" style="text-align: center; color: var(--text-muted); padding: 32px 16px;">
+          No bank ledger transactions recorded. Net funds invested defaulted to portfolio invested cost.
+        </td>`;
+        tbody.appendChild(tr);
+        return;
+      }
+
+      let displayedItems = ledger;
+      if (currentLedgerFilter === 'BANK') {
+        displayedItems = ledger.filter(t => {
+          const c = (t.category || '').toUpperCase();
+          return c === 'PAYIN' || c === 'DEPOSIT' || c === 'PAYOUT' || c === 'WITHDRAWAL' || c === 'DIVIDEND' || c === 'DIVTAX';
+        });
+      } else if (currentLedgerFilter === 'ANGELONE') {
+        displayedItems = ledger.filter(t => (t.broker || '').toLowerCase().includes('angel'));
+      } else if (currentLedgerFilter === 'INDMONEY') {
+        displayedItems = ledger.filter(t => (t.broker || '').toLowerCase().includes('ind'));
+      }
+
+      if (displayedItems.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="5" style="text-align: center; color: var(--text-muted); padding: 32px 16px;">
+          No matching transactions for current filter.
+        </td>`;
+        tbody.appendChild(tr);
+        return;
+      }
+
+      for (const t of displayedItems) {
+        const tr = document.createElement('tr');
+        const amt = Number(t.amount || 0);
+        const cat = (t.category || 'OTHER').toUpperCase();
+
+        const isPayin = cat === 'DEPOSIT' || cat === 'PAYIN';
+        const isPayout = cat === 'WITHDRAWAL' || cat === 'PAYOUT';
+        const isDividend = cat === 'DIVIDEND';
+
+        let badgeCls = 'badge-other';
+        if (isPayin) badgeCls = 'badge-payin';
+        else if (isPayout) badgeCls = 'badge-payout';
+        else if (isDividend) badgeCls = 'badge-dividend';
+
+        const isPositiveToAccount = isPayin || isDividend || cat === 'SELL';
+        const amtCls = isPositiveToAccount ? 'pos' : (isPayout || cat === 'BUY' || cat === 'DIVTAX' ? 'neg' : '');
+        const sign = isPositiveToAccount ? '+' : '-';
+        const displayAmt = Math.abs(amt);
+
+        const isUS = (t.broker || '').toLowerCase().includes('ind');
+        const brokerBadge = `<span class="stock-origin-pill ${isUS ? 'us' : 'in'}">${isUS ? 'INDmoney' : 'Angel One'}</span>`;
+
+        tr.innerHTML = `
+          <td>${t.date ? t.date.slice(0, 10) : '-'}</td>
+          <td>${brokerBadge}</td>
+          <td><span class="badge-category ${badgeCls}">${cat}</span></td>
+          <td style="color: var(--text);">${t.particulars || t.description || 'Fund Transfer'} ${t.voucher ? `<span style="font-size:0.75rem; color:var(--text-muted); margin-left:6px;">(${t.voucher})</span>` : ''}</td>
+          <td class="num-cell ${amtCls}" style="font-weight:600;">${sign}${fmtMoney(displayAmt)}</td>
+        `;
+        tbody.appendChild(tr);
+      }
     }
 
     const SECTOR_THEMES = {
@@ -972,7 +1436,8 @@
       // Group holdings by sector
       const sectorGroupMap = {};
       for (const h of holdings) {
-        const secName = h.sector || 'Other';
+        let secName = h.sector || 'Other';
+        if (secName === 'Financial Services') secName = 'Financials';
         if (!sectorGroupMap[secName]) {
           sectorGroupMap[secName] = {
             name: secName,

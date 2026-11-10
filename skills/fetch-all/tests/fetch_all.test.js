@@ -170,6 +170,32 @@ test('fetch_all: combineSnapshots correctly merges positions, converts currency,
   // Contract validation must pass with zero errors
   const valResult = validateAccountHoldingsSnapshot(snapshot);
   assert.equal(valResult.ok, true, `Validation errors: ${JSON.stringify(valResult.errors)}`);
+  assert.equal(snapshot.summary.funds_invested, 95000);
+  assert.equal(snapshot.summary.account_gain, 30500); // 125500 - 95000
+});
+
+test('fetch_all: combineSnapshots correctly merges ledgers and calculates XIRR', () => {
+  const angelOneWithLedger = {
+    ...MOCK_ANGELONE,
+    summary: { ...MOCK_ANGELONE.summary, funds_invested: 50000, account_xirr: 25.0 },
+    ledger: [
+      { date: '2023-01-01', amount: -50000, category: 'PAYIN', description: 'Deposit' }
+    ]
+  };
+  const indmoneyWithLedger = {
+    ...MOCK_INDMONEY,
+    summary: { ...MOCK_INDMONEY.summary, funds_invested: 500, account_xirr: 30.0 },
+    ledger: [
+      { date: '2023-02-01', amount: 500, amount_usd: 500, category: 'DEPOSIT', title: 'USD Transfer' }
+    ]
+  };
+
+  const { snapshot } = combineSnapshots(angelOneWithLedger, indmoneyWithLedger);
+  assert.equal(snapshot.summary.funds_invested, 50000 + (500 * 90)); // 95000
+  assert.ok(snapshot.summary.account_xirr !== null, 'XIRR should be computed');
+  assert.equal(snapshot.ledger.length, 2);
+  assert.equal(snapshot.ledger[0].broker, 'INDmoney US');
+  assert.equal(snapshot.ledger[1].broker, 'Angel One');
 });
 
 test('fetch_all: combineSnapshots supports --only filtering', () => {
@@ -199,6 +225,12 @@ test('fetch_all: main creates twin artifacts and passes verification harness', a
 
     const containmentResult = verifyHtmlSelfContainment(res.htmlPath);
     assert.equal(containmentResult.ok, true, `Containment errors: ${JSON.stringify(containmentResult.errors)}`);
+
+    const htmlContent = fs.readFileSync(res.htmlPath, 'utf8');
+    assert.ok(htmlContent.includes('id="kpi-funds-invested"'), 'HTML must include Funds Invested card');
+    assert.ok(htmlContent.includes('id="kpi-account-gain"'), 'HTML must include Account Gain card');
+    assert.ok(htmlContent.includes('id="cardXirr"'), 'HTML must include Account XIRR clickable card');
+    assert.ok(htmlContent.includes('id="ledgerModal"'), 'HTML must include Bank Transactions Ledger modal');
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }

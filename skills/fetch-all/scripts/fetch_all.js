@@ -23,6 +23,37 @@ const fetchIndmoneyModule = require('../../fetch-indmoney-us/scripts/fetch_indmo
 const SKILL_ROOT = path.resolve(__dirname, '..');
 const DEFAULT_REPORTS_DIR = path.resolve(__dirname, '../../../reports');
 
+let calculateXirr;
+try {
+  const xirrModule = require('../../strategy-xirr/scripts/lib/xirr_math');
+  calculateXirr = xirrModule.calculateXirr;
+} catch {
+  calculateXirr = null;
+}
+
+function computeXirr(cashflows) {
+  if (typeof calculateXirr === 'function') {
+    return calculateXirr(cashflows);
+  }
+  if (!Array.isArray(cashflows) || cashflows.length < 2) return { xirr: null };
+  const d0 = new Date(cashflows[0].date);
+  let rate = 0.1;
+  for (let iter = 0; iter < 100; iter++) {
+    let npv = 0;
+    let dnpv = 0;
+    for (const c of cashflows) {
+      const years = (new Date(c.date) - d0) / (365.25 * 86400000);
+      const disc = Math.pow(1 + rate, years);
+      npv += c.amount / disc;
+      dnpv -= years * c.amount / (disc * (1 + rate));
+    }
+    if (Math.abs(npv) < 1e-6) return { xirr: rate };
+    if (Math.abs(dnpv) < 1e-9) break;
+    rate -= npv / dnpv;
+  }
+  return { xirr: null };
+}
+
 function round2(val) {
   return Math.round((Number(val) + Number.EPSILON) * 100) / 100;
 }
@@ -74,6 +105,8 @@ function combineSnapshots(angelOneSnapshot, indmoneySnapshot, options = {}) {
 
   const fxRate = (indmoneySnapshot && (indmoneySnapshot.usd_to_inr || indmoneySnapshot.fx_rate)) || 93.91;
 
+  const normalizeSector = (sec) => ((sec === 'Financial Services' || sec === 'Financials') ? 'Financials' : (sec || 'Other'));
+
   // 1. Process Indian holdings (Angel One)
   const inHoldings = Array.isArray(angelOneSnapshot && angelOneSnapshot.holdings)
     ? angelOneSnapshot.holdings.map(h => ({
@@ -91,7 +124,7 @@ function combineSnapshots(angelOneSnapshot, indmoneySnapshot, options = {}) {
         weight_pct: h.weight_pct || 0,
         fractional_shares: Boolean(h.fractional_shares),
         buy_date: h.buy_date || null,
-        sector: h.sector || 'Other'
+        sector: normalizeSector(h.sector)
       }))
     : [];
 
@@ -120,7 +153,7 @@ function combineSnapshots(angelOneSnapshot, indmoneySnapshot, options = {}) {
           weight_pct: 0,
           fractional_shares: Boolean(h.fractional_shares),
           buy_date: h.buy_date || null,
-          sector: h.sector || 'Other'
+          sector: normalizeSector(h.sector)
         };
       })
     : [];
@@ -180,6 +213,90 @@ function combineSnapshots(angelOneSnapshot, indmoneySnapshot, options = {}) {
   const usCash = Number((indmoneySnapshot && indmoneySnapshot.margin && indmoneySnapshot.margin.available_cash) || sUs.available_cash || 0);
   const pooledCash = round2(inCash + (usCash * fxRate));
 
+  // 7. Combine bank transaction ledgers & calculate pooled funds invested
+  const rawInLedger = Array.isArray(angelOneSnapshot && angelOneSnapshot.ledger) ? angelOneSnapshot.ledger : [];
+  const rawUsLedger = Array.isArray(indmoneySnapshot && indmoneySnapshot.ledger) ? indmoneySnapshot.ledger : [];
+
+  const inLedger = rawInLedger.map(t => ({
+    date: t.date ? String(t.date).slice(0, 10) : '',
+    amount: round2(Number(t.amount || 0)),
+    category: (t.category || 'OTHER').toUpperCase(),
+    description: t.description || t.particulars || 'Transaction',
+    particulars: t.particulars || t.description || 'Transaction',
+    voucher: t.voucher || '',
+    broker: 'Angel One',
+    currency: 'INR'
+  }));
+
+  const usLedger = rawUsLedger.map(t => {
+    const origUsd = Number(t.amount_usd !== undefined ? t.amount_usd : (t.amount || 0));
+    return {
+      date: t.date ? String(t.date).slice(0, 10) : '',
+      amount: round2(origUsd * fxRate),
+      amount_usd: round2(origUsd),
+      category: (t.category || 'OTHER').toUpperCase(),
+      description: t.particulars || t.description || t.title || 'Transaction',
+      particulars: t.particulars || t.description || t.title || 'Transaction',
+      voucher: t.voucher || t.transaction_id || t.id || '',
+      broker: 'INDmoney US',
+      currency: 'USD'
+    };
+  });
+
+  const combinedLedger = [...inLedger, ...usLedger].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+  // Determine funds invested
+  const inFunds = sIn.funds_invested !== undefined ? Number(sIn.funds_invested) : Number(sIn.total_invested || 0);
+  const usFundsUSD = sUs.funds_invested !== undefined ? Number(sUs.funds_invested) : Number(sUs.total_invested || 0);
+  const fundsInvested = round2(inFunds + (usFundsUSD * fxRate));
+
+  // 8. Calculate pooled true account XIRR across combined cashflows
+  let accountXirr = null;
+  const terminalEquity = round2(totalCurrentVal + pooledCash);
+  const evalDate = (angelOneSnapshot && angelOneSnapshot.timestamp ? new Date(angelOneSnapshot.timestamp) : new Date()).toISOString().slice(0, 10);
+
+  if (combinedLedger.length > 0) {
+    const xirrFlows = [];
+    for (const item of combinedLedger) {
+      if (!item.date || item.amount === undefined || item.amount === null) continue;
+      const cat = (item.category || '').toUpperCase();
+      const amt = Number(item.amount);
+      if (cat === 'DEPOSIT' || cat === 'PAYIN') {
+        xirrFlows.push({
+          date: String(item.date).slice(0, 10),
+          amount: -Math.abs(amt)
+        });
+      } else if (cat === 'WITHDRAWAL' || cat === 'PAYOUT' || cat === 'DIVIDEND') {
+        xirrFlows.push({
+          date: String(item.date).slice(0, 10),
+          amount: Math.abs(amt)
+        });
+      }
+    }
+
+    if (terminalEquity > 0) {
+      xirrFlows.push({
+        date: evalDate,
+        amount: terminalEquity
+      });
+    }
+
+    if (xirrFlows.length >= 2) {
+      try {
+        const xirrRes = computeXirr(xirrFlows);
+        if (xirrRes && xirrRes.xirr !== null && !isNaN(xirrRes.xirr)) {
+          accountXirr = round2(xirrRes.xirr * 100);
+        }
+      } catch {
+        accountXirr = null;
+      }
+    }
+  }
+
+  const totalAccountEquity = round2(totalCurrentVal + pooledCash);
+  const accountGain = round2(totalAccountEquity - fundsInvested);
+  const accountGainPct = fundsInvested > 0 ? round2((accountGain / fundsInvested) * 100) : 0;
+
   const snapshot = {
     account_id: 'combined',
     broker: 'combined',
@@ -191,8 +308,12 @@ function combineSnapshots(angelOneSnapshot, indmoneySnapshot, options = {}) {
       unrealized_pnl: totalPnl,
       unrealized_pnl_pct: totalReturnPct,
       available_cash: pooledCash,
-      total_account_equity: round2(totalCurrentVal + pooledCash),
-      holdings_count: mergedHoldings.length
+      total_account_equity: totalAccountEquity,
+      holdings_count: mergedHoldings.length,
+      funds_invested: fundsInvested,
+      account_gain: accountGain,
+      account_gain_pct: accountGainPct,
+      account_xirr: accountXirr
     },
     margin: {
       available_cash: pooledCash,
@@ -200,7 +321,8 @@ function combineSnapshots(angelOneSnapshot, indmoneySnapshot, options = {}) {
       utilised: 0,
       net_margin: pooledCash
     },
-    holdings: mergedHoldings
+    holdings: mergedHoldings,
+    ...(combinedLedger.length > 0 ? { ledger: combinedLedger } : {})
   };
 
   return { snapshot, fxRate };
@@ -337,6 +459,15 @@ async function main(argv = process.argv.slice(2)) {
     process.stdout.write('\n📊 Combined Portfolio AccountHoldingsSnapshot Generated:\n');
     process.stdout.write(`   • Total Market Value:   ₹${s.total_current_value.toLocaleString('en-IN')}\n`);
     process.stdout.write(`   • Total Invested Cost:  ₹${s.total_invested.toLocaleString('en-IN')}\n`);
+    if (s.funds_invested !== undefined) {
+      process.stdout.write(`   • Funds Invested:       ₹${s.funds_invested.toLocaleString('en-IN')}\n`);
+    }
+    if (s.account_gain !== undefined) {
+      process.stdout.write(`   • Account Gain:         ${s.account_gain >= 0 ? '+' : ''}₹${s.account_gain.toLocaleString('en-IN')} (${s.account_gain_pct.toFixed(2)}%)\n`);
+    }
+    if (s.account_xirr !== undefined && s.account_xirr !== null) {
+      process.stdout.write(`   • Account XIRR:         ${s.account_xirr >= 0 ? '+' : ''}${s.account_xirr.toFixed(2)}%\n`);
+    }
     process.stdout.write(`   • Unrealized P&L:       ${s.unrealized_pnl >= 0 ? '+' : ''}₹${s.unrealized_pnl.toLocaleString('en-IN')} (${s.unrealized_pnl_pct.toFixed(2)}%)\n`);
     process.stdout.write(`   • Pooled Cash:          ₹${s.available_cash.toLocaleString('en-IN')}\n`);
     process.stdout.write(`   • Total Account Equity: ₹${s.total_account_equity.toLocaleString('en-IN')}\n`);
