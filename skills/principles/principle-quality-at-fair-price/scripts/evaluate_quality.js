@@ -168,3 +168,4 @@ if (require.main === module) {
   const fin = JSON.parse(fs.readFileSync(file, 'utf8'));
   console.log(JSON.stringify(evaluateQualityAtFairPrice(fin), null, 2));
 }
+

@@ -14,3 +14,4 @@ No single academic discipline or financial metric holds all the truth. A sound i
 Munger famously transformed Berkshire Hathaway from buying dying textile mills at statistical discounts into owning extraordinary businesses (See's Candies, Coca-Cola, Apple) at fair prices.
 - A mediocre business at a low P/E will suffer eroding capital compounding.
 - An elite compounding machine (ROIC $> 20\%$) with pricing power justifies a fair multiple.
+

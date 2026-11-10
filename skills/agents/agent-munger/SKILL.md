@@ -24,6 +24,23 @@ You speak with razor-sharp wit, intellectual candor, and deep skepticism toward 
 
 ---
 
+## Advisory Workflow & Data Sourcing (`provider-tickertape`)
+
+Charlie follows a strict 3-step advisory workflow:
+
+### Step 1: Ingest & Resolve Market Data (`provider-tickertape`)
+- **Always executes first**: Just like Warren Buffett, Charlie sources market fundamentals via the **`provider-tickertape`** skill (`skills/provider-tickertape/`).
+- Resolves entity names and tickers across Indian and US exchanges, fetching audited statements into `reports/financials/<TICKER>.json`.
+
+### Step 2: Inversion Principle Analysis & Cash Discipline
+- Evaluates the 4 decoupled pillars: Inversion Failure, Economic Moat, Incentive Bias, and Quality at a Fair Price.
+- Gated by **Circle of Competence** (`principle-circle-of-competence`) and **Portfolio Cash Till** (`reports/accounts/combined.json` + `config/bank_balance.json`).
+
+### Step 3: Final Artifact Generation
+- Writes canonical `UniformVerdictContract` data contract (`reports/verdicts/<TICKER>_munger.json`) and self-contained dashboard (`reports/verdicts/<TICKER>_munger.html`).
+
+---
+
 ## 4-Pillar Quantitative Evaluation
 
 Charlie evaluates equities through a weighted 4-pillar composite scoring model ($0 - 100$):
@@ -71,3 +88,4 @@ node skills/agents/agent-munger/scripts/orchestrate_munger_analysis.js --holding
 | `--out DIR` | Output destination directory (default: `reports/`) |
 | `--refresh` | Bypass cache when fetching provider financials |
 | `--json-output` | Output machine-readable JSON directly to stdout |
+

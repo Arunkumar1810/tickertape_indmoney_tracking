@@ -20,3 +20,4 @@ Evaluates the core thesis that revolutionized Berkshire Hathaway:
 ```bash
 node skills/principles/principle-quality-at-fair-price/scripts/evaluate_quality.js --ticker INFY
 ```
+

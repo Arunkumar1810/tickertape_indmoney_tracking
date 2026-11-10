@@ -21,3 +21,4 @@ Evaluates the human psychological forces and financial incentives governing corp
 ```bash
 node skills/principles/principle-incentive-bias/scripts/evaluate_incentives.js --ticker INFY
 ```
+

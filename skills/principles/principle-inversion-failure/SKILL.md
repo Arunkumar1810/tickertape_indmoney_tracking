@@ -25,3 +25,4 @@ node skills/principles/principle-inversion-failure/scripts/evaluate_inversion.js
 # Evaluate from file:
 node skills/principles/principle-inversion-failure/scripts/evaluate_inversion.js --data reports/financials/INFY.json
 ```
+

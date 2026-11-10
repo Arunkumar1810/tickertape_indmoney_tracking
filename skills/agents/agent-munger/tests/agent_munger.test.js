@@ -108,3 +108,4 @@ test('4. analyzeStockWithMunger generates Pasadena wisdom and valid artifacts', 
   assert.ok(fs.existsSync(res.artifacts.json));
   assert.ok(fs.existsSync(res.artifacts.html));
 });
+

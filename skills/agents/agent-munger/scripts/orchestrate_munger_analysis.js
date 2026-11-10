@@ -515,9 +515,106 @@ async function analyzeStockWithMunger(tickerOrData, options = {}) {
   };
 }
 
+/**
+ * Batch portfolio evaluation across AccountHoldingsSnapshot.
+ */
+async function processHoldings(holdingsPath, options = {}) {
+  const resolvedPath = path.resolve(holdingsPath);
+  if (!fs.existsSync(resolvedPath)) {
+    throw new Error(`Holdings file not found at ${resolvedPath}`);
+  }
+
+  const raw = fs.readFileSync(resolvedPath, 'utf8');
+  const snapshot = JSON.parse(raw);
+  const holdings = Array.isArray(snapshot.holdings) ? snapshot.holdings : [];
+
+  if (holdings.length === 0) {
+    throw new Error(`Holdings file ${holdingsPath} contains zero holdings.`);
+  }
+
+  const outDir = options.outDir || DEFAULT_REPORTS_DIR;
+  const processedTickers = new Set();
+  const verdicts = [];
+
+  for (const item of holdings) {
+    const rawTicker = item.ticker || item.symbol;
+    if (!rawTicker) continue;
+    const ticker = rawTicker.toUpperCase();
+    if (processedTickers.has(ticker)) continue;
+    processedTickers.add(ticker);
+
+    let financials = null;
+    if (options.financialsMap && options.financialsMap[ticker]) {
+      financials = options.financialsMap[ticker];
+    } else {
+      const localReportPath = path.join(outDir, 'financials', `${ticker}.json`);
+      const repoReportPath = path.join(REPO_ROOT, 'reports', 'financials', `${ticker}.json`);
+
+      if (fs.existsSync(localReportPath)) {
+        financials = JSON.parse(fs.readFileSync(localReportPath, 'utf8'));
+      } else if (fs.existsSync(repoReportPath)) {
+        financials = JSON.parse(fs.readFileSync(repoReportPath, 'utf8'));
+      } else if (INDEX_ETF_TICKERS.has(ticker)) {
+        financials = {
+          ticker,
+          name: item.name || `${ticker} ETF`,
+          market: 'US',
+          currency: 'USD',
+          timestamp: new Date().toISOString(),
+          is_index_etf: true,
+          sector: 'Index ETF',
+          market_data: { cmp: item.cmp || 100.0, shares_outstanding: 1000 }
+        };
+      } else if (providerTickertape && typeof providerTickertape.fetchAndNormalizeTicker === 'function') {
+        try {
+          financials = await providerTickertape.fetchAndNormalizeTicker(ticker, {
+            market: inferMarket(ticker),
+            out: outDir
+          });
+        } catch {
+          financials = null;
+        }
+      }
+    }
+
+    if (financials) {
+      const v = evaluateMungerValuation(financials, options);
+      verdicts.push(v);
+    }
+  }
+
+  if (verdicts.length === 0) {
+    throw new Error('No valid verdicts could be computed for holdings batch.');
+  }
+
+  const batch = {
+    principle: 'munger',
+    timestamp: options.timestamp || new Date().toISOString(),
+    verdicts
+  };
+
+  const validation = validateUniformVerdictBatch(batch);
+  if (!validation.ok) {
+    throw new Error(`UniformVerdictBatch validation failed: ${JSON.stringify(validation.errors)}`);
+  }
+
+  let artifacts = null;
+  if (!options.noWrite) {
+    artifacts = writeArtifacts(batch, outDir, true);
+  }
+
+  return {
+    ok: true,
+    batch,
+    jsonPath: artifacts ? artifacts.jsonPath : null,
+    htmlPath: artifacts ? artifacts.htmlPath : null
+  };
+}
+
 module.exports = {
   evaluateMungerValuation,
   analyzeStockWithMunger,
+  processHoldings,
   parseArgs
 };
 
@@ -526,9 +623,29 @@ if (require.main === module) {
     try {
       const args = parseArgs(process.argv.slice(2));
       if (!args.ticker && !args.data && !args.holdings) {
-        console.log('Usage: node orchestrate_munger_analysis.js --ticker <SYMBOL> [--market IN|US] [--refresh]');
+        console.log('Usage: node orchestrate_munger_analysis.js [--ticker <SYMBOL> | --holdings <PATH>] [--market IN|US]');
         process.exit(1);
       }
+
+      if (args.holdings) {
+        const batchRes = await processHoldings(args.holdings, { outDir: args.out });
+        if (args.jsonOutput) {
+          console.log(JSON.stringify(batchRes, null, 2));
+        } else {
+          console.log(`\n===============================================================`);
+          console.log(`  CHARLIE MUNGER PORTFOLIO AUDIT MATRIX (${batchRes.batch.verdicts.length} Holdings)`);
+          console.log(`===============================================================`);
+          batchRes.batch.verdicts.forEach(v => {
+            console.log(`  • ${v.ticker.padEnd(12)}: Stance: ${v.stance.padEnd(11)} Score: ${String(v.score).padStart(3)}/100 | ${v.summary}`);
+          });
+          console.log(`\nArtifacts Written:`);
+          console.log(`  JSON : ${batchRes.jsonPath}`);
+          console.log(`  HTML : ${batchRes.htmlPath}`);
+          console.log(`===============================================================\n`);
+        }
+        return;
+      }
+
       const res = await analyzeStockWithMunger(args.ticker, args);
       if (args.jsonOutput) {
         console.log(JSON.stringify(res, null, 2));
