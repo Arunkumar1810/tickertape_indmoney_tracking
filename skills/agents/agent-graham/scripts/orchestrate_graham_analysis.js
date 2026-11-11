@@ -123,6 +123,8 @@ function parseArgs(argv = process.argv.slice(2)) {
     else if (k === '--no-portfolio') args.noPortfolio = true;
     else if (k === '--out') args.out = next();
     else if (k === '--refresh') args.refresh = true;
+    else if (k === '--diagnostics') args.diagnostics = true;
+    else if (k === '--record-verdict') args.recordVerdict = next();
     else if (k === '--json-output' || k === '--json') args.jsonOutput = true;
     else if (k === '-h' || k === '--help') args.help = true;
     else if (!k.startsWith('--') && !args.ticker) args.ticker = k.toUpperCase();
@@ -474,6 +476,348 @@ function writeArtifacts(verdictData, outDir = DEFAULT_REPORTS_DIR, isBatch = fal
 }
 
 /**
+ * Gather Tier 2/3 Principle Diagnostics for Graham Agent Consumption.
+ * Emits raw metrics and principle checks without making a closed stock verdict.
+ */
+async function getGrahamDiagnostics(ticker, options = {}) {
+  const clean = String(ticker || '').trim().toUpperCase();
+  if (!clean) throw new Error('A ticker symbol is required.');
+
+  const outDir = options.out || options.outDir || DEFAULT_REPORTS_DIR;
+  const market = inferMarket(clean, options.market);
+
+  // 1. Resolve Financials
+  let financials = null;
+  if (options.data) {
+    const dataPath = path.resolve(options.data);
+    if (!fs.existsSync(dataPath)) throw new Error(`Data file not found at ${dataPath}`);
+    financials = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+  } else if (options.financials) {
+    financials = options.financials;
+  } else {
+    const localReportPath = path.join(outDir, 'financials', `${clean}.json`);
+    const repoReportPath = path.join(REPO_ROOT, 'reports', 'financials', `${clean}.json`);
+
+    if (!options.refresh && fs.existsSync(localReportPath)) {
+      financials = JSON.parse(fs.readFileSync(localReportPath, 'utf8'));
+    } else if (!options.refresh && fs.existsSync(repoReportPath)) {
+      financials = JSON.parse(fs.readFileSync(repoReportPath, 'utf8'));
+    } else {
+      if (!providerTickertape || typeof providerTickertape.fetchAndNormalizeTicker !== 'function') {
+        throw new Error(`No local financials for ${clean} and provider_tickertape is unavailable.`);
+      }
+      financials = await providerTickertape.fetchAndNormalizeTicker(clean, {
+        market,
+        out: outDir,
+        refresh: Boolean(options.refresh)
+      });
+    }
+  }
+
+  const isIndexEtf = Boolean(financials.is_index_etf);
+  const companyName = financials.name || clean;
+
+  const netNetEval = evaluateNetNet(financials);
+  const defensiveEval = evaluateDefensiveCriteria(financials);
+  const compEval = isIndexEtf
+    ? { in_circle: true, status: 'IN_CIRCLE', max_position_weight_pct: 15.0, score: 100 }
+    : evaluateCircleOfCompetence(clean);
+
+  const mkt = financials.market_data || {};
+  const cmp = isFiniteNumber(mkt.cmp) ? Number(mkt.cmp) : null;
+  const eps = isFiniteNumber(mkt.eps_ttm) ? Number(mkt.eps_ttm) : null;
+  const bvps = isFiniteNumber(mkt.bvps) ? Number(mkt.bvps) : null;
+  const pe = isFiniteNumber(mkt.pe_ttm) ? Number(mkt.pe_ttm) : null;
+  const pb = isFiniteNumber(mkt.pb_ttm) ? Number(mkt.pb_ttm) : null;
+  const peXpb = (pe !== null && pb !== null && pe > 0 && pb > 0) ? round2(pe * pb) : null;
+  const grahamNumber = calculateGrahamNumber(eps, bvps);
+  const marginOfSafetyPct = (grahamNumber !== null && cmp !== null && cmp > 0)
+    ? round2(((grahamNumber - cmp) / grahamNumber) * 100)
+    : null;
+
+  const bal = financials.balance_sheet || {};
+  const currentAssets = isFiniteNumber(bal.total_current_assets) ? Number(bal.total_current_assets) : 0;
+  const currentLiabilities = isFiniteNumber(bal.total_current_liabilities) ? Number(bal.total_current_liabilities) : 0;
+  const currentRatio = currentLiabilities > 0 ? round2(currentAssets / currentLiabilities) : null;
+
+  // Portfolio & cash till
+  const portfolioPath = options.portfolio ? path.resolve(options.portfolio) : DEFAULT_PORTFOLIO_PATH;
+  let portfolioKnown = false;
+  let isHeld = false;
+  let currentWeightPct = 0.0;
+  let liquidCash = { total_liquid_cash: 0.0, broker_cash: 0.0, bank_balance: 0.0 };
+  let availableCash = 0.0;
+
+  if (!options.noPortfolio) {
+    try {
+      liquidCash = getLiquidCashSummary();
+      availableCash = Number(liquidCash.total_liquid_cash || 0.0);
+    } catch {
+      liquidCash = { total_liquid_cash: 0.0, broker_cash: 0.0, bank_balance: 0.0 };
+      availableCash = 0.0;
+    }
+    if (fs.existsSync(portfolioPath)) {
+      try {
+        const snap = JSON.parse(fs.readFileSync(portfolioPath, 'utf8'));
+        const holdings = Array.isArray(snap.holdings) ? snap.holdings : [];
+        portfolioKnown = true;
+        const match = holdings.find(h => String(h.ticker || '').toUpperCase() === clean);
+        if (match) {
+          isHeld = true;
+          currentWeightPct = Number(match.weight_pct || 0.0);
+        }
+      } catch {
+        portfolioKnown = false;
+      }
+    }
+  }
+
+  const portfolioWarnings = [];
+  if (!portfolioKnown) {
+    portfolioWarnings.push('PORTFOLIO UNKNOWN: Benjamin Graham advises verifying cash reserves and current inventory before purchasing.');
+  } else {
+    if (availableCash < 500) {
+      portfolioWarnings.push(`Dry powder reserve exhausted: Liquid cash till is ₹${availableCash.toFixed(2)} (< ₹500 minimum).`);
+    }
+    if (currentWeightPct >= 15.0) {
+      portfolioWarnings.push(`Concentration limit reached: Current weight is ${currentWeightPct.toFixed(1)}% (max 15.0%).`);
+    }
+  }
+
+  return {
+    ticker: clean,
+    company_name: companyName,
+    market,
+    currency: financials.currency || (market === 'US' ? 'USD' : 'INR'),
+    sector: financials.sector || 'Unknown',
+    industry: financials.industry || 'Unknown',
+    is_index_etf: isIndexEtf,
+    portfolio_status: {
+      portfolio_known: portfolioKnown,
+      is_held: isHeld,
+      current_weight_pct: currentWeightPct,
+      broker_cash: round2(liquidCash.broker_cash),
+      bank_balance: round2(liquidCash.bank_balance),
+      total_liquid_cash: round2(availableCash),
+      available_cash: round2(availableCash),
+      min_cash_required: 500.0,
+      cash_till_dry: portfolioKnown ? (availableCash < 500.0) : true,
+      concentration_limit_breached: currentWeightPct >= 15.0,
+      circle_of_competence: {
+        status: compEval.status || 'IN_CIRCLE',
+        score: compEval.score || 100,
+        max_position_weight_pct: compEval.max_position_weight_pct || 15.0
+      },
+      warnings: portfolioWarnings
+    },
+    principles: [
+      {
+        principle_id: 'graham-number',
+        name: 'Graham Number & Multiple Margin of Safety',
+        metrics: {
+          graham_number: grahamNumber,
+          cmp,
+          margin_of_safety_pct: marginOfSafetyPct,
+          pe_ratio: pe,
+          pb_ratio: pb,
+          pe_x_pb: peXpb
+        },
+        checks: [
+          {
+            name: 'P/E × P/B Defensive Ceiling',
+            criterion: 'P/E × P/B <= 22.5',
+            actual: peXpb !== null ? `${peXpb}` : 'N/A',
+            status: peXpb !== null && peXpb <= 22.5 ? 'PASS' : (peXpb !== null && peXpb <= 30.0 ? 'WARN' : 'FAIL'),
+            details: peXpb !== null ? `P/E × P/B is ${peXpb} (limit 22.5)` : 'Valuation multiples unavailable'
+          },
+          {
+            name: 'Graham Number Margin of Safety',
+            criterion: 'Discount to Graham Number >= 0%',
+            actual: marginOfSafetyPct !== null ? `${marginOfSafetyPct}%` : 'N/A',
+            status: marginOfSafetyPct !== null && marginOfSafetyPct >= 20.0 ? 'PASS' : (marginOfSafetyPct !== null && marginOfSafetyPct >= 0 ? 'PASS' : 'WARN'),
+            details: grahamNumber !== null ? `Graham Number floor: ${grahamNumber} (CMP: ${cmp})` : 'Graham Number could not be computed'
+          }
+        ],
+        observations: [
+          grahamNumber !== null ? `Graham Number floor: ${grahamNumber}` : 'Graham Number could not be computed'
+        ]
+      },
+      {
+        principle_id: 'net-net-working-capital',
+        name: 'Net-Net Working Capital & Liquidation Floor',
+        metrics: netNetEval.metrics || {},
+        checks: [
+          {
+            name: 'Net-Net Working Capital Floor',
+            criterion: 'CMP <= 0.67 NNWC/share (Bargain)',
+            actual: netNetEval.metrics ? `CMP ${cmp} vs NNWC ${netNetEval.metrics.nnwc_per_share}` : 'N/A',
+            status: netNetEval.status,
+            details: netNetEval.summary
+          }
+        ],
+        observations: [netNetEval.summary]
+      },
+      {
+        principle_id: 'defensive-criteria',
+        name: 'Graham 7 Defensive Investor Criteria',
+        metrics: {
+          checks_passed: defensiveEval.checks_passed,
+          total_checks: defensiveEval.total_checks,
+          current_ratio: currentRatio
+        },
+        checks: [
+          {
+            name: 'Defensive Criteria Balance',
+            criterion: 'Pass >= 5 of 7 stability/dividend tests',
+            actual: `${defensiveEval.checks_passed} / ${defensiveEval.total_checks} passed`,
+            status: defensiveEval.status,
+            details: defensiveEval.summary
+          },
+          {
+            name: 'Working Capital Current Ratio',
+            criterion: 'Current Ratio >= 2.0x',
+            actual: currentRatio !== null ? `${currentRatio}x` : 'N/A',
+            status: currentRatio !== null && currentRatio >= 2.0 ? 'PASS' : (currentRatio !== null && currentRatio >= 1.5 ? 'WARN' : 'FAIL'),
+            details: currentRatio !== null ? `Current Ratio is ${currentRatio}x` : 'Working capital unavailable'
+          }
+        ],
+        observations: [defensiveEval.summary]
+      }
+    ]
+  };
+}
+
+/**
+ * Record Benjamin Graham Reasoned Verdict into Canonical UniformVerdictContract Artifacts.
+ */
+async function recordGrahamVerdict(ticker, advisorVerdict, options = {}) {
+  const diag = await getGrahamDiagnostics(ticker, options);
+  const clean = diag.ticker;
+  const outDir = options.out || options.outDir || DEFAULT_REPORTS_DIR;
+  const timestamp = options.timestamp || new Date().toISOString();
+
+  const stance = advisorVerdict.canonical_stance || advisorVerdict.stance || 'HOLD';
+  const score = round2(advisorVerdict.score !== undefined ? advisorVerdict.score : (advisorVerdict.composite_score !== undefined ? advisorVerdict.composite_score : 50.0));
+  const call = advisorVerdict.actionable_call || advisorVerdict.call || (stance === 'STRONG_BUY' || stance === 'BUY' ? 'BUY' : (stance === 'STRONG_SELL' || stance === 'REDUCE' ? 'SELL' : 'HOLD'));
+  const callReason = advisorVerdict.call_reason || advisorVerdict.reason || 'Reasoned evaluation by Benjamin Graham persona.';
+  const folksyVerdict = advisorVerdict.folksy_verdict || advisorVerdict.verdict_text || 'Margin of safety is the central secret of sound investment.';
+  const summary = advisorVerdict.summary || `${stance}: ${callReason}`;
+
+  const audit = [];
+  const redFlags = [];
+  for (const p of diag.principles) {
+    for (const c of p.checks) {
+      audit.push({
+        check: `${p.name}: ${c.name}`,
+        criterion: c.criterion,
+        value: c.actual || c.value || 'N/A',
+        status: c.status || 'WARN',
+        details: c.details || ''
+      });
+      if (c.status === 'FAIL') {
+        redFlags.push(`${c.name} failed: ${c.details}`);
+      }
+    }
+  }
+
+  const defaultObservations = diag.principles.flatMap(p => p.observations || []);
+  const defaultPositives = diag.principles.flatMap(p => (p.checks || []).filter(c => c.status === 'PASS').map(c => `${c.name}: ${c.details || c.actual}`));
+  const defaultNegatives = diag.principles.flatMap(p => (p.checks || []).filter(c => c.status === 'FAIL' || c.status === 'WARN').map(c => `${c.name}: ${c.details || c.actual}`));
+
+  const positive = (Array.isArray(advisorVerdict.positive) && advisorVerdict.positive.length > 0)
+    ? advisorVerdict.positive
+    : defaultPositives;
+
+  const negative = (Array.isArray(advisorVerdict.negative) && advisorVerdict.negative.length > 0)
+    ? advisorVerdict.negative
+    : defaultNegatives;
+
+  const observations = (Array.isArray(advisorVerdict.observations) && advisorVerdict.observations.length > 0)
+    ? advisorVerdict.observations
+    : defaultObservations;
+
+  const gnMetrics = (diag.principles.find(p => p.principle_id === 'graham-number') || {}).metrics || {};
+  const nnMetrics = (diag.principles.find(p => p.principle_id === 'net-net-working-capital') || {}).metrics || {};
+  const defMetrics = (diag.principles.find(p => p.principle_id === 'defensive-criteria') || {}).metrics || {};
+
+  const metrics = {
+    graham_number: gnMetrics.graham_number ?? null,
+    nnwc: nnMetrics.nnwc ?? null,
+    nnwc_per_share: nnMetrics.nnwc_per_share ?? null,
+    ncav: nnMetrics.ncav ?? null,
+    ncav_per_share: nnMetrics.ncav_per_share ?? null,
+    margin_of_safety_pct: gnMetrics.margin_of_safety_pct ?? null,
+    current_ratio: defMetrics.current_ratio ?? null,
+    pe_ratio: gnMetrics.pe_ratio ?? null,
+    pb_ratio: gnMetrics.pb_ratio ?? null,
+    pe_x_pb: gnMetrics.pe_x_pb ?? null,
+    net_net_score: nnMetrics.score ?? 0,
+    defensive_score: defMetrics.checks_passed ? round2((defMetrics.checks_passed / 7) * 100) : 0
+  };
+
+  const verdict = {
+    principle: 'graham',
+    principle_title: 'Benjamin Graham Value Investing',
+    ticker: clean,
+    timestamp,
+    stance,
+    score,
+    is_veto: false,
+    summary
+  };
+
+  const uniformPayload = {
+    principle: 'graham',
+    ticker: clean,
+    timestamp,
+    score,
+    stance,
+    is_veto: false,
+    metrics,
+    red_flags: redFlags,
+    summary,
+    verdict,
+    audit,
+    positive,
+    negative,
+    observations,
+    warnings: [...redFlags, ...(diag.portfolio_status.warnings || [])],
+    advisor_verdict: {
+      actionable_call: call,
+      call_reason: callReason,
+      folksy_verdict: folksyVerdict
+    },
+    portfolio_status: diag.portfolio_status
+  };
+
+  const validation = validateUniformVerdict(uniformPayload);
+  if (!validation.ok) {
+    throw new Error(`UniformVerdict validation failed: ${JSON.stringify(validation.errors)}`);
+  }
+
+  let artifacts = null;
+  if (!options.noWrite) {
+    artifacts = writeArtifacts(uniformPayload, outDir, false);
+  }
+
+  return {
+    ticker: clean,
+    company_name: diag.company_name,
+    market: diag.market,
+    composite_score: score,
+    call,
+    call_reason: callReason,
+    folksy_verdict: folksyVerdict,
+    portfolio_status: uniformPayload.portfolio_status,
+    verdict: uniformPayload,
+    artifacts: {
+      json: artifacts ? artifacts.jsonPath : null,
+      html: artifacts ? artifacts.htmlPath : null
+    }
+  };
+}
+
+/**
  * High-level Benjamin Graham advisory workflow.
  * Analyzes stock fundamentals, enforces Circle of Competence & portfolio cash till gating,
  * and emits actionable advisory recommendations.
@@ -787,6 +1131,8 @@ async function processHoldings(holdingsPath, options = {}) {
 module.exports = {
   evaluateGrahamValuation,
   analyzeStockWithGraham,
+  getGrahamDiagnostics,
+  recordGrahamVerdict,
   processHoldings,
   parseArgs,
   calculateGrahamNumber
@@ -799,6 +1145,46 @@ if (require.main === module) {
       if (!args.ticker && !args.data && !args.holdings) {
         console.log('Usage: node orchestrate_graham_analysis.js [--ticker <SYMBOL> | --holdings <PATH>] [--market IN|US]');
         process.exit(1);
+      }
+
+      if (args.ticker && args.diagnostics) {
+        const diag = await getGrahamDiagnostics(args.ticker, args);
+        console.log(JSON.stringify(diag, null, 2));
+        return;
+      }
+
+      if (args.ticker && args.recordVerdict) {
+        let payload;
+        try {
+          if (fs.existsSync(args.recordVerdict)) {
+            payload = JSON.parse(fs.readFileSync(args.recordVerdict, 'utf8'));
+          } else {
+            let raw = args.recordVerdict.trim();
+            try {
+              payload = JSON.parse(raw);
+            } catch {
+              if ((raw.startsWith("'") && raw.endsWith("'")) || (raw.startsWith('"') && raw.endsWith('"'))) {
+                raw = raw.slice(1, -1).trim();
+              }
+              raw = raw.replace(/\\"/g, '"');
+              payload = JSON.parse(raw);
+            }
+          }
+        } catch (e) {
+          throw new Error(`Failed to parse --record-verdict payload: ${e.message}`);
+        }
+        const res = await recordGrahamVerdict(args.ticker, payload, args);
+        if (args.jsonOutput) {
+          console.log(JSON.stringify(res, null, 2));
+        } else {
+          console.log(`\n=== Benjamin Graham Reasoned Verdict Recorded: ${res.ticker} ===`);
+          console.log(`Stance          : ${res.verdict.stance} | Score: ${res.composite_score}/100`);
+          console.log(`Actionable Call : ${res.call}`);
+          console.log(`Reason          : ${res.call_reason}`);
+          console.log(`Dean of Wall St : ${res.folksy_verdict}`);
+          console.log(`Artifacts written to:\n  ${res.artifacts.json}\n  ${res.artifacts.html}\n`);
+        }
+        return;
       }
 
       if (args.holdings) {

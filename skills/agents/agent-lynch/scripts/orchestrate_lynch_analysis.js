@@ -212,8 +212,6 @@ function evaluateLynchValuation(financials, options = {}) {
           criterion: 'Passive Index Basket',
           value: 'Full Basket',
           status: 'PASS',
-          score: 100.0,
-          max_score: 100.0,
           details: 'Broad-market ETF bypasses single-company PEG and inventory divergence constraints'
         }
       ],
@@ -389,8 +387,6 @@ function evaluateLynchValuation(financials, options = {}) {
       criterion: 'PEG ≤ 1.0 (Ceiling ≤ 2.0)',
       value: pegRatio !== null ? `${pegRatio}x` : 'N/A',
       status: pegRatio !== null && pegRatio <= 1.0 ? 'PASS' : (pegRatio !== null && pegRatio <= 2.0 ? 'WARN' : 'FAIL'),
-      score: pillar1Score,
-      max_score: 40,
       details: pegRatio !== null
         ? `PEG ratio of ${pegRatio}x (Yield-adjusted PEG: ${yieldAdjustedPegRatio !== null ? yieldAdjustedPegRatio + 'x' : 'N/A'})`
         : 'Missing or negative P/E or earnings growth rate'
@@ -400,8 +396,6 @@ function evaluateLynchValuation(financials, options = {}) {
       criterion: '5Y EPS CAGR ≥ 10.0% (Fast Grower ≥ 20.0%)',
       value: epsGrowthRatePct !== null ? `${epsGrowthRatePct}%` : 'N/A',
       status: epsGrowthRatePct !== null && epsGrowthRatePct >= 10.0 ? 'PASS' : (epsGrowthRatePct !== null && epsGrowthRatePct >= 5.0 ? 'WARN' : 'FAIL'),
-      score: pillar2Score,
-      max_score: 25,
       details: epsGrowthRatePct !== null
         ? `Annual EPS growth CAGR of ${epsGrowthRatePct}%`
         : 'Historical EPS growth rate not established'
@@ -411,8 +405,6 @@ function evaluateLynchValuation(financials, options = {}) {
       criterion: 'Inventory Growth ≤ Sales Growth (Divergence ≤ 5%)',
       value: hasNoInventory ? 'Zero Inventory (Asset-light)' : (inventoryDivergencePct !== null ? `${inventoryDivergencePct}%` : 'N/A'),
       status: (hasNoInventory || (inventoryDivergencePct !== null && inventoryDivergencePct <= 5.0)) ? 'PASS' : (inventoryDivergencePct !== null && inventoryDivergencePct <= 10.0 ? 'WARN' : 'FAIL'),
-      score: pillar3Score,
-      max_score: 20,
       details: hasNoInventory
         ? 'Asset-light business model eliminates inventory channel-stuffing risk'
         : (inventoryDivergencePct !== null
@@ -424,8 +416,6 @@ function evaluateLynchValuation(financials, options = {}) {
       criterion: 'Debt-to-Equity ≤ 0.50 (Max 1.0)',
       value: debtToEquity !== null ? `${debtToEquity}x` : (totalDebt === 0 ? '0.00x' : 'N/A'),
       status: debtToEquity !== null && debtToEquity <= 0.50 ? 'PASS' : (debtToEquity !== null && debtToEquity <= 1.0 ? 'WARN' : 'FAIL'),
-      score: pillar4Score,
-      max_score: 15,
       details: debtToEquity !== null
         ? `Debt-to-Equity of ${debtToEquity}x with total debt ${totalDebt}`
         : 'Debt-to-Equity ratio not calculable'
@@ -677,7 +667,8 @@ function formatLynchSpeech({
   lines.push('\n--- QUANTITATIVE 4-PILLAR BREAKDOWN ---');
   for (const item of audit) {
     const mark = item.status === 'PASS' ? '✅' : (item.status === 'WARN' ? '⚠️' : '❌');
-    lines.push(`  ${mark} ${item.check.padEnd(35)} : ${String(item.value).padEnd(20)} [${item.score}/${item.max_score} pts]`);
+    const scoreStr = item.score !== undefined ? ` [${item.score}/${item.max_score || item.score} pts]` : '';
+    lines.push(`  ${mark} ${item.check.padEnd(35)} : ${String(item.value).padEnd(20)}${scoreStr}`);
     lines.push(`     ${item.details}`);
   }
 
@@ -702,6 +693,338 @@ function formatLynchSpeech({
   if (htmlPath) lines.push(`Audit Dashboard: ${htmlPath}`);
 
   return lines.join('\n');
+}
+
+/**
+ * Gather pure quantitative diagnostics across Peter Lynch GARP principles.
+ * Principles return metrics and qualitative checks without prescribing the final stance.
+ */
+async function getLynchDiagnostics(ticker, options = {}) {
+  const clean = String(ticker || '').trim().toUpperCase();
+  if (!clean) throw new Error('A ticker symbol is required.');
+
+  const outDir = options.out || options.outDir || DEFAULT_REPORTS_DIR;
+  const market = inferMarket(clean, options.market);
+
+  // 1. Resolve Financials
+  let financials = null;
+  if (options.data) {
+    const dataPath = path.resolve(options.data);
+    if (!fs.existsSync(dataPath)) throw new Error(`Data file not found at ${dataPath}`);
+    financials = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+  } else {
+    const localReportPath = path.join(outDir, 'financials', `${clean}.json`);
+    const repoReportPath = path.join(REPO_ROOT, 'reports', 'financials', `${clean}.json`);
+
+    if (!options.refresh && fs.existsSync(localReportPath)) {
+      financials = JSON.parse(fs.readFileSync(localReportPath, 'utf8'));
+    } else if (!options.refresh && fs.existsSync(repoReportPath)) {
+      financials = JSON.parse(fs.readFileSync(repoReportPath, 'utf8'));
+    } else {
+      if (!providerTickertape || typeof providerTickertape.fetchAndNormalizeTicker !== 'function') {
+        throw new Error(`No local financials for ${clean} and provider_tickertape is unavailable.`);
+      }
+      financials = await providerTickertape.fetchAndNormalizeTicker(clean, {
+        market,
+        out: outDir,
+        refresh: Boolean(options.refresh)
+      });
+    }
+  }
+
+  const isIndexEtf = Boolean(
+    financials.is_index_etf === true ||
+    financials.sector === 'Index ETF' ||
+    INDEX_ETF_TICKERS.has(clean)
+  );
+
+  const category = classifyLynchCategory(financials);
+  const companyName = financials.name || financials.ticker || clean;
+
+  const pegEval = evaluatePEGRatio(financials);
+  const invEval = evaluateInventorySalesVelocity(financials);
+
+  const balance = financials.balance_sheet || {};
+  const totalDebt = isFiniteNumber(balance.total_debt) ? Number(balance.total_debt) : 0.0;
+  const totalEquity = isFiniteNumber(balance.total_equity) ? Number(balance.total_equity) : null;
+  const debtToEquity = (totalEquity !== null && totalEquity > 0) ? round2(totalDebt / totalEquity) : null;
+
+  const pegRatio = pegEval.metrics.peg_ratio;
+  const yieldAdjustedPegRatio = pegEval.metrics.yield_adjusted_peg_ratio;
+  const lynchFairValue = pegEval.metrics.fair_value_line;
+  const epsGrowthRatePct = pegEval.metrics.eps_growth_rate_pct;
+
+  const inventoryDivergencePct = invEval.metrics.inventory_divergence_pct;
+  const hasNoInventory = !invEval.metrics.has_inventory;
+
+  const principles = isIndexEtf ? [
+    {
+      principle_id: 'broad-market-index',
+      name: 'Broad-Market Index Diversification',
+      metrics: { is_index_etf: true },
+      checks: [
+        {
+          name: 'Broad-Market Index Diversification',
+          criterion: 'Passive Index Basket',
+          actual: 'Full Basket',
+          status: 'PASS',
+          details: 'Broad-market ETF bypasses single-company PEG and inventory divergence constraints'
+        }
+      ],
+      observations: ['Passive index fund provides automated sector and company diversification.']
+    }
+  ] : [
+    {
+      principle_id: 'peg-ratio',
+      name: 'PEG Ratio & Expansion Valuation',
+      metrics: pegEval.metrics,
+      checks: [
+        {
+          name: 'PEG Valuation Discipline',
+          criterion: 'PEG ≤ 1.0 (Ceiling ≤ 2.0)',
+          actual: pegRatio !== null ? `${pegRatio}x` : 'N/A',
+          status: pegRatio !== null && pegRatio <= 1.0 ? 'PASS' : (pegRatio !== null && pegRatio <= 2.0 ? 'WARN' : 'FAIL'),
+          details: pegRatio !== null
+            ? `PEG ratio of ${pegRatio}x (Yield-adjusted PEG: ${yieldAdjustedPegRatio !== null ? yieldAdjustedPegRatio + 'x' : 'N/A'}, Fair Value Line: ${lynchFairValue !== null ? lynchFairValue : 'N/A'})`
+            : 'Missing or negative P/E or earnings growth rate'
+        },
+        {
+          name: 'Earnings Growth Engine',
+          criterion: '5Y EPS CAGR ≥ 10.0% (Fast Grower ≥ 20.0%)',
+          actual: epsGrowthRatePct !== null ? `${epsGrowthRatePct}%` : 'N/A',
+          status: epsGrowthRatePct !== null && epsGrowthRatePct >= 10.0 ? 'PASS' : (epsGrowthRatePct !== null && epsGrowthRatePct >= 5.0 ? 'WARN' : 'FAIL'),
+          details: epsGrowthRatePct !== null
+            ? `Annual EPS growth CAGR of ${epsGrowthRatePct}% (${category})`
+            : 'Historical EPS growth rate not established'
+        }
+      ],
+      observations: pegEval.observations
+    },
+    {
+      principle_id: 'inventory-sales-velocity',
+      name: 'Inventory vs Sales Velocity Divergence',
+      metrics: invEval.metrics,
+      checks: [
+        {
+          name: 'Operational Inventory Velocity',
+          criterion: 'Inventory Growth ≤ Sales Growth (Divergence ≤ 5%)',
+          actual: hasNoInventory ? 'Zero Inventory (Asset-light)' : (inventoryDivergencePct !== null ? `${inventoryDivergencePct}%` : 'N/A'),
+          status: (hasNoInventory || (inventoryDivergencePct !== null && inventoryDivergencePct <= 5.0)) ? 'PASS' : (inventoryDivergencePct !== null && inventoryDivergencePct <= 10.0 ? 'WARN' : 'FAIL'),
+          details: hasNoInventory
+            ? 'Asset-light business model eliminates inventory channel-stuffing risk'
+            : (inventoryDivergencePct !== null
+              ? `Inventory vs sales growth divergence is ${inventoryDivergencePct}%`
+              : 'Inventory divergence metric unavailable')
+        }
+      ],
+      observations: invEval.observations
+    },
+    {
+      principle_id: 'leverage-solvency',
+      name: 'Financial Leverage & Solvency',
+      metrics: {
+        total_debt: totalDebt,
+        total_equity: totalEquity,
+        debt_to_equity: debtToEquity
+      },
+      checks: [
+        {
+          name: 'Financial Leverage & Solvency',
+          criterion: 'Debt-to-Equity ≤ 0.50 (Max 1.0)',
+          actual: debtToEquity !== null ? `${debtToEquity}x` : (totalDebt === 0 ? '0.00x' : 'N/A'),
+          status: debtToEquity !== null && debtToEquity <= 0.50 ? 'PASS' : (debtToEquity !== null && debtToEquity <= 1.0 ? 'WARN' : 'FAIL'),
+          details: debtToEquity !== null
+            ? `Debt-to-Equity of ${debtToEquity}x with total debt ${totalDebt}`
+            : 'Debt-to-Equity ratio not calculable'
+        }
+      ],
+      observations: [debtToEquity !== null ? `Debt-to-Equity is ${debtToEquity}x.` : 'Debt-to-Equity not calculable.']
+    }
+  ];
+
+  // Portfolio & Liquidity Gating
+  const portfolioPath = options.portfolio ? path.resolve(options.portfolio) : DEFAULT_PORTFOLIO_PATH;
+  let portfolioKnown = false;
+  let isHeld = false;
+  let currentWeightPct = 0.0;
+  let liquidCash = { total_liquid_cash: 0.0, broker_cash: 0.0, bank_balance: 0.0 };
+  let availableCash = 0.0;
+
+  if (!options.noPortfolio && fs.existsSync(portfolioPath)) {
+    try {
+      const pRaw = fs.readFileSync(portfolioPath, 'utf8');
+      const pData = JSON.parse(pRaw);
+      portfolioKnown = true;
+      const holdings = Array.isArray(pData.holdings) ? pData.holdings : [];
+      const match = holdings.find(h => String(h.ticker || '').toUpperCase() === clean);
+      if (match) {
+        isHeld = true;
+        currentWeightPct = Number(match.allocation_pct || match.weight_pct || 0);
+      }
+      const bankBal = loadBankBalance(path.join(REPO_ROOT, 'config', 'bank_balance.json'));
+      liquidCash = getLiquidCashSummary(pData, bankBal);
+      availableCash = liquidCash.total_liquid_cash || 0.0;
+    } catch {
+      portfolioKnown = false;
+    }
+  }
+
+  const competenceEval = isIndexEtf
+    ? { in_circle: true, status: 'IN_CIRCLE', max_position_weight_pct: 15.0, score: 100 }
+    : evaluateCircleOfCompetence(clean);
+
+  return {
+    ticker: clean,
+    market,
+    company_name: companyName,
+    category,
+    is_index_etf: isIndexEtf,
+    financials,
+    principles,
+    circle_of_competence: competenceEval,
+    portfolio_status: {
+      portfolio_known: portfolioKnown,
+      is_held: isHeld,
+      current_weight_pct: currentWeightPct,
+      broker_cash: round2(liquidCash.broker_cash),
+      bank_balance: round2(liquidCash.bank_balance),
+      total_liquid_cash: round2(availableCash),
+      available_cash: round2(availableCash),
+      min_cash_required: 500.0,
+      warnings: []
+    }
+  };
+}
+
+/**
+ * Record Peter Lynch Reasoned Verdict into Canonical UniformVerdictContract Artifacts.
+ */
+async function recordLynchVerdict(ticker, advisorVerdict, options = {}) {
+  const diag = await getLynchDiagnostics(ticker, options);
+  const clean = diag.ticker;
+  const outDir = options.out || options.outDir || DEFAULT_REPORTS_DIR;
+  const timestamp = options.timestamp || new Date().toISOString();
+
+  const stance = advisorVerdict.canonical_stance || advisorVerdict.stance || 'HOLD';
+  const score = round2(advisorVerdict.score !== undefined ? advisorVerdict.score : (advisorVerdict.composite_score !== undefined ? advisorVerdict.composite_score : 50.0));
+  const call = advisorVerdict.actionable_call || advisorVerdict.call || (stance === 'STRONG_BUY' || stance === 'BUY' ? 'BUY' : (stance === 'STRONG_SELL' || stance === 'REDUCE' ? 'SELL' : 'HOLD'));
+  const callReason = advisorVerdict.call_reason || advisorVerdict.reason || 'Reasoned evaluation by Peter Lynch persona.';
+  const folksyVerdict = advisorVerdict.folksy_verdict || advisorVerdict.speech || advisorVerdict.verdict_text || 'Know what you own, and know why you own it.';
+  const summary = advisorVerdict.summary || `${stance}: ${callReason}`;
+
+  const audit = [];
+  const redFlags = [];
+  for (const p of diag.principles) {
+    for (const c of p.checks) {
+      audit.push({
+        check: `${p.name}: ${c.name}`,
+        criterion: c.criterion,
+        value: c.actual || c.value || 'N/A',
+        status: c.status || 'WARN',
+        details: c.details || ''
+      });
+      if (c.status === 'FAIL') {
+        redFlags.push(`${c.name} failed: ${c.details}`);
+      }
+    }
+  }
+
+  const defaultObservations = diag.principles.flatMap(p => p.observations || []);
+  const defaultPositives = diag.principles.flatMap(p => (p.checks || []).filter(c => c.status === 'PASS').map(c => `${c.name}: ${c.details || c.actual}`));
+  const defaultNegatives = diag.principles.flatMap(p => (p.checks || []).filter(c => c.status === 'FAIL' || c.status === 'WARN').map(c => `${c.name}: ${c.details || c.actual}`));
+
+  const positive = (Array.isArray(advisorVerdict.positive) && advisorVerdict.positive.length > 0)
+    ? advisorVerdict.positive
+    : defaultPositives;
+
+  const negative = (Array.isArray(advisorVerdict.negative) && advisorVerdict.negative.length > 0)
+    ? advisorVerdict.negative
+    : defaultNegatives;
+
+  const observations = (Array.isArray(advisorVerdict.observations) && advisorVerdict.observations.length > 0)
+    ? advisorVerdict.observations
+    : defaultObservations;
+
+  const pegMetrics = (diag.principles.find(p => p.principle_id === 'peg-ratio') || {}).metrics || {};
+  const invMetrics = (diag.principles.find(p => p.principle_id === 'inventory-sales-velocity') || {}).metrics || {};
+  const levMetrics = (diag.principles.find(p => p.principle_id === 'leverage-solvency') || {}).metrics || {};
+
+  const metrics = {
+    peg_ratio: pegMetrics.peg_ratio ?? null,
+    yield_adjusted_peg_ratio: pegMetrics.yield_adjusted_peg_ratio ?? null,
+    eps_growth_rate_pct: pegMetrics.eps_growth_rate_pct ?? null,
+    dividend_yield_pct: pegMetrics.dividend_yield_pct ?? null,
+    pe_ratio: pegMetrics.pe_ratio ?? null,
+    lynch_fair_value: pegMetrics.fair_value_line ?? null,
+    inventory_divergence_pct: invMetrics.inventory_divergence_pct ?? null,
+    debt_to_equity: levMetrics.debt_to_equity ?? null
+  };
+
+  const verdict = {
+    principle: 'lynch',
+    principle_title: 'Peter Lynch GARP Valuation',
+    ticker: clean,
+    timestamp,
+    stance,
+    score,
+    is_veto: false,
+    summary
+  };
+
+  const uniformPayload = {
+    principle: 'lynch',
+    ticker: clean,
+    timestamp,
+    score,
+    stance,
+    is_veto: false,
+    metrics,
+    red_flags: redFlags,
+    summary,
+    verdict,
+    audit,
+    positive,
+    negative,
+    observations,
+    warnings: [...redFlags, ...(diag.portfolio_status.warnings || [])],
+    advisor_verdict: {
+      actionable_call: call,
+      call_reason: callReason,
+      folksy_verdict: folksyVerdict
+    },
+    portfolio_status: diag.portfolio_status
+  };
+
+  const validation = validateUniformVerdict(uniformPayload);
+  if (!validation.ok) {
+    throw new Error(`UniformVerdict validation failed: ${JSON.stringify(validation.errors)}`);
+  }
+
+  let artifacts = null;
+  if (!options.noWrite) {
+    artifacts = writeArtifacts(uniformPayload, outDir, false);
+  }
+
+  return {
+    ok: true,
+    ticker: clean,
+    companyName: diag.company_name,
+    category: diag.category,
+    score,
+    composite_score: score,
+    stance,
+    call,
+    callReason,
+    folksy_verdict: folksyVerdict,
+    verdict: uniformPayload,
+    portfolio_status: uniformPayload.portfolio_status,
+    artifacts: {
+      json: artifacts ? artifacts.jsonPath : null,
+      html: artifacts ? artifacts.htmlPath : null
+    },
+    jsonPath: artifacts ? artifacts.jsonPath : null,
+    htmlPath: artifacts ? artifacts.htmlPath : null
+  };
 }
 
 /**
@@ -956,6 +1279,8 @@ function parseArgs(argv = process.argv.slice(2)) {
     noPortfolio: false,
     out: null,
     refresh: false,
+    diagnostics: false,
+    recordVerdict: null,
     jsonOutput: false,
     noWrite: false
   };
@@ -978,6 +1303,10 @@ function parseArgs(argv = process.argv.slice(2)) {
       args.out = argv[++i];
     } else if (a === '--refresh') {
       args.refresh = true;
+    } else if (a === '--diagnostics') {
+      args.diagnostics = true;
+    } else if (a === '--record-verdict' && i + 1 < argv.length) {
+      args.recordVerdict = argv[++i];
     } else if (a === '--json-output' || a === '--json') {
       args.jsonOutput = true;
     } else if (a === '--no-write') {
@@ -992,6 +1321,46 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
 
   try {
+    if (args.ticker && args.diagnostics) {
+      const diag = await getLynchDiagnostics(args.ticker, args);
+      console.log(JSON.stringify(diag, null, 2));
+      return;
+    }
+
+    if (args.ticker && args.recordVerdict) {
+      let payload;
+      try {
+        if (fs.existsSync(args.recordVerdict)) {
+          payload = JSON.parse(fs.readFileSync(args.recordVerdict, 'utf8'));
+        } else {
+          let raw = args.recordVerdict.trim();
+          try {
+            payload = JSON.parse(raw);
+          } catch {
+            if ((raw.startsWith("'") && raw.endsWith("'")) || (raw.startsWith('"') && raw.endsWith('"'))) {
+              raw = raw.slice(1, -1).trim();
+            }
+            raw = raw.replace(/\\"/g, '"');
+            payload = JSON.parse(raw);
+          }
+        }
+      } catch (e) {
+        throw new Error(`Failed to parse --record-verdict payload: ${e.message}`);
+      }
+      const res = await recordLynchVerdict(args.ticker, payload, args);
+      if (args.jsonOutput) {
+        console.log(JSON.stringify(res, null, 2));
+      } else {
+        console.log(`\n=== Peter Lynch Reasoned Verdict Recorded: ${res.ticker} ===`);
+        console.log(`Stance          : ${res.verdict.stance} | Score: ${res.score}/100`);
+        console.log(`Actionable Call : ${res.call}`);
+        console.log(`Reason          : ${res.callReason}`);
+        console.log(`Magellan Advice : ${res.folksy_verdict}`);
+        console.log(`Artifacts written to:\n  ${res.artifacts.json}\n  ${res.artifacts.html}\n`);
+      }
+      return;
+    }
+
     if (args.holdings) {
       const res = await processHoldings(args.holdings, args);
       if (args.jsonOutput) {
@@ -1028,6 +1397,8 @@ async function main() {
 
     console.error('Usage:');
     console.error('  node orchestrate_lynch_analysis.js --ticker <TICKER> [--market IN|US] [--json-output]');
+    console.error('  node orchestrate_lynch_analysis.js --ticker <TICKER> --diagnostics');
+    console.error('  node orchestrate_lynch_analysis.js --ticker <TICKER> --record-verdict <JSON|FILE>');
     console.error('  node orchestrate_lynch_analysis.js --data <PATH_TO_NORMALIZED_FINANCIALS>');
     console.error('  node orchestrate_lynch_analysis.js --holdings <PATH_TO_HOLDINGS_SNAPSHOT>');
     process.exit(1);
@@ -1050,6 +1421,8 @@ module.exports = {
   classifyLynchCategory,
   evaluateLynchValuation,
   evaluateLynch: evaluateLynchValuation,
+  getLynchDiagnostics,
+  recordLynchVerdict,
   renderHtml,
   renderLynchDashboardHtml,
   writeArtifacts,

@@ -402,6 +402,339 @@ function processDataFile(dataPath, options = {}) {
 }
 
 /**
+ * Gather pure quantitative diagnostics across Howard Schilit Forensic Governance principles.
+ * Principles return metrics and qualitative checks without prescribing the final stance.
+ */
+async function getSchilitDiagnostics(ticker, options = {}) {
+  const clean = String(ticker || '').trim().toUpperCase();
+  if (!clean) throw new Error('A ticker symbol is required.');
+
+  const outDir = options.out || options.outDir || DEFAULT_REPORTS_DIR;
+  const market = inferMarket(clean, options.market);
+
+  let financials = null;
+  if (options.data) {
+    const dataPath = path.resolve(options.data);
+    if (!fs.existsSync(dataPath)) throw new Error(`Data file not found at ${dataPath}`);
+    financials = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+  } else {
+    const localReportPath = path.join(outDir, 'financials', `${clean}.json`);
+    const repoReportPath = path.join(REPO_ROOT, 'reports', 'financials', `${clean}.json`);
+
+    if (!options.refresh && fs.existsSync(localReportPath)) {
+      financials = JSON.parse(fs.readFileSync(localReportPath, 'utf8'));
+    } else if (!options.refresh && fs.existsSync(repoReportPath)) {
+      financials = JSON.parse(fs.readFileSync(repoReportPath, 'utf8'));
+    } else {
+      if (!providerTickertape || typeof providerTickertape.fetchAndNormalizeTicker !== 'function') {
+        throw new Error(`No local financials for ${clean} and provider_tickertape is unavailable.`);
+      }
+      financials = await providerTickertape.fetchAndNormalizeTicker(clean, {
+        market,
+        out: outDir,
+        refresh: Boolean(options.refresh)
+      });
+    }
+  }
+
+  const isIndexEtf = Boolean(
+    financials.is_index_etf === true ||
+    financials.sector === 'Index ETF' ||
+    INDEX_ETF_TICKERS.has(clean)
+  );
+
+  const companyName = financials.name || financials.ticker || clean;
+  const forensics = financials.forensics || {};
+  const income = financials.income_statement || {};
+  const cashFlow = financials.cash_flow || {};
+
+  const acctEval = evaluateAccountingIntegrity(financials);
+  const promEval = evaluatePromoterPledging(financials);
+
+  const promoterPledgingPct = promEval.metrics.promoter_pledging_pct;
+  const promoterHoldingPct = promEval.metrics.promoter_holding_pct;
+  const rptPct = promEval.metrics.related_party_transactions_pct;
+
+  const auditorResignationFlag = Boolean(forensics.auditor_resignation_flag);
+  const qualifiedOpinionFlag = Boolean(forensics.qualified_opinion_flag);
+
+  const beneishMScore = acctEval.metrics.beneish_m_score;
+  const sloanAccrualRatio = acctEval.metrics.sloan_accrual_ratio;
+  const dsoExpansionPct = acctEval.metrics.dso_yoy_expansion_pct;
+  const inventoryGrowthDelta = acctEval.metrics.inventory_growth_vs_sales_delta_pct;
+
+  const surveillanceStage = String(forensics.surveillance_stage || 'NONE').toUpperCase();
+
+  let sbcDilutionPct = 0.0;
+  if (forensics.sbc_dilution_pct !== undefined && forensics.sbc_dilution_pct !== null) {
+    sbcDilutionPct = Number(forensics.sbc_dilution_pct);
+  } else if (cashFlow.stock_based_compensation && income.revenue && income.revenue > 0) {
+    sbcDilutionPct = round2((cashFlow.stock_based_compensation / income.revenue) * 100);
+  }
+
+  const shareDilutionPct = forensics.share_dilution_pct !== undefined && forensics.share_dilution_pct !== null
+    ? Number(forensics.share_dilution_pct)
+    : (forensics.share_count_dilution_pct !== undefined && forensics.share_count_dilution_pct !== null
+      ? Number(forensics.share_count_dilution_pct)
+      : null);
+
+  const vetoReasons = [...acctEval.veto_reasons, ...promEval.veto_reasons];
+  if (auditorResignationFlag) vetoReasons.push('Unexplained mid-term auditor resignation reported');
+  if (qualifiedOpinionFlag) vetoReasons.push('Adverse or qualified independent audit opinion reported');
+  if (['STAGE_3', 'STAGE_4', 'GSM_STAGE_4'].includes(surveillanceStage)) {
+    vetoReasons.push(`Security under heightened regulatory surveillance (${surveillanceStage})`);
+  }
+  if (sbcDilutionPct > 10.0) vetoReasons.push(`Excessive stock-based compensation dilution (${round2(sbcDilutionPct)}% > 10% threshold)`);
+  if (shareDilutionPct !== null && shareDilutionPct > 10.0) vetoReasons.push(`Aggressive share count dilution (${round2(shareDilutionPct)}% > 10% threshold)`);
+
+  const warningFlags = [...acctEval.warning_flags, ...promEval.warning_flags];
+  if (['STAGE_1', 'STAGE_2'].includes(surveillanceStage)) warningFlags.push(`Exchange surveillance watch active: ${surveillanceStage}`);
+  if (sbcDilutionPct > 5.0 && sbcDilutionPct <= 10.0) warningFlags.push(`High stock-based compensation dilution (${round2(sbcDilutionPct)}% of revenue)`);
+  if (shareDilutionPct !== null && shareDilutionPct > 5.0 && shareDilutionPct <= 10.0) warningFlags.push(`Elevated share count dilution (${round2(shareDilutionPct)}% YoY)`);
+
+  const principles = isIndexEtf ? [
+    {
+      principle_id: 'broad-market-index',
+      name: 'Broad-Market Index Diversification',
+      metrics: { is_index_etf: true },
+      checks: [
+        {
+          name: 'Passive Index Basket',
+          criterion: 'Passive Index Basket',
+          actual: 'Full Basket',
+          status: 'PASS',
+          details: 'Broad-market ETF bypasses single-company forensic audits'
+        }
+      ],
+      observations: ['Passive ETF basket bypasses single-company corporate governance audits.']
+    }
+  ] : [
+    {
+      principle_id: 'accounting-integrity',
+      name: 'Accounting Integrity & Earnings Quality',
+      metrics: acctEval.metrics,
+      checks: [
+        {
+          name: 'Beneish M-Score Earnings Manipulation',
+          criterion: 'M-Score ≤ -1.78 (Non-manipulator)',
+          actual: isFiniteNumber(beneishMScore) ? `${round2(beneishMScore)}` : 'N/A',
+          status: isFiniteNumber(beneishMScore) ? (beneishMScore > -1.78 ? 'FAIL' : 'PASS') : 'WARN',
+          details: isFiniteNumber(beneishMScore)
+            ? (beneishMScore > -1.78 ? `M-Score of ${beneishMScore} signals high earnings manipulation probability` : `M-Score of ${beneishMScore} indicates conservative earnings quality`)
+            : 'Beneish M-Score could not be computed'
+        },
+        {
+          name: 'Sloan Accrual Quality',
+          criterion: 'Sloan Ratio ≤ 0.10 (Warning > 0.10, Severe > 0.25)',
+          actual: isFiniteNumber(sloanAccrualRatio) ? `${round4(sloanAccrualRatio)}` : 'N/A',
+          status: isFiniteNumber(sloanAccrualRatio) ? (sloanAccrualRatio > 0.25 ? 'FAIL' : (sloanAccrualRatio > 0.10 ? 'WARN' : 'PASS')) : 'WARN',
+          details: isFiniteNumber(sloanAccrualRatio)
+            ? (sloanAccrualRatio > 0.25 ? `Severe accrual distortion: ${round4(sloanAccrualRatio)}` : `Sloan accrual ratio is ${round4(sloanAccrualRatio)}`)
+            : 'Sloan accrual ratio could not be computed'
+        },
+        {
+          name: 'DSO Expansion Velocity',
+          criterion: 'DSO YoY growth ≤ 20%',
+          actual: dsoExpansionPct !== null ? `${round2(dsoExpansionPct)}%` : 'N/A',
+          status: dsoExpansionPct !== null ? (dsoExpansionPct > 20.0 ? 'WARN' : 'PASS') : 'PASS',
+          details: dsoExpansionPct !== null ? `Days Sales Outstanding changed by ${round2(dsoExpansionPct)}% YoY` : 'DSO unavailable'
+        },
+        {
+          name: 'Inventory vs Sales Velocity Divergence',
+          criterion: 'Inventory growth - Sales growth ≤ 15%',
+          actual: inventoryGrowthDelta !== null ? `${round2(inventoryGrowthDelta)}%` : 'N/A',
+          status: inventoryGrowthDelta !== null ? (inventoryGrowthDelta > 15.0 ? 'WARN' : 'PASS') : 'PASS',
+          details: inventoryGrowthDelta !== null ? `Inventory outpaced sales growth by ${round2(inventoryGrowthDelta)}%` : 'Inventory velocity unavailable'
+        }
+      ],
+      observations: acctEval.warning_flags
+    },
+    {
+      principle_id: 'promoter-pledging',
+      name: 'Promoter Pledging & Governance Risk',
+      metrics: promEval.metrics,
+      checks: [
+        {
+          name: 'Promoter Pledging Ratio',
+          criterion: 'Pledged Shares ≤ 25% (Veto > 50%)',
+          actual: promoterPledgingPct !== null ? `${round2(promoterPledgingPct)}%` : 'N/A',
+          status: promoterPledgingPct !== null ? (promoterPledgingPct > 50.0 ? 'FAIL' : (promoterPledgingPct > 25.0 ? 'WARN' : 'PASS')) : 'PASS',
+          details: promoterPledgingPct !== null ? `Promoter pledged shares at ${round2(promoterPledgingPct)}%` : 'Promoter pledging data unavailable'
+        },
+        {
+          name: 'Related-Party Transactions (RPT)',
+          criterion: 'RPT ≤ 10% of revenue (Veto > 25%)',
+          actual: rptPct !== null ? `${round2(rptPct)}%` : 'N/A',
+          status: rptPct !== null ? (rptPct > 25.0 ? 'FAIL' : (rptPct > 10.0 ? 'WARN' : 'PASS')) : 'PASS',
+          details: rptPct !== null ? `Related-party transactions represent ${round2(rptPct)}% of revenue` : 'RPT data unavailable'
+        },
+        {
+          name: 'Auditor Continuity & Independence',
+          criterion: 'Unqualified opinion, zero unexplained resignations',
+          actual: auditorResignationFlag ? 'Auditor Resigned' : (qualifiedOpinionFlag ? 'Qualified Opinion' : 'Clean Audit Opinion'),
+          status: (auditorResignationFlag || qualifiedOpinionFlag) ? 'FAIL' : 'PASS',
+          details: auditorResignationFlag ? 'Unexplained mid-term auditor resignation' : (qualifiedOpinionFlag ? 'Adverse or qualified independent audit opinion' : 'Clean audit history')
+        },
+        {
+          name: 'Stock-Based Compensation & Dilution',
+          criterion: 'SBC ≤ 5% of revenue (Veto > 10%)',
+          actual: `${round2(sbcDilutionPct)}%`,
+          status: sbcDilutionPct > 10.0 ? 'FAIL' : (sbcDilutionPct > 5.0 ? 'WARN' : 'PASS'),
+          details: `Executive SBC dilution is ${round2(sbcDilutionPct)}% of revenue`
+        }
+      ],
+      observations: promEval.warning_flags
+    }
+  ];
+
+  return {
+    ticker: clean,
+    market,
+    company_name: companyName,
+    is_index_etf: isIndexEtf,
+    financials,
+    principles,
+    forensic_flags: {
+      veto_reasons: vetoReasons,
+      warning_flags: warningFlags,
+      surveillance_stage: surveillanceStage
+    }
+  };
+}
+
+/**
+ * Record Howard Schilit Reasoned Verdict into Canonical UniformVerdictContract Artifacts.
+ */
+async function recordSchilitVerdict(ticker, advisorVerdict, options = {}) {
+  const diag = await getSchilitDiagnostics(ticker, options);
+  const clean = diag.ticker;
+  const outDir = options.out || options.outDir || DEFAULT_REPORTS_DIR;
+  const timestamp = options.timestamp || new Date().toISOString();
+
+  let stance = advisorVerdict.canonical_stance || advisorVerdict.stance || 'PASS';
+  const isVeto = Boolean(advisorVerdict.is_veto !== undefined ? advisorVerdict.is_veto : stance === 'VETO_DISQUALIFIED');
+  if (isVeto && stance !== 'VETO_DISQUALIFIED') {
+    stance = 'VETO_DISQUALIFIED';
+  }
+
+  const score = round2(advisorVerdict.score !== undefined
+    ? advisorVerdict.score
+    : (advisorVerdict.composite_score !== undefined
+      ? advisorVerdict.composite_score
+      : (stance === 'VETO_DISQUALIFIED' ? 0.0 : (stance === 'FLAG' ? 50.0 : 85.0))));
+
+  const call = advisorVerdict.actionable_call || advisorVerdict.call || (stance === 'VETO_DISQUALIFIED' ? 'AVOID' : (stance === 'FLAG' ? 'HOLD' : 'BUY'));
+  const callReason = advisorVerdict.call_reason || advisorVerdict.reason || 'Reasoned evaluation by Howard Schilit persona.';
+  const folksyVerdict = advisorVerdict.folksy_verdict || advisorVerdict.speech || advisorVerdict.verdict_text || 'Financial Shenanigans: Forensic accounting protects against wealth destruction.';
+  const summary = advisorVerdict.summary || `${stance}: ${callReason}`;
+
+  const audit = [];
+  const redFlags = [...(diag.forensic_flags.veto_reasons || []), ...(diag.forensic_flags.warning_flags || [])];
+  for (const p of diag.principles) {
+    for (const c of p.checks) {
+      audit.push({
+        check: `${p.name}: ${c.name}`,
+        criterion: c.criterion,
+        value: c.actual || c.value || 'N/A',
+        status: c.status || 'WARN',
+        details: c.details || ''
+      });
+    }
+  }
+
+  const defaultObservations = diag.principles.flatMap(p => p.observations || []);
+  const defaultPositives = diag.principles.flatMap(p => (p.checks || []).filter(c => c.status === 'PASS').map(c => `${c.name}: ${c.details || c.actual}`));
+  const defaultNegatives = diag.principles.flatMap(p => (p.checks || []).filter(c => c.status === 'FAIL' || c.status === 'WARN').map(c => `${c.name}: ${c.details || c.actual}`));
+
+  const positive = (Array.isArray(advisorVerdict.positive) && advisorVerdict.positive.length > 0)
+    ? advisorVerdict.positive
+    : defaultPositives;
+
+  const negative = (Array.isArray(advisorVerdict.negative) && advisorVerdict.negative.length > 0)
+    ? advisorVerdict.negative
+    : (advisorVerdict.red_flags || defaultNegatives);
+
+  const observations = (Array.isArray(advisorVerdict.observations) && advisorVerdict.observations.length > 0)
+    ? advisorVerdict.observations
+    : defaultObservations;
+
+  const acctMetrics = (diag.principles.find(p => p.principle_id === 'accounting-integrity') || {}).metrics || {};
+  const promMetrics = (diag.principles.find(p => p.principle_id === 'promoter-pledging') || {}).metrics || {};
+
+  const metrics = {
+    promoter_pledging_pct: promMetrics.promoter_pledging_pct !== undefined ? round2(promMetrics.promoter_pledging_pct) : null,
+    promoter_holding_pct: promMetrics.promoter_holding_pct !== undefined ? round2(promMetrics.promoter_holding_pct) : null,
+    related_party_transactions_pct: promMetrics.related_party_transactions_pct !== undefined ? round2(promMetrics.related_party_transactions_pct) : null,
+    beneish_m_score: isFiniteNumber(acctMetrics.beneish_m_score) ? round2(acctMetrics.beneish_m_score) : null,
+    sloan_accrual_ratio: isFiniteNumber(acctMetrics.sloan_accrual_ratio) ? round4(acctMetrics.sloan_accrual_ratio) : null,
+    dso_yoy_expansion_pct: round2(acctMetrics.dso_yoy_expansion_pct),
+    inventory_growth_vs_sales_delta_pct: round2(acctMetrics.inventory_growth_vs_sales_delta_pct),
+    sbc_dilution_pct: round2(promMetrics.sbc_dilution_pct)
+  };
+
+  const uniformPayload = {
+    principle: 'forensic_governance',
+    ticker: clean,
+    timestamp,
+    score,
+    stance,
+    is_veto: isVeto,
+    metrics,
+    red_flags: (Array.isArray(advisorVerdict.red_flags) && advisorVerdict.red_flags.length > 0) ? advisorVerdict.red_flags : redFlags,
+    summary,
+    verdict: {
+      principle: 'forensic_governance',
+      principle_title: 'Howard Schilit Forensic Governance',
+      ticker: clean,
+      timestamp,
+      stance,
+      score,
+      is_veto: isVeto,
+      summary
+    },
+    audit,
+    positive,
+    negative,
+    observations,
+    warnings: (Array.isArray(advisorVerdict.red_flags) && advisorVerdict.red_flags.length > 0) ? advisorVerdict.red_flags : redFlags,
+    advisor_verdict: {
+      actionable_call: call,
+      call_reason: callReason,
+      folksy_verdict: folksyVerdict
+    }
+  };
+
+  const validation = validateUniformVerdict(uniformPayload);
+  if (!validation.ok) {
+    throw new Error(`UniformVerdict validation failed: ${JSON.stringify(validation.errors)}`);
+  }
+
+  let artifacts = null;
+  if (!options.noWrite) {
+    artifacts = writeArtifacts(uniformPayload, outDir, false);
+  }
+
+  return {
+    ok: true,
+    ticker: clean,
+    companyName: diag.company_name,
+    stance,
+    isVeto,
+    score,
+    call,
+    callReason,
+    folksy_verdict: folksyVerdict,
+    verdict: uniformPayload,
+    artifacts: {
+      json: artifacts ? artifacts.jsonPath : null,
+      html: artifacts ? artifacts.htmlPath : null
+    },
+    jsonPath: artifacts ? artifacts.jsonPath : null,
+    htmlPath: artifacts ? artifacts.htmlPath : null
+  };
+}
+
+/**
  * High-level Howard Schilit advisory workflow.
  */
 async function analyzeStockWithSchilit(ticker, options = {}) {
@@ -567,6 +900,8 @@ function parseArgs(argv = process.argv.slice(2)) {
     holdings: null,
     out: null,
     refresh: false,
+    diagnostics: false,
+    recordVerdict: null,
     jsonOutput: false,
     noWrite: false
   };
@@ -585,6 +920,10 @@ function parseArgs(argv = process.argv.slice(2)) {
       args.out = argv[++i];
     } else if (a === '--refresh') {
       args.refresh = true;
+    } else if (a === '--diagnostics') {
+      args.diagnostics = true;
+    } else if (a === '--record-verdict' && i + 1 < argv.length) {
+      args.recordVerdict = argv[++i];
     } else if (a === '--json-output' || a === '--json') {
       args.jsonOutput = true;
     } else if (a === '--no-write') {
@@ -599,6 +938,46 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
 
   try {
+    if (args.ticker && args.diagnostics) {
+      const diag = await getSchilitDiagnostics(args.ticker, args);
+      console.log(JSON.stringify(diag, null, 2));
+      return;
+    }
+
+    if (args.ticker && args.recordVerdict) {
+      let payload;
+      try {
+        if (fs.existsSync(args.recordVerdict)) {
+          payload = JSON.parse(fs.readFileSync(args.recordVerdict, 'utf8'));
+        } else {
+          let raw = args.recordVerdict.trim();
+          try {
+            payload = JSON.parse(raw);
+          } catch {
+            if ((raw.startsWith("'") && raw.endsWith("'")) || (raw.startsWith('"') && raw.endsWith('"'))) {
+              raw = raw.slice(1, -1).trim();
+            }
+            raw = raw.replace(/\\"/g, '"');
+            payload = JSON.parse(raw);
+          }
+        }
+      } catch (e) {
+        throw new Error(`Failed to parse --record-verdict payload: ${e.message}`);
+      }
+      const res = await recordSchilitVerdict(args.ticker, payload, args);
+      if (args.jsonOutput) {
+        console.log(JSON.stringify(res, null, 2));
+      } else {
+        console.log(`\n=== Howard Schilit Reasoned Verdict Recorded: ${res.ticker} ===`);
+        console.log(`Stance          : ${res.stance} | Score: ${res.score}/100 | Veto: ${res.isVeto}`);
+        console.log(`Actionable Call : ${res.call}`);
+        console.log(`Reason          : ${res.callReason}`);
+        console.log(`Forensic Advice : ${res.folksy_verdict}`);
+        console.log(`Artifacts written to:\n  ${res.artifacts.json}\n  ${res.artifacts.html}\n`);
+      }
+      return;
+    }
+
     if (args.holdings) {
       const res = await processHoldings(args.holdings, args);
       if (args.jsonOutput) {
@@ -635,6 +1014,8 @@ async function main() {
 
     console.error('Usage:');
     console.error('  node orchestrate_schilit_analysis.js --ticker <TICKER> [--market IN|US] [--json-output]');
+    console.error('  node orchestrate_schilit_analysis.js --ticker <TICKER> --diagnostics');
+    console.error('  node orchestrate_schilit_analysis.js --ticker <TICKER> --record-verdict <JSON|FILE>');
     console.error('  node orchestrate_schilit_analysis.js --data <PATH_TO_NORMALIZED_FINANCIALS>');
     console.error('  node orchestrate_schilit_analysis.js --holdings <PATH_TO_HOLDINGS_SNAPSHOT>');
     process.exit(1);
@@ -651,6 +1032,8 @@ if (require.main === module) {
 module.exports = {
   evaluateForensicGovernance,
   evaluateSchilitForensic,
+  getSchilitDiagnostics,
+  recordSchilitVerdict,
   renderHtml,
   renderSchilitDashboardHtml,
   writeArtifacts,

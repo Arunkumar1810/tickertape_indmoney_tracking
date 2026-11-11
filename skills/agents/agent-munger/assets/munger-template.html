@@ -405,9 +405,8 @@ footer {
             <th>Check / Pillar</th>
             <th>Criterion / Benchmark</th>
             <th style="text-align: right;">Observed Value</th>
-            <th style="text-align: center;">Status</th>
-            <th style="text-align: right;">Score Contribution</th>
-            <th>Details</th>
+            <th style="text-align: center;">Diagnostic Status</th>
+            <th>Details / Findings</th>
           </tr>
         </thead>
         <tbody id="audit-table-body">
@@ -629,7 +628,7 @@ function renderSingleView(v) {
   auditTbody.innerHTML = '';
   const auditItems = v.audit || [];
   if (auditItems.length === 0) {
-    auditTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 18px;">No audit checks recorded.</td></tr>';
+    auditTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 18px;">No audit checks recorded.</td></tr>';
   } else {
     auditItems.forEach(item => {
       const tr = document.createElement('tr');
@@ -643,7 +642,6 @@ function renderSingleView(v) {
         <td style="color: var(--text-muted); font-size: 0.85rem;">${item.criterion || '-'}</td>
         <td class="metric-val"><strong>${item.value !== undefined ? item.value : '-'}</strong></td>
         <td style="text-align: center;"><span class="status-pill ${itemPill}">${st}</span></td>
-        <td class="metric-val" style="font-weight: 700;">${item.score !== undefined ? `${item.score} / ${item.max_score || item.score} pts` : '-'}</td>
         <td style="font-size: 0.85rem; color: var(--text-muted);">${item.details || '-'}</td>
       `;
       auditTbody.appendChild(tr);

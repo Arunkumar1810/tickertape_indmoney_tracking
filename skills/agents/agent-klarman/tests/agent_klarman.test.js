@@ -10,6 +10,8 @@ const {
   calculateAltmanZScore,
   evaluateKlarmanSolvency,
   analyzeStockWithKlarman,
+  getKlarmanDiagnostics,
+  recordKlarmanVerdict,
   processHoldings
 } = require('../scripts/orchestrate_klarman_analysis');
 
@@ -183,6 +185,84 @@ test('8. processHoldings generates batch report and valid batch schema', async (
 
     const batchVal = validateUniformVerdictBatch(batchRes.batch);
     assert.equal(batchVal.ok, true, `Batch validation failed: ${JSON.stringify(batchVal.errors)}`);
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('9. getKlarmanDiagnostics returns decoupled principle metrics and checks without forced verdict', async () => {
+  const fortressData = loadFixture('klarman_fortress.json');
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-klarman-diag-'));
+  try {
+    const dataPath = path.join(tmpDir, 'FORTRESS_CO.json');
+    fs.writeFileSync(dataPath, JSON.stringify(fortressData, null, 2), 'utf8');
+
+    const diag = await getKlarmanDiagnostics('FORTRESS_CO', {
+      data: dataPath,
+      noPortfolio: true
+    });
+
+    assert.equal(diag.ticker, 'FORTRESS_CO');
+    assert.ok(Array.isArray(diag.principles));
+    assert.equal(diag.principles.length, 2);
+
+    const altman = diag.principles.find(p => p.principle_id === 'altman-z-score');
+    assert.ok(altman);
+    assert.ok(altman.metrics.altman_z_score > 2.99);
+    assert.ok(Array.isArray(altman.checks));
+
+    const debtWall = diag.principles.find(p => p.principle_id === 'debt-maturity-wall');
+    assert.ok(debtWall);
+    assert.ok(debtWall.metrics.net_debt <= 0);
+    assert.ok(Array.isArray(debtWall.checks));
+    debtWall.checks.forEach(c => {
+      assert.ok(c.name);
+      assert.ok(c.criterion);
+      assert.ok(c.status);
+      assert.equal(c.score, undefined, 'Check items should not contain score');
+    });
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('10. recordKlarmanVerdict writes verified artifacts using AI reasoned inputs with fallback', async () => {
+  const fortressData = loadFixture('klarman_fortress.json');
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-klarman-rec-'));
+  try {
+    const dataPath = path.join(tmpDir, 'FORTRESS_CO.json');
+    fs.writeFileSync(dataPath, JSON.stringify(fortressData, null, 2), 'utf8');
+
+    const advisorVerdict = {
+      canonical_stance: 'BUY',
+      actionable_call: 'BUY',
+      score: 88,
+      call_reason: 'Balance sheet shows pristine net cash position with fortress liquidity margin.',
+      folksy_verdict: '“There are no called strikes in investing.” A pristine balance sheet allows us to wait for pitch-perfect opportunities.',
+      positive: ['Immense net cash reserves eliminate debt wall vulnerability.'],
+      negative: [],
+      observations: ['Strong Altman Z-Score cushion protects against macro credit contraction.']
+    };
+
+    const res = await recordKlarmanVerdict('FORTRESS_CO', advisorVerdict, {
+      data: dataPath,
+      out: tmpDir,
+      noPortfolio: true
+    });
+
+    assert.equal(res.ticker, 'FORTRESS_CO');
+    assert.equal(res.verdict.stance, 'BUY');
+    assert.equal(res.verdict.score, 88);
+    assert.equal(res.verdict.positive[0], advisorVerdict.positive[0]);
+    assert.ok(res.artifacts.json && fs.existsSync(res.artifacts.json));
+    assert.ok(res.artifacts.html && fs.existsSync(res.artifacts.html));
+
+    const verify = verifyArtifactPair({
+      jsonPath: res.artifacts.json,
+      htmlPath: res.artifacts.html,
+      schemaType: 'verdict'
+    });
+    assert.equal(verify.ok, true, `Artifact verification failed: ${JSON.stringify(verify.errors)}`);
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }

@@ -71,6 +71,15 @@ function evaluateMoat(financials) {
       score: 100,
       classification: 'Passive Broad-Market Basket',
       metrics: { roic_pct: null, nopat: null, invested_capital: null },
+      checks: [
+        {
+          name: 'Broad-Market Index Diversification',
+          criterion: 'Passive Index Basket',
+          actual: 'Full Basket',
+          status: 'PASS',
+          details: 'Passive ETF automatically diversifies across constituent holdings'
+        }
+      ],
       summary: `Index ETF passive basket (${ticker}): Broad-market diversification automatically bypasses single-company ROIC hurdle.`,
       observations: ['Passive index fund automatically diversifies across constituent holdings.']
     };
@@ -126,6 +135,16 @@ function evaluateMoat(financials) {
     observations.push('Negative or indeterminable ROIC indicates capital destruction or negative invested capital.');
   }
 
+  const checks = [
+    {
+      name: 'Economic Moat & ROIC Hurdle',
+      criterion: 'ROIC >= 15.0% (Wide Moat >= 20.0%)',
+      actual: roic !== null ? `${roic}%` : 'N/A',
+      status,
+      details: roic !== null ? `ROIC of ${roic}% indicates ${classification}` : 'Negative or indeterminable ROIC'
+    }
+  ];
+
   return {
     principle: 'economic-moat',
     name: 'Economic Moat & Capital Efficiency',
@@ -138,6 +157,7 @@ function evaluateMoat(financials) {
       nopat: res ? res.nopat : null,
       invested_capital: res ? res.investedCapital : null
     },
+    checks,
     summary: `${status} (${classification}): ROIC of ${roic !== null ? roic + '%' : 'N/A'}.`,
     observations
   };

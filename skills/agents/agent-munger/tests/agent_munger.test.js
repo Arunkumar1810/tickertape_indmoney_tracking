@@ -8,7 +8,9 @@ const os = require('os');
 
 const {
   evaluateMungerValuation,
-  analyzeStockWithMunger
+  analyzeStockWithMunger,
+  getMungerDiagnostics,
+  recordMungerVerdict
 } = require('../scripts/orchestrate_munger_analysis');
 
 const SAMPLE_INFY = {
@@ -107,5 +109,58 @@ test('4. analyzeStockWithMunger generates Pasadena wisdom and valid artifacts', 
   assert.ok(res.folksy_verdict.includes('“'));
   assert.ok(fs.existsSync(res.artifacts.json));
   assert.ok(fs.existsSync(res.artifacts.html));
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('5. getMungerDiagnostics emits raw metrics and checks without closed verdict', async () => {
+  const diag = await getMungerDiagnostics('INFY', {
+    financials: SAMPLE_INFY,
+    noPortfolio: true
+  });
+
+  assert.equal(diag.ticker, 'INFY');
+  assert.ok(Array.isArray(diag.principles));
+  assert.equal(diag.principles.length, 4);
+
+  const inv = diag.principles.find(p => p.principle_id === 'inversion-failure');
+  assert.ok(inv);
+  assert.ok(Array.isArray(inv.checks));
+  assert.equal(inv.checks[0].status, 'PASS');
+
+  assert.equal(diag.verdict, undefined);
+  assert.equal(diag.composite_score, undefined);
+  assert.equal(diag.stance, undefined);
+});
+
+test('6. recordMungerVerdict accepts reasoned AI verdict and writes validated UniformVerdictContract', async () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'munger-record-test-'));
+  const reasonedInput = {
+    canonical_stance: 'STRONG_BUY',
+    actionable_call: 'BUY',
+    score: 90.0,
+    call_reason: 'Unmatched 44% ROIC moat, zero debt distress, and un-diluted managerial incentives.',
+    folksy_verdict: '“It is remarkable how much long-term advantage people like us have gotten by trying to be consistently not stupid.”',
+    summary: 'STRONG_BUY: Unmatched 44% ROIC moat, zero debt distress, and un-diluted managerial incentives.',
+    positive: ['Pristine fortress balance sheet with net cash.', 'Entrenched pricing power across enterprise relationships.'],
+    negative: ['Global discretionary IT services spending pauses during recessions.'],
+    observations: ['Excellent capital allocation track record and shareholder alignment.']
+  };
+
+  const res = await recordMungerVerdict('INFY', reasonedInput, {
+    financials: SAMPLE_INFY,
+    out: tmpDir,
+    noPortfolio: true
+  });
+
+  assert.equal(res.ticker, 'INFY');
+  assert.equal(res.verdict.stance, 'STRONG_BUY');
+  assert.equal(res.verdict.score, 90.0);
+  assert.equal(res.verdict.positive.length, 2);
+  assert.equal(res.verdict.negative.length, 1);
+  assert.equal(res.verdict.observations.length, 1);
+
+  assert.ok(fs.existsSync(res.artifacts.json));
+  assert.ok(fs.existsSync(res.artifacts.html));
+  fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 

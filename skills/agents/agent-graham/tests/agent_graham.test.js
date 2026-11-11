@@ -10,6 +10,8 @@ const {
   calculateGrahamNumber,
   evaluateGrahamValuation,
   analyzeStockWithGraham,
+  getGrahamDiagnostics,
+  recordGrahamVerdict,
   processHoldings
 } = require('../scripts/orchestrate_graham_analysis');
 
@@ -177,4 +179,62 @@ test('8. processHoldings generates batch report and valid batch schema', async (
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
+});
+
+test('9. getGrahamDiagnostics emits raw metrics and checks without closed verdict', async () => {
+  const fin = loadFixture('graham_deep_value.json');
+  const diag = await getGrahamDiagnostics('VALUE_CO', {
+    financials: fin,
+    noPortfolio: true
+  });
+
+  assert.equal(diag.ticker, 'VALUE_CO');
+  assert.ok(Array.isArray(diag.principles));
+  assert.equal(diag.principles.length, 3);
+
+  const gn = diag.principles.find(p => p.principle_id === 'graham-number');
+  assert.ok(gn);
+  assert.ok(Array.isArray(gn.checks));
+  assert.equal(gn.checks[0].status, 'PASS');
+
+  assert.equal(diag.verdict, undefined);
+  assert.equal(diag.composite_score, undefined);
+  assert.equal(diag.stance, undefined);
+});
+
+test('10. recordGrahamVerdict accepts reasoned AI verdict and writes validated UniformVerdictContract', async () => {
+  const fin = loadFixture('graham_deep_value.json');
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'graham-record-test-'));
+
+  const reasonedInput = {
+    canonical_stance: 'STRONG_BUY',
+    actionable_call: 'BUY',
+    score: 85.0,
+    call_reason: 'Classical margin of safety verified with Graham Number well above CMP and healthy working capital.',
+    folksy_verdict: '“An investment operation is one which, upon thorough analysis, promises safety of principal and an adequate return.”',
+    summary: 'STRONG_BUY: Classical margin of safety verified with Graham Number well above CMP.',
+    positive: ['Current ratio exceeds 2.0x standard.', 'Trades at a deep discount to Graham Number floor.'],
+    negative: ['Modest earnings growth rate over 5 years.'],
+    observations: ['Sound working capital backing with negligible long-term debt.']
+  };
+
+  const res = await recordGrahamVerdict('VALUE_CO', reasonedInput, {
+    financials: fin,
+    out: tmpDir,
+    noPortfolio: true
+  });
+
+  assert.equal(res.ticker, 'VALUE_CO');
+  assert.equal(res.verdict.stance, 'STRONG_BUY');
+  assert.equal(res.verdict.score, 85.0);
+  assert.equal(res.verdict.positive.length, 2);
+  assert.equal(res.verdict.negative.length, 1);
+  assert.equal(res.verdict.observations.length, 1);
+
+  const valRes = validateUniformVerdict(res.verdict);
+  assert.equal(valRes.ok, true, `Validation failed: ${JSON.stringify(valRes.errors)}`);
+
+  assert.ok(fs.existsSync(res.artifacts.json));
+  assert.ok(fs.existsSync(res.artifacts.html));
+  fs.rmSync(tmpDir, { recursive: true, force: true });
 });

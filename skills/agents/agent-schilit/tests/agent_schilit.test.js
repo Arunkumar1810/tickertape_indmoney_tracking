@@ -9,6 +9,8 @@ const os = require('os');
 const {
   evaluateForensicGovernance,
   evaluateSchilitForensic,
+  getSchilitDiagnostics,
+  recordSchilitVerdict,
   analyzeStockWithSchilit,
   parseArgs,
   processDataFile,
@@ -323,6 +325,82 @@ test('12. Option C Portfolio Batch Mode: processHoldings generates verified Verd
       schemaType: 'verdict-batch'
     });
     assert.equal(pairResult.ok, true, `Batch pair verification failed: ${JSON.stringify(pairResult.errors)}`);
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('13. getSchilitDiagnostics returns decoupled forensic principle metrics and qualitative checks', async () => {
+  const cleanData = loadFixture('clean_pass.json');
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-schilit-diag-'));
+  try {
+    const dataPath = path.join(tmpDir, 'INFY.json');
+    fs.writeFileSync(dataPath, JSON.stringify(cleanData, null, 2), 'utf8');
+
+    const diag = await getSchilitDiagnostics('INFY', {
+      data: dataPath,
+      noPortfolio: true
+    });
+
+    assert.equal(diag.ticker, 'INFY');
+    assert.ok(Array.isArray(diag.principles));
+    assert.equal(diag.principles.length, 2);
+
+    const acct = diag.principles.find(p => p.principle_id === 'accounting-integrity');
+    assert.ok(acct);
+    assert.ok(Array.isArray(acct.checks));
+    acct.checks.forEach(c => {
+      assert.ok(c.name);
+      assert.ok(c.criterion);
+      assert.ok(c.status);
+      assert.equal(c.score, undefined, 'Check items must not have a score column');
+    });
+
+    const prom = diag.principles.find(p => p.principle_id === 'promoter-pledging');
+    assert.ok(prom);
+    assert.ok(Array.isArray(prom.checks));
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('14. recordSchilitVerdict writes verified artifacts using AI reasoned inputs with fallback', async () => {
+  const cleanData = loadFixture('clean_pass.json');
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-schilit-rec-'));
+  try {
+    const dataPath = path.join(tmpDir, 'INFY.json');
+    fs.writeFileSync(dataPath, JSON.stringify(cleanData, null, 2), 'utf8');
+
+    const advisorVerdict = {
+      canonical_stance: 'PASS',
+      actionable_call: 'BUY',
+      score: 95,
+      call_reason: 'Impeccable accounting integrity with negative Beneish M-Score and zero promoter pledging.',
+      folksy_verdict: '“Behind the numbers lie the people.” Pristine corporate governance and verified cash flow continuity.',
+      positive: ['Beneish M-Score of -2.85 confirms zero probability of revenue distortion.'],
+      negative: [],
+      observations: ['Auditor tenure has been continuous and independent with clean opinions.']
+    };
+
+    const res = await recordSchilitVerdict('INFY', advisorVerdict, {
+      data: dataPath,
+      out: tmpDir
+    });
+
+    assert.equal(res.ticker, 'INFY');
+    assert.equal(res.verdict.stance, 'PASS');
+    assert.equal(res.verdict.score, 95);
+    assert.equal(res.verdict.is_veto, false);
+    assert.equal(res.verdict.positive[0], advisorVerdict.positive[0]);
+    assert.ok(res.artifacts.json && fs.existsSync(res.artifacts.json));
+    assert.ok(res.artifacts.html && fs.existsSync(res.artifacts.html));
+
+    const verify = verifyArtifactPair({
+      jsonPath: res.artifacts.json,
+      htmlPath: res.artifacts.html,
+      schemaType: 'verdict'
+    });
+    assert.equal(verify.ok, true, `Artifact verification failed: ${JSON.stringify(verify.errors)}`);
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }

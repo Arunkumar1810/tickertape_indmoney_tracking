@@ -974,6 +974,283 @@ function analyzeStockWithBuffett(ticker, options = {}) {
   };
 }
 
+/**
+ * Gather Tier 2/3 Principle Diagnostics for Agent Consumption.
+ * Emits raw metrics and principle checks without making a closed stock verdict.
+ */
+function getBuffettDiagnostics(ticker, options = {}) {
+  const market = inferMarket(ticker, options.market);
+  const outDir = options.outDir || DEFAULT_REPORTS_DIR;
+  const financials = options.financials || resolveFinancials(ticker, market, options.refresh, outDir);
+  const clean = (financials.ticker || ticker).toUpperCase();
+  const companyName = financials.name || financials.ticker || clean;
+
+  const isIndexEtf = Boolean(
+    financials.is_index_etf === true ||
+    financials.sector === 'Index ETF' ||
+    INDEX_ETF_TICKERS.has(clean)
+  );
+
+  // 1. Principles
+  const moatEval = evaluateMoat(financials);
+  const oeEval = evaluateOwnerEarnings(financials);
+  const dupontEval = evaluateDuPontROE(financials);
+  const mosEval = evaluateMarginOfSafety(financials);
+
+  let dcfEval = null;
+  let peEval = null;
+  if (!isIndexEtf) {
+    try { dcfEval = evaluateDCF(financials); } catch { dcfEval = null; }
+    try { peEval = evaluatePE(financials); } catch { peEval = null; }
+  }
+
+  // 2. Portfolio Status & Cash Till
+  const portfolio = options.ignorePortfolio ? null : loadPortfolio(options.portfolioPath);
+  const portfolioKnown = Boolean(portfolio && portfolio.holdings);
+  const liquidCash = getLiquidCashSummary(portfolio, options.bankBalancePath);
+
+  let currentHolding = null;
+  let availableCash = null;
+  let brokerCash = 0.0;
+  let bankBalance = liquidCash.bank_balance;
+  let currentWeightPct = 0.0;
+  let isHeld = false;
+
+  if (portfolioKnown) {
+    brokerCash = liquidCash.broker_cash;
+    availableCash = liquidCash.total_liquid_cash;
+    const match = (portfolio.holdings || []).find(h => (h.ticker || '').toUpperCase() === clean);
+    if (match) {
+      isHeld = true;
+      currentHolding = match;
+      currentWeightPct = match.weight_pct || 0.0;
+    }
+  }
+
+  // 3. Circle of Competence Diagnostic Evaluation
+  const competenceEval = isIndexEtf
+    ? { in_circle: true, status: 'IN_CIRCLE', max_position_weight_pct: 15.0, score: 100 }
+    : evaluateCircleOfCompetence(clean);
+  const competenceStatus = competenceEval.status || 'NEEDS_ASSESSMENT';
+  const competenceScore = competenceEval.score || 0;
+  const competenceMaxWeight = competenceEval.max_position_weight_pct !== undefined ? competenceEval.max_position_weight_pct : 15.0;
+
+  const portfolioWarnings = [];
+  if (!portfolioKnown) {
+    portfolioWarnings.push('PORTFOLIO UNKNOWN: Run fetch-all to verify cash till and portfolio holdings before committing capital.');
+  } else {
+    if (availableCash < 500.0) {
+      portfolioWarnings.push(`Dry powder warning: Liquid cash till is ₹${Number(availableCash || 0).toFixed(2)} (< ₹500 minimum).`);
+    }
+    if (currentWeightPct >= 15.0) {
+      portfolioWarnings.push(`Concentration ceiling: Position weight is ${currentWeightPct.toFixed(1)}% (>= 15.0% maximum).`);
+    }
+  }
+
+  return {
+    ticker: clean,
+    company_name: companyName,
+    market,
+    currency: financials.currency || (market === 'US' ? 'USD' : 'INR'),
+    sector: financials.sector || 'Unknown',
+    industry: financials.industry || 'Unknown',
+    is_index_etf: isIndexEtf,
+    portfolio_status: {
+      portfolio_known: portfolioKnown,
+      is_held: isHeld,
+      current_weight_pct: currentWeightPct,
+      broker_cash: round2(brokerCash),
+      bank_balance: round2(bankBalance),
+      total_liquid_cash: round2(availableCash),
+      available_cash: round2(availableCash),
+      min_cash_required: 500.0,
+      cash_till_dry: portfolioKnown ? (availableCash < 500.0) : true,
+      concentration_limit_breached: currentWeightPct >= 15.0,
+      circle_of_competence: {
+        status: competenceStatus,
+        score: competenceScore,
+        max_position_weight_pct: competenceMaxWeight
+      },
+      warnings: portfolioWarnings
+    },
+    principles: [
+      {
+        principle_id: 'economic-moat',
+        name: 'Economic Moat & Capital Efficiency',
+        metrics: moatEval.metrics || {},
+        checks: moatEval.checks || [],
+        observations: moatEval.observations || []
+      },
+      {
+        principle_id: 'owner-earnings',
+        name: 'True Owner Earnings & Dilution Quality',
+        metrics: oeEval.metrics || {},
+        checks: oeEval.checks || [],
+        observations: oeEval.observations || []
+      },
+      {
+        principle_id: 'dupont-roe',
+        name: '5-Step DuPont ROE Quality & Financial Leverage',
+        metrics: dupontEval.metrics || {},
+        checks: dupontEval.checks || [],
+        observations: dupontEval.observations || []
+      },
+      {
+        principle_id: 'margin-of-safety',
+        name: 'Margin of Safety & Valuation Yield',
+        metrics: mosEval.metrics || {},
+        checks: mosEval.checks || [],
+        observations: mosEval.observations || []
+      }
+    ],
+    supplemental: {
+      dcf: dcfEval ? { score: dcfEval.score, stance: dcfEval.stance, metrics: dcfEval.metrics } : null,
+      pe_relative: peEval ? { score: peEval.score, stance: peEval.stance, metrics: peEval.metrics } : null
+    }
+  };
+}
+
+/**
+ * Record the Agent's Reasoned Verdict into Canonical UniformVerdictContract Artifacts.
+ * Merges the AI reasoner's stance, folksy wisdom, and score with the factual diagnostics.
+ */
+function recordBuffettVerdict(ticker, advisorVerdict, options = {}) {
+  const market = inferMarket(ticker, options.market);
+  const outDir = options.outDir || DEFAULT_REPORTS_DIR;
+  const financials = options.financials || resolveFinancials(ticker, market, options.refresh, outDir);
+  const clean = (financials.ticker || ticker).toUpperCase();
+  const companyName = financials.name || financials.ticker || clean;
+  const timestamp = options.timestamp || new Date().toISOString();
+
+  // Retrieve raw principle diagnostics for metrics and audit checks
+  const diag = getBuffettDiagnostics(ticker, { ...options, financials });
+
+  const moatMetrics = (diag.principles.find(p => p.principle_id === 'economic-moat') || {}).metrics || {};
+  const oeMetrics = (diag.principles.find(p => p.principle_id === 'owner-earnings') || {}).metrics || {};
+  const dupontMetrics = (diag.principles.find(p => p.principle_id === 'dupont-roe') || {}).metrics || {};
+  const mosMetrics = (diag.principles.find(p => p.principle_id === 'margin-of-safety') || {}).metrics || {};
+
+  const roic = moatMetrics.roic_pct ?? null;
+  const trueOwnerEarnings = oeMetrics.true_owner_earnings ?? null;
+  const sbcDilutionPct = oeMetrics.sbc_dilution_pct ?? null;
+  const roeVal = dupontMetrics.roe_pct ?? null;
+  const ownerEarningsYield = mosMetrics.owner_earnings_yield_pct ?? null;
+
+  const stance = advisorVerdict.canonical_stance || advisorVerdict.stance || 'HOLD';
+  const score = round2(advisorVerdict.score !== undefined ? advisorVerdict.score : (advisorVerdict.composite_score !== undefined ? advisorVerdict.composite_score : 50.0));
+  const call = advisorVerdict.actionable_call || advisorVerdict.call || (stance === 'STRONG_BUY' || stance === 'BUY' ? 'BUY' : (stance === 'STRONG_SELL' || stance === 'REDUCE' ? 'SELL' : 'HOLD'));
+  const callReason = advisorVerdict.call_reason || advisorVerdict.reason || 'Reasoned evaluation by Warren Buffett persona.';
+  const folksyVerdict = advisorVerdict.folksy_verdict || advisorVerdict.verdict_text || 'Patient investing in productive businesses.';
+  const summary = advisorVerdict.summary || `${stance}: ${callReason}`;
+
+  const audit = [];
+  const redFlags = [];
+  for (const p of diag.principles) {
+    for (const c of p.checks) {
+      audit.push({
+        check: `${p.name}: ${c.name}`,
+        criterion: c.criterion,
+        value: c.actual || c.value || 'N/A',
+        status: c.status || 'WARN',
+        details: c.details || ''
+      });
+      if (c.status === 'FAIL') {
+        redFlags.push(`${c.name} failed: ${c.details}`);
+      }
+    }
+  }
+
+  const defaultObservations = diag.principles.flatMap(p => p.observations || []);
+  const defaultPositives = diag.principles.flatMap(p => (p.checks || []).filter(c => c.status === 'PASS').map(c => `${c.name}: ${c.details || c.actual}`));
+  const defaultNegatives = diag.principles.flatMap(p => (p.checks || []).filter(c => c.status === 'FAIL' || c.status === 'WARN').map(c => `${c.name}: ${c.details || c.actual}`));
+
+  const positive = (Array.isArray(advisorVerdict.positive) && advisorVerdict.positive.length > 0)
+    ? advisorVerdict.positive
+    : defaultPositives;
+
+  const negative = (Array.isArray(advisorVerdict.negative) && advisorVerdict.negative.length > 0)
+    ? advisorVerdict.negative
+    : defaultNegatives;
+
+  const observations = (Array.isArray(advisorVerdict.observations) && advisorVerdict.observations.length > 0)
+    ? advisorVerdict.observations
+    : defaultObservations;
+
+  const metrics = {
+    owner_earnings: trueOwnerEarnings,
+    owner_earnings_yield_pct: ownerEarningsYield,
+    sbc_dilution_pct: sbcDilutionPct,
+    roe_pct: roeVal,
+    tax_burden: dupontMetrics.tax_burden !== undefined ? dupontMetrics.tax_burden : null,
+    interest_burden: dupontMetrics.interest_burden !== undefined ? dupontMetrics.interest_burden : null,
+    operating_margin_pct: dupontMetrics.operating_margin_pct !== undefined ? dupontMetrics.operating_margin_pct : null,
+    asset_turnover: dupontMetrics.asset_turnover !== undefined ? dupontMetrics.asset_turnover : null,
+    financial_leverage: dupontMetrics.financial_leverage !== undefined ? dupontMetrics.financial_leverage : null,
+    roic_pct: roic
+  };
+
+  const verdict = {
+    principle: 'buffet',
+    principle_title: 'Warren Buffett Value Investing',
+    ticker: clean,
+    timestamp,
+    stance,
+    score,
+    is_veto: false,
+    summary
+  };
+
+  const uniformPayload = {
+    principle: 'buffet',
+    ticker: clean,
+    timestamp,
+    score,
+    stance,
+    is_veto: false,
+    metrics,
+    red_flags: redFlags,
+    summary,
+    verdict,
+    audit,
+    positive,
+    negative,
+    observations,
+    warnings: [...redFlags, ...(diag.portfolio_status.warnings || [])],
+    advisor_verdict: {
+      actionable_call: call,
+      call_reason: callReason,
+      folksy_verdict: folksyVerdict
+    },
+    portfolio_status: diag.portfolio_status
+  };
+
+  const validation = validateUniformVerdict(uniformPayload);
+  if (!validation.ok) {
+    throw new Error(`UniformVerdict validation failed: ${JSON.stringify(validation.errors)}`);
+  }
+
+  let artifacts = null;
+  if (!options.noWrite) {
+    artifacts = writeArtifacts(uniformPayload, outDir, false);
+  }
+
+  return {
+    ticker: clean,
+    company_name: companyName,
+    market,
+    composite_score: score,
+    call,
+    call_reason: callReason,
+    folksy_verdict: folksyVerdict,
+    portfolio_status: uniformPayload.portfolio_status,
+    verdict: uniformPayload,
+    artifacts: {
+      json: artifacts ? artifacts.jsonPath : null,
+      html: artifacts ? artifacts.htmlPath : null
+    }
+  };
+}
+
 function parseArgs(argv = process.argv.slice(2)) {
   const args = {
     ticker: null,
@@ -985,6 +1262,8 @@ function parseArgs(argv = process.argv.slice(2)) {
     out: DEFAULT_REPORTS_DIR,
     refresh: false,
     jsonOutput: false,
+    diagnostics: false,
+    recordVerdict: null,
     help: false
   };
 
@@ -1008,6 +1287,10 @@ function parseArgs(argv = process.argv.slice(2)) {
       args.out = argv[++i];
     } else if (arg === '--refresh') {
       args.refresh = true;
+    } else if (arg === '--diagnostics') {
+      args.diagnostics = true;
+    } else if (arg === '--record-verdict' && i + 1 < argv.length) {
+      args.recordVerdict = argv[++i];
     } else if (arg === '--json-output' || arg === '--json') {
       args.jsonOutput = true;
     } else if (arg === '--help' || arg === '-h') {
@@ -1071,6 +1354,58 @@ Options:
     return res;
   }
 
+  if (args.ticker && args.diagnostics) {
+    const diag = getBuffettDiagnostics(args.ticker, {
+      market: args.market,
+      portfolioPath: args.portfolioPath,
+      ignorePortfolio: args.ignorePortfolio,
+      outDir: args.out,
+      refresh: args.refresh
+    });
+    console.log(JSON.stringify(diag, null, 2));
+    return diag;
+  }
+
+  if (args.ticker && args.recordVerdict) {
+    let payload;
+    try {
+      if (fs.existsSync(args.recordVerdict)) {
+        payload = JSON.parse(fs.readFileSync(args.recordVerdict, 'utf8'));
+      } else {
+        let raw = args.recordVerdict.trim();
+        try {
+          payload = JSON.parse(raw);
+        } catch {
+          if ((raw.startsWith("'") && raw.endsWith("'")) || (raw.startsWith('"') && raw.endsWith('"'))) {
+            raw = raw.slice(1, -1).trim();
+          }
+          raw = raw.replace(/\\"/g, '"');
+          payload = JSON.parse(raw);
+        }
+      }
+    } catch (e) {
+      throw new Error(`Failed to parse --record-verdict payload: ${e.message}`);
+    }
+    const res = recordBuffettVerdict(args.ticker, payload, {
+      market: args.market,
+      portfolioPath: args.portfolioPath,
+      ignorePortfolio: args.ignorePortfolio,
+      outDir: args.out,
+      refresh: args.refresh
+    });
+    if (args.jsonOutput) {
+      console.log(JSON.stringify(res, null, 2));
+    } else {
+      console.log(`\n=== Warren Buffett Reasoned Verdict Recorded: ${res.ticker} ===`);
+      console.log(`Stance          : ${res.verdict.stance} | Score: ${res.composite_score}/100`);
+      console.log(`Actionable Call : ${res.call}`);
+      console.log(`Reason          : ${res.call_reason}`);
+      console.log(`Folksy Verdict  : ${res.folksy_verdict}`);
+      console.log(`Artifacts written to:\n  ${res.artifacts.json}\n  ${res.artifacts.html}\n`);
+    }
+    return res;
+  }
+
   if (args.ticker) {
     const res = analyzeStockWithBuffett(args.ticker, {
       market: args.market,
@@ -1118,6 +1453,8 @@ if (require.main === module) {
 
 module.exports = {
   analyzeStockWithBuffett,
+  getBuffettDiagnostics,
+  recordBuffettVerdict,
   evaluateBuffetValuation,
   evaluateBuffettMungerValuation: evaluateBuffetValuation,
   processTicker,

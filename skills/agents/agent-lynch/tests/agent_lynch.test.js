@@ -14,6 +14,8 @@ const {
   calculateInventoryDivergence,
   classifyLynchCategory,
   evaluateLynchValuation,
+  getLynchDiagnostics,
+  recordLynchVerdict,
   analyzeStockWithLynch,
   processDataFile,
   processHoldings,
@@ -374,6 +376,84 @@ test('13. Option C Portfolio Batch Mode: processHoldings generates verified Verd
       schemaType: 'verdict-batch'
     });
     assert.equal(pairResult.ok, true, `Batch pair verification failed: ${JSON.stringify(pairResult.errors)}`);
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('14. getLynchDiagnostics returns decoupled principle metrics and qualitative checks', async () => {
+  const fastData = loadFixture('lynch_fast_grower.json');
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-lynch-diag-'));
+  try {
+    const dataPath = path.join(tmpDir, 'FAST_GROWER_CO.json');
+    fs.writeFileSync(dataPath, JSON.stringify(fastData, null, 2), 'utf8');
+
+    const diag = await getLynchDiagnostics('FAST_GROWER_CO', {
+      data: dataPath,
+      noPortfolio: true
+    });
+
+    assert.equal(diag.ticker, 'FAST_GROWER_CO');
+    assert.equal(diag.category, 'Fast Grower');
+    assert.ok(Array.isArray(diag.principles));
+    assert.equal(diag.principles.length, 3);
+
+    const pegPrinciple = diag.principles.find(p => p.principle_id === 'peg-ratio');
+    assert.ok(pegPrinciple);
+    assert.ok(pegPrinciple.metrics.peg_ratio <= 1.0);
+    assert.ok(Array.isArray(pegPrinciple.checks));
+    pegPrinciple.checks.forEach(c => {
+      assert.ok(c.name);
+      assert.ok(c.criterion);
+      assert.ok(c.status);
+      assert.equal(c.score, undefined, 'Diagnostic check should not have score');
+    });
+
+    const invPrinciple = diag.principles.find(p => p.principle_id === 'inventory-sales-velocity');
+    assert.ok(invPrinciple);
+    assert.ok(Array.isArray(invPrinciple.checks));
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('15. recordLynchVerdict writes verified artifacts using AI reasoned inputs with fallback', async () => {
+  const fastData = loadFixture('lynch_fast_grower.json');
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-lynch-rec-'));
+  try {
+    const dataPath = path.join(tmpDir, 'FAST_GROWER_CO.json');
+    fs.writeFileSync(dataPath, JSON.stringify(fastData, null, 2), 'utf8');
+
+    const advisorVerdict = {
+      canonical_stance: 'BUY',
+      actionable_call: 'BUY',
+      score: 85,
+      call_reason: 'Fast Grower trading at 0.64x PEG with zero inventory overhang.',
+      folksy_verdict: '“Behind every stock is a company. Find out what it\'s doing.” This company is growing earnings faster than its multiple.',
+      positive: ['Superb PEG ratio of 0.64 indicates significant growth discount.'],
+      negative: [],
+      observations: ['Stalwart balance sheet and conservative debt levels leave plenty of runway for expansion.']
+    };
+
+    const res = await recordLynchVerdict('FAST_GROWER_CO', advisorVerdict, {
+      data: dataPath,
+      out: tmpDir,
+      noPortfolio: true
+    });
+
+    assert.equal(res.ticker, 'FAST_GROWER_CO');
+    assert.equal(res.verdict.stance, 'BUY');
+    assert.equal(res.verdict.score, 85);
+    assert.equal(res.verdict.positive[0], advisorVerdict.positive[0]);
+    assert.ok(res.artifacts.json && fs.existsSync(res.artifacts.json));
+    assert.ok(res.artifacts.html && fs.existsSync(res.artifacts.html));
+
+    const verify = verifyArtifactPair({
+      jsonPath: res.artifacts.json,
+      htmlPath: res.artifacts.html,
+      schemaType: 'verdict'
+    });
+    assert.equal(verify.ok, true, `Artifact verification failed: ${JSON.stringify(verify.errors)}`);
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }

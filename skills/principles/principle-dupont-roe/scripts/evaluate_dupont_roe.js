@@ -94,6 +94,15 @@ function evaluateDuPontROE(financials) {
         asset_turnover: null,
         financial_leverage: null
       },
+      checks: [
+        {
+          name: 'Broad-Market Return Profile',
+          criterion: 'Passive Index Basket',
+          actual: 'Full Basket',
+          status: 'PASS',
+          details: 'Passive ETF automatically diversifies across constituent holdings'
+        }
+      ],
       summary: `Index ETF passive basket (${ticker}): Broad-market diversification automatically bypasses single-company DuPont decomposition.`,
       observations: ['Passive index fund automatically diversifies across constituent holdings.']
     };
@@ -155,6 +164,18 @@ function evaluateDuPontROE(financials) {
     observations.push('Negative or indeterminable earnings preclude 5-step DuPont ROE decomposition.');
   }
 
+  const checks = [
+    {
+      name: 'DuPont ROE Quality & Discipline',
+      criterion: 'ROE >= 15.0% with Financial Leverage <= 2.5x',
+      actual: dupont ? `${dupont.calculatedRoePct}% (Lev: ${dupont.financialLeverage}x)` : 'N/A',
+      status,
+      details: dupont
+        ? `DuPont ROE ${dupont.calculatedRoePct}%, Operating Margin ${dupont.operatingMarginPct}%, Leverage ${dupont.financialLeverage}x`
+        : 'DuPont ROE decomposition unavailable'
+    }
+  ];
+
   return {
     principle: 'dupont-roe',
     name: '5-Step DuPont ROE Quality & Financial Leverage',
@@ -170,6 +191,7 @@ function evaluateDuPontROE(financials) {
       asset_turnover: dupont.assetTurnover,
       financial_leverage: dupont.financialLeverage
     } : null,
+    checks,
     summary: `${status} (${classification}): DuPont ROE of ${dupont ? dupont.calculatedRoePct + '%' : 'N/A'} (Leverage: ${dupont ? dupont.financialLeverage + 'x' : 'N/A'}).`,
     observations
   };

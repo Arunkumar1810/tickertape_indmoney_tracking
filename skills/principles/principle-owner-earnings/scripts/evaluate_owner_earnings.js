@@ -92,6 +92,15 @@ function evaluateOwnerEarnings(financials) {
         true_owner_earnings: null,
         sbc_dilution_pct: null
       },
+      checks: [
+        {
+          name: 'Broad-Market Cash Generation',
+          criterion: 'Passive Index Basket',
+          actual: 'Full Basket',
+          status: 'PASS',
+          details: 'Passive ETF automatically diversifies across constituent holdings'
+        }
+      ],
       summary: `Index ETF passive basket (${ticker}): Broad-market diversification automatically bypasses single-company cash flow calculations.`,
       observations: ['Passive index fund automatically diversifies across constituent holdings.']
     };
@@ -151,6 +160,25 @@ function evaluateOwnerEarnings(financials) {
     observations.push(`Negative true Owner Earnings (${trueOE}) indicates ongoing cash burn net of CapEx and SBC.`);
   }
 
+  const checks = [
+    {
+      name: 'True Owner Earnings Positive',
+      criterion: 'Owner Earnings > 0',
+      actual: trueOE !== null ? `${trueOE}` : 'N/A',
+      status: (trueOE !== null && trueOE > 0) ? 'PASS' : 'FAIL',
+      details: trueOE !== null && trueOE > 0
+        ? `Positive True Owner Earnings (${trueOE}) generated net of CapEx and SBC`
+        : 'Negative Owner Earnings indicates cash drain net of CapEx and SBC'
+    },
+    {
+      name: 'Stock-Based Compensation Dilution',
+      criterion: 'SBC Dilution <= 15.0%',
+      actual: sbcPct !== null ? `${sbcPct}%` : 'N/A',
+      status: sbcPct <= 5.0 ? 'PASS' : (sbcPct <= 15.0 ? 'PASS' : (sbcPct <= 25.0 ? 'WARN' : 'FAIL')),
+      details: `SBC represents ${sbcPct}% of operating cash flow`
+    }
+  ];
+
   return {
     principle: 'owner-earnings',
     name: 'True Owner Earnings & Dilution Quality',
@@ -168,6 +196,7 @@ function evaluateOwnerEarnings(financials) {
       raw_capex: res.rawCapex,
       sbc_used: res.sbcUsed
     },
+    checks,
     summary: `${status} (${classification}): True Owner Earnings of ${trueOE} (SBC dilution: ${sbcPct}%).`,
     observations
   };

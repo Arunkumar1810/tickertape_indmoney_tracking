@@ -62,6 +62,15 @@ function evaluateMarginOfSafety(financials) {
         true_owner_earnings: null,
         owner_earnings_yield_pct: null
       },
+      checks: [
+        {
+          name: 'Broad-Market Valuation Multiple',
+          criterion: 'Passive Index Basket',
+          actual: 'Full Basket',
+          status: 'PASS',
+          details: 'Passive ETF automatically diversifies across constituent holdings'
+        }
+      ],
       summary: `Index ETF passive basket (${ticker}): Broad-market diversification automatically bypasses single-company valuation multiple hurdles.`,
       observations: ['Passive index fund automatically diversifies across constituent holdings.']
     };
@@ -114,6 +123,18 @@ function evaluateMarginOfSafety(financials) {
     observations.push('Zero, negative, or indeterminable Owner Earnings Yield precludes valuation multiple support.');
   }
 
+  const checks = [
+    {
+      name: 'Valuation & Owner Earnings Yield',
+      criterion: 'Owner Earnings Yield >= 4.0% (Strong >= 6.0%)',
+      actual: yieldPct !== null ? `${yieldPct}%` : 'N/A',
+      status,
+      details: yieldPct !== null
+        ? `Owner Earnings Yield of ${yieldPct}% on market capitalization`
+        : 'Owner Earnings Yield unavailable'
+    }
+  ];
+
   return {
     principle: 'margin-of-safety',
     name: 'Margin of Safety & Valuation Yield',
@@ -126,6 +147,7 @@ function evaluateMarginOfSafety(financials) {
       true_owner_earnings: trueOE,
       owner_earnings_yield_pct: yieldPct
     },
+    checks,
     summary: `${status} (${classification}): Owner Earnings Yield of ${yieldPct !== null ? yieldPct + '%' : 'N/A'}.`,
     observations
   };

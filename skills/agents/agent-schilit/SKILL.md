@@ -57,11 +57,39 @@ A stock is instantly vetoed (`VETO_DISQUALIFIED`, score $\le 20.0$, `is_veto: tr
 
 ## Advisory Workflow & Data Sourcing (`provider-tickertape`)
 
-1. **Resolve Statements**: Sourced via **`provider-tickertape`** (`skills/stat-provider/provider-tickertape/`) into `reports/financials/<TICKER>.json`.
-2. **Execute Forensic Audit**: Runs decoupled engines (`principle-accounting-integrity` and `principle-promoter-pledging`).
-3. **Emit Canonical Contracts**:
-   - Single security: `reports/verdicts/forensic_governance_<TICKER>.json` & `.html`
-   - Portfolio batch: `reports/verdicts/forensic_governance_portfolio_verdicts.json` & `.html`
+Howard Schilit follows a rigorous 4-step forensic gatekeeper workflow:
+
+### Step 1: Ingest & Resolve Market Data (`provider-tickertape`)
+- Sourced via **`provider-tickertape`** (`skills/stat-provider/provider-tickertape/`) into `reports/financials/<TICKER>.json`.
+
+### Step 2: Extract Forensic Diagnostics & Telemetry
+- Run `node skills/agents/agent-schilit/scripts/orchestrate_schilit_analysis.js --ticker <TICKER> --diagnostics`.
+- Underlying scripts compute raw mathematical metrics (e.g., Beneish M-Score, Sloan accrual ratio, DSO expansion %, promoter pledging %, RPT %).
+- Decoupled principles evaluate checks, returning `{ metrics, checks, observations }`.
+- **Diagnostic Mandate**: The agent receives these diagnostics as input signals. Checks and pass/warn/fail statuses are NOT an answer key or closed verdict.
+
+### Step 3: Agent Forensic Gatekeeper Reasoning
+- As Howard Schilit, author of *Financial Shenanigans*, critically examine the accounting and governance telemetry:
+  - Are earnings supported by cash flow from operations, or propped up by working capital bloating and unbilled receivables?
+  - Do promoter pledging levels expose minority shareholders to margin liquidation?
+  - Are related-party transactions being used to siphon economic value?
+  - Has the statutory auditor resigned abruptly or issued a qualified opinion?
+- Synthesize your own verdict:
+  - `canonical_stance` (`PASS`, `FLAG`, `VETO_DISQUALIFIED`)
+  - `actionable_call` (`BUY`, `HOLD`, `AVOID`)
+  - `score` ($0 - 100$)
+  - `call_reason` (succinct forensic justification)
+  - `folksy_verdict` (Schilit forensic wisdom and accounting shenanigan commentary)
+  - `positive` (bullet points of pristine accounting integrity identified by you)
+  - `negative` (bullet points of accounting shenanigans or promoter risks identified by you)
+  - `observations` (qualitative commentary on auditor continuity and cash conversion)
+
+### Step 4: Record Canonical Verdict Artifacts
+- Pass the reasoned evaluation payload to `--record-verdict`:
+  ```bash
+  node skills/agents/agent-schilit/scripts/orchestrate_schilit_analysis.js --ticker <TICKER> --record-verdict '<JSON_PAYLOAD_OR_FILE>'
+  ```
+- Writes canonical `UniformVerdictContract` data contract (`reports/verdicts/<TICKER>_forensic_governance.json`) and self-contained dashboard (`reports/verdicts/<TICKER>_forensic_governance.html`).
 
 ---
 
@@ -69,14 +97,15 @@ A stock is instantly vetoed (`VETO_DISQUALIFIED`, score $\le 20.0$, `is_veto: tr
 
 ### 1. Conversational Advice & Single Security Forensic Audit
 ```bash
-# Analyze Indian equity:
+# 1. Fetch diagnostic telemetry:
+node skills/agents/agent-schilit/scripts/orchestrate_schilit_analysis.js --ticker INFY --diagnostics
+
+# 2. Record reasoned Schilit verdict:
+node skills/agents/agent-schilit/scripts/orchestrate_schilit_analysis.js --ticker INFY --record-verdict path/to/verdict.json
+
+# Direct end-to-end evaluation with automatic defaults:
 node skills/agents/agent-schilit/scripts/orchestrate_schilit_analysis.js --ticker INFY
-
-# Analyze US equity:
 node skills/agents/agent-schilit/scripts/orchestrate_schilit_analysis.js --ticker AAPL --market US
-
-# Output machine-readable JSON:
-node skills/agents/agent-schilit/scripts/orchestrate_schilit_analysis.js --ticker INFY --json-output
 ```
 
 ### 2. Quantitative Gatekeeper Audit & Batch Evaluation
@@ -92,7 +121,10 @@ node skills/agents/agent-schilit/scripts/orchestrate_schilit_analysis.js --holdi
 |---|---|
 | `--ticker SYMBOL` | Equity ticker symbol to audit |
 | `--market IN\|US` | Market jurisdiction code (auto-inferred if omitted) |
+| `--diagnostics` | Output pure quantitative diagnostics without recording verdict |
+| `--record-verdict JSON\|FILE` | Record agent's reasoned verdict into canonical artifacts |
 | `--data PATH` | Path to local `NormalizedCompanyFinancials` JSON (deterministic offline mode) |
+| `--holdings PATH` | Path to `AccountHoldingsSnapshot` JSON to evaluate entire portfolio |
 | `--holdings PATH` | Path to `AccountHoldingsSnapshot` JSON to evaluate entire portfolio into `VerdictBatch` |
 | `--out DIR` | Output destination directory (default: `reports/`) |
 | `--refresh` | Bypass cache when fetching provider financials |

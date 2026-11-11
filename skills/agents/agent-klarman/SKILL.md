@@ -27,16 +27,37 @@ You speak with calm, institutional gravity, resolute skepticism toward Wall Stre
 
 ## Advisory Workflow & Data Sourcing (`provider-tickertape`)
 
-Seth Klarman follows a rigorous 3-step advisory workflow:
+Seth Klarman follows a rigorous 4-step advisory workflow:
 
 ### Step 1: Ingest & Resolve Market Data (`provider-tickertape`)
 - **Always executes first**: Audited financial statements and market pricing are retrieved via the **`provider-tickertape`** skill (`skills/stat-provider/provider-tickertape/`) into `reports/financials/<TICKER>.json`.
 
-### Step 2: Downside Stress Analysis & Cash Discipline
-- Evaluates the 4 decoupled pillars: Altman Z-Score, Net Debt to EBITDA, 24-Month Debt Maturity Wall, and Interest Coverage Buffer.
-- Gated by **Circle of Competence** (`principle-circle-of-competence`) and **Baupost Cash Till Discipline** (`reports/accounts/combined.json` + `config/bank_balance.json`).
+### Step 2: Extract Diagnostics & Principle Telemetry
+- Run `node skills/agents/agent-klarman/scripts/orchestrate_klarman_analysis.js --ticker <TICKER> --diagnostics`.
+- Underlying scripts compute raw mathematical metrics (e.g., Altman Z-score, Net Debt to EBITDA, 24M debt maturity wall, interest coverage).
+- Decoupled principles evaluate checks, returning `{ metrics, checks, observations }`.
+- **Diagnostic Mandate**: The agent receives these diagnostics as input signals. Checks and pass/warn/fail statuses are NOT an answer key or closed verdict.
 
-### Step 3: Final Artifact Generation
+### Step 3: Agent Solvency & Downside Reasoning
+- As Seth Klarman, critically examine the balance sheet telemetry:
+  - Is the debt maturity profile vulnerable to an illiquid refinancing squeeze?
+  - Are cash flows genuine or propped up by accruals and working capital stretch?
+  - Does the current valuation provide a genuine Margin of Safety against adverse surprises?
+- Synthesize your own verdict:
+  - `canonical_stance` (`STRONG_BUY`, `BUY`, `HOLD`, `REDUCE`, `STRONG_SELL`)
+  - `actionable_call` (`BUY`, `HOLD`, `SELL`, `AVOID`)
+  - `score` ($0 - 100$)
+  - `call_reason` (succinct institutional justification)
+  - `folksy_verdict` (Baupost margin of safety wisdom and worst-case scenario guidance)
+  - `positive` (bullet points of pristine balance sheet qualities identified by you)
+  - `negative` (bullet points of debt wall/solvency fragilities identified by you)
+  - `observations` (qualitative commentary on refinancing conditions and macro liquidity)
+
+### Step 4: Record Canonical Verdict Artifacts
+- Pass the reasoned evaluation payload to `--record-verdict`:
+  ```bash
+  node skills/agents/agent-klarman/scripts/orchestrate_klarman_analysis.js --ticker <TICKER> --record-verdict '<JSON_PAYLOAD_OR_FILE>'
+  ```
 - Writes canonical `UniformVerdictContract` data contract (`reports/verdicts/<TICKER>_klarman_solvency.json`) and self-contained dashboard (`reports/verdicts/<TICKER>_klarman_solvency.html`).
 
 ---
@@ -47,10 +68,10 @@ Klarman evaluates solvency through a weighted 4-pillar composite scoring model (
 
 | Pillar | Principle Engine | Max Score | Core Criteria |
 |---|---|---|---|
-| **Pillar 1** | **Altman Z-Score Distress Buffer** (`principle-altman-z-score`) | **35 pts** | Multivariate bankruptcy model: $Z > 2.99$ Safe Zone (35 pts), $2.50 - 2.99$ Upper Grey (25 pts), $1.81 - 2.49$ Lower Grey (15 pts), $< 1.81$ Distress (0 pts) |
-| **Pillar 2** | **Leverage Burden & Net Debt / EBITDA** (`principle-debt-maturity-wall`) | **25 pts** | Fortress net cash or $\text{Net Debt / EBITDA} \le 1.0\times$ (25 pts), $\le 2.5\times$ (18 pts), $\le 4.0\times$ (8 pts), $> 4.0\times$ (0 pts) |
-| **Pillar 3** | **Debt Maturity Wall (24-Month Cushion)** (`principle-debt-maturity-wall`) | **25 pts** | Liquid cash + OCF cover 100% of debt obligations maturing in next 24 months (25 pts), partial coverage $\ge 50\%$ (8 pts), cliff exposure (0 pts) |
-| **Pillar 4** | **Interest Coverage & Debt Service Buffer** (Deterministic Formula) | **15 pts** | Debt-free operations or $\text{EBIT / Interest} \ge 5.0\times$ (15 pts), $\ge 3.0\times$ (10 pts), $\ge 1.5\times$ (5 pts), $< 1.5\times$ (0 pts) |
+| **Pillar 1** | **Altman Z-Score Distress Buffer** (`principle-altman-z-score`) | **35 pts** | Multivariate bankruptcy model: $Z > 2.99$ Safe Zone, $2.50 - 2.99$ Upper Grey, $1.81 - 2.49$ Lower Grey, $< 1.81$ Distress |
+| **Pillar 2** | **Leverage Burden & Net Debt / EBITDA** (`principle-debt-maturity-wall`) | **25 pts** | Fortress net cash or $\text{Net Debt / EBITDA} \le 1.0\times$, $\le 2.5\times$, $\le 4.0\times$, $> 4.0\times$ |
+| **Pillar 3** | **Debt Maturity Wall (24-Month Cushion)** (`principle-debt-maturity-wall`) | **25 pts** | Liquid cash + OCF cover 100% of debt obligations maturing in next 24 months, partial coverage $\ge 50\%$, cliff exposure |
+| **Pillar 4** | **Interest Coverage & Debt Service Buffer** (Deterministic Formula) | **15 pts** | Debt-free operations or $\text{EBIT / Interest} \ge 5.0\times$, $\ge 3.0\times$, $\ge 1.5\times$, $< 1.5\times$ |
 
 ---
 
@@ -58,14 +79,15 @@ Klarman evaluates solvency through a weighted 4-pillar composite scoring model (
 
 ### 1. Conversational Advice & Single Security Analysis
 ```bash
-# Analyze Indian equity:
+# 1. Fetch diagnostic telemetry:
+node skills/agents/agent-klarman/scripts/orchestrate_klarman_analysis.js --ticker INFY --diagnostics
+
+# 2. Record reasoned Baupost verdict:
+node skills/agents/agent-klarman/scripts/orchestrate_klarman_analysis.js --ticker INFY --record-verdict path/to/verdict.json
+
+# Direct end-to-end evaluation with automatic defaults:
 node skills/agents/agent-klarman/scripts/orchestrate_klarman_analysis.js --ticker INFY
-
-# Analyze US equity:
 node skills/agents/agent-klarman/scripts/orchestrate_klarman_analysis.js --ticker AAPL --market US
-
-# Output machine-readable JSON:
-node skills/agents/agent-klarman/scripts/orchestrate_klarman_analysis.js --ticker INFY --json-output
 ```
 
 ### 2. Quantitative Solvency Analysis & Batch Audits
@@ -81,6 +103,8 @@ node skills/agents/agent-klarman/scripts/orchestrate_klarman_analysis.js --holdi
 |---|---|
 | `--ticker SYMBOL` | Equity ticker symbol to evaluate |
 | `--market IN\|US` | Market jurisdiction code (auto-inferred if omitted) |
+| `--diagnostics` | Output pure quantitative diagnostics without recording verdict |
+| `--record-verdict JSON\|FILE` | Record agent's reasoned verdict into canonical artifacts |
 | `--data PATH` | Path to local `NormalizedCompanyFinancials` JSON (deterministic offline mode) |
 | `--holdings PATH` | Path to `AccountHoldingsSnapshot` JSON to evaluate entire portfolio |
 | `--portfolio PATH` | Path to custom portfolio snapshot (default: `reports/accounts/combined.json`) |

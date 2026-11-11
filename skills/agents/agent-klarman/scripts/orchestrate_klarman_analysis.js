@@ -116,6 +116,8 @@ function parseArgs(argv = process.argv.slice(2)) {
     else if (k === '--no-portfolio') args.noPortfolio = true;
     else if (k === '--out') args.out = next();
     else if (k === '--refresh') args.refresh = true;
+    else if (k === '--diagnostics') args.diagnostics = true;
+    else if (k === '--record-verdict') args.recordVerdict = next();
     else if (k === '--json-output' || k === '--json') args.jsonOutput = true;
     else if (k === '-h' || k === '--help') args.help = true;
     else if (!k.startsWith('--') && !args.ticker) args.ticker = k.toUpperCase();
@@ -180,8 +182,6 @@ function evaluateKlarmanSolvency(financials, options = {}) {
           criterion: 'Passive Index Basket',
           value: 'Full Basket',
           status: 'PASS',
-          score: 100,
-          max_score: 100,
           details: 'Passive ETF automatically diversifies across constituent corporate balance sheets'
         }
       ],
@@ -359,8 +359,6 @@ function evaluateKlarmanSolvency(financials, options = {}) {
       criterion: 'Z-Score > 2.99 (Safe Zone, > 1.81 Grey Zone)',
       value: altmanZScore !== null ? `${altmanZScore}` : 'N/A',
       status: altmanZScore !== null && altmanZScore > 2.99 ? 'PASS' : (altmanZScore !== null && altmanZScore >= 1.81 ? 'WARN' : 'FAIL'),
-      score: p1Score,
-      max_score: 35,
       details: altmanZScore !== null
         ? `Altman Z-Score of ${altmanZScore} (${altmanZScore > 2.99 ? 'Safe Zone' : (altmanZScore >= 1.81 ? 'Grey Zone' : 'Distress Zone')})`
         : 'Insufficient data for Altman Z calculation'
@@ -370,8 +368,6 @@ function evaluateKlarmanSolvency(financials, options = {}) {
       criterion: 'Net Cash or Net Debt / EBITDA ≤ 2.5x',
       value: netDebt <= 0 ? `Net Cash (${netDebt})` : (netDebtToEbitda !== null ? `${netDebtToEbitda}x` : 'N/A'),
       status: netDebt <= 0 || (netDebtToEbitda !== null && netDebtToEbitda <= 2.5) ? 'PASS' : (netDebtToEbitda !== null && netDebtToEbitda <= 4.0 ? 'WARN' : 'FAIL'),
-      score: p2Score,
-      max_score: 25,
       details: netDebt <= 0
         ? `Fortress balance sheet with net cash position of ${Math.abs(netDebt)}`
         : (netDebtToEbitda !== null ? `Net debt of ${netDebt} represents ${netDebtToEbitda}x EBITDA` : 'Non-positive EBITDA with net debt')
@@ -381,8 +377,6 @@ function evaluateKlarmanSolvency(financials, options = {}) {
       criterion: 'Cash & OCF cover 100% of debt due in 24 months',
       value: debtMaturing24m <= 0 ? 'No Debt Due in 24M' : `${cashToDebtMaturingRatio !== null ? cashToDebtMaturingRatio + 'x' : 'N/A'} (Due: ${debtMaturing24m})`,
       status: (debtMaturing24m <= 0 || cash >= debtMaturing24m || (cash + ocf) >= debtMaturing24m) ? 'PASS' : ((cash + Math.max(0, ocf)) >= 0.5 * debtMaturing24m ? 'WARN' : 'FAIL'),
-      score: p3Score,
-      max_score: 25,
       details: debtMaturing24m <= 0
         ? 'No debt maturities in the next 24 months'
         : (cash >= debtMaturing24m
@@ -394,8 +388,6 @@ function evaluateKlarmanSolvency(financials, options = {}) {
       criterion: 'Interest Coverage ≥ 3.0x (or Zero Debt)',
       value: (totalDebt <= 0 || interestExpense <= 0) ? 'Debt-Free / No Interest' : (interestCoverage !== null ? `${interestCoverage}x` : 'N/A'),
       status: (totalDebt <= 0 || interestExpense <= 0 || (interestCoverage !== null && interestCoverage >= 3.0)) ? 'PASS' : (interestCoverage !== null && interestCoverage >= 1.5 ? 'WARN' : 'FAIL'),
-      score: p4Score,
-      max_score: 15,
       details: (totalDebt <= 0 || interestExpense <= 0)
         ? 'Zero interest-bearing debt burden'
         : (interestCoverage !== null
@@ -513,6 +505,321 @@ function writeArtifacts(verdictData, outDir = DEFAULT_REPORTS_DIR, isBatch = fal
   }
 
   return { jsonPath, htmlPath, harnessResult };
+}
+
+/**
+ * Gather pure quantitative diagnostics across Seth Klarman Solvency principles.
+ * Principles return metrics and qualitative checks without prescribing the final stance.
+ */
+async function getKlarmanDiagnostics(ticker, options = {}) {
+  const clean = String(ticker || '').trim().toUpperCase();
+  if (!clean) throw new Error('A ticker symbol is required.');
+
+  const outDir = options.out || options.outDir || DEFAULT_REPORTS_DIR;
+  const market = inferMarket(clean, options.market);
+
+  // 1. Resolve Financials
+  let financials = null;
+  if (options.data) {
+    const dataPath = path.resolve(options.data);
+    if (!fs.existsSync(dataPath)) throw new Error(`Data file not found at ${dataPath}`);
+    financials = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+  } else {
+    const localReportPath = path.join(outDir, 'financials', `${clean}.json`);
+    const repoReportPath = path.join(REPO_ROOT, 'reports', 'financials', `${clean}.json`);
+
+    if (!options.refresh && fs.existsSync(localReportPath)) {
+      financials = JSON.parse(fs.readFileSync(localReportPath, 'utf8'));
+    } else if (!options.refresh && fs.existsSync(repoReportPath)) {
+      financials = JSON.parse(fs.readFileSync(repoReportPath, 'utf8'));
+    } else {
+      if (!providerTickertape || typeof providerTickertape.fetchAndNormalizeTicker !== 'function') {
+        throw new Error(`No local financials for ${clean} and provider_tickertape is unavailable.`);
+      }
+      financials = await providerTickertape.fetchAndNormalizeTicker(clean, {
+        market,
+        out: outDir,
+        refresh: Boolean(options.refresh)
+      });
+    }
+  }
+
+  const isIndexEtf = Boolean(
+    financials.is_index_etf === true ||
+    financials.sector === 'Index ETF' ||
+    INDEX_ETF_TICKERS.has(clean)
+  );
+
+  const altmanEval = evaluateAltmanZ(financials);
+  const debtWallEval = evaluateDebtWall(financials);
+
+  const bal = financials.balance_sheet || {};
+  const inc = financials.income_statement || {};
+  const totalDebt = isFiniteNumber(bal.total_debt) ? Number(bal.total_debt) : 0;
+  const cash = isFiniteNumber(bal.cash_and_equivalents) ? Number(bal.cash_and_equivalents) : 0;
+  const netDebt = round2(totalDebt - cash);
+  const interestExpense = isFiniteNumber(inc.interest_expense) ? Number(inc.interest_expense) : 0;
+  const ebit = isFiniteNumber(inc.ebit) ? Number(inc.ebit) : (isFiniteNumber(inc.operating_profit) ? Number(inc.operating_profit) : 0);
+  const cf = financials.cash_flow || {};
+  const ocf = isFiniteNumber(cf.operating_cash_flow) ? Number(cf.operating_cash_flow) : 0;
+
+  let debtMaturing24m = 0;
+  if (isFiniteNumber(bal.debt_maturing_24m)) {
+    debtMaturing24m = Math.max(0, Number(bal.debt_maturing_24m));
+  } else if (isFiniteNumber(bal.short_term_debt)) {
+    debtMaturing24m = Math.max(0, Number(bal.short_term_debt));
+  }
+  const altmanZScore = altmanEval.metrics.altman_z_score;
+  const netDebtToEbitda = debtWallEval.metrics.net_debt_to_ebitda;
+  const interestCoverage = debtWallEval.metrics.interest_coverage;
+  const cashToDebtMaturingRatio = debtMaturing24m > 0 ? round2(cash / debtMaturing24m) : null;
+
+  const principles = isIndexEtf ? [
+    {
+      principle_id: 'broad-market-index',
+      name: 'Broad-Market Index Diversification',
+      metrics: { is_index_etf: true },
+      checks: [
+        {
+          name: 'Broad-Market Index Diversification',
+          criterion: 'Passive Index Basket',
+          actual: 'Full Basket',
+          status: 'PASS',
+          details: 'Passive ETF automatically diversifies across constituent corporate balance sheets'
+        }
+      ],
+      observations: ['Passive ETF automatically diversifies across constituent corporate balance sheets']
+    }
+  ] : [
+    {
+      principle_id: 'altman-z-score',
+      name: 'Altman Z-Score & Bankruptcy Distress',
+      metrics: altmanEval.metrics,
+      checks: [
+        {
+          name: 'Altman Z-Score Distress Buffer',
+          criterion: 'Z-Score > 2.99 Safe Zone, >= 1.81 Grey Zone',
+          actual: altmanZScore !== null ? `${altmanZScore}` : 'N/A',
+          status: altmanEval.status,
+          details: altmanEval.summary
+        }
+      ],
+      observations: altmanEval.observations
+    },
+    {
+      principle_id: 'debt-maturity-wall',
+      name: 'Debt Maturity Wall & Leverage Cushion',
+      metrics: debtWallEval.metrics,
+      checks: [
+        {
+          name: 'Leverage Burden & Net Debt to EBITDA',
+          criterion: 'Net Cash or Net Debt / EBITDA <= 2.5x',
+          actual: netDebt <= 0 ? `Net Cash (${netDebt})` : (netDebtToEbitda !== null ? `${netDebtToEbitda}x` : 'N/A'),
+          status: netDebt <= 0 || (netDebtToEbitda !== null && netDebtToEbitda <= 2.5) ? 'PASS' : (netDebtToEbitda !== null && netDebtToEbitda <= 4.0 ? 'WARN' : 'FAIL'),
+          details: netDebt <= 0 ? `Fortress balance sheet with net cash position of ${Math.abs(netDebt)}` : (netDebtToEbitda !== null ? `Net debt of ${netDebt} represents ${netDebtToEbitda}x EBITDA` : 'Non-positive EBITDA with net debt')
+        },
+        {
+          name: 'Debt Maturity Wall (24M Cushion)',
+          criterion: 'Cash & OCF cover 100% of debt due in 24 months',
+          actual: debtMaturing24m <= 0 ? 'No Debt Due in 24M' : `${cashToDebtMaturingRatio !== null ? cashToDebtMaturingRatio + 'x' : 'N/A'} (Due: ${debtMaturing24m})`,
+          status: (debtMaturing24m <= 0 || cash >= debtMaturing24m || (cash + ocf) >= debtMaturing24m) ? 'PASS' : ((cash + Math.max(0, ocf)) >= 0.5 * debtMaturing24m ? 'WARN' : 'FAIL'),
+          details: debtMaturing24m <= 0 ? 'No debt maturities in the next 24 months' : `Cash (${cash}) and OCF (${ocf}) vs 24M maturities (${debtMaturing24m})`
+        },
+        {
+          name: 'Interest Coverage & Debt Service Cushion',
+          criterion: 'Interest Coverage >= 3.0x (or Zero Debt)',
+          actual: (totalDebt <= 0 || interestExpense <= 0) ? 'Debt-Free / No Interest' : (interestCoverage !== null ? `${interestCoverage}x` : 'N/A'),
+          status: (totalDebt <= 0 || interestExpense <= 0 || (interestCoverage !== null && interestCoverage >= 3.0)) ? 'PASS' : (interestCoverage !== null && interestCoverage >= 1.5 ? 'WARN' : 'FAIL'),
+          details: (totalDebt <= 0 || interestExpense <= 0) ? 'Zero interest-bearing debt burden' : `EBIT (${ebit}) covers interest (${interestExpense}) by ${interestCoverage}x`
+        }
+      ],
+      observations: debtWallEval.observations
+    }
+  ];
+
+  // Portfolio & Liquidity Gating
+  const portfolioPath = options.portfolio ? path.resolve(options.portfolio) : DEFAULT_PORTFOLIO_PATH;
+  let portfolioKnown = false;
+  let isHeld = false;
+  let currentWeightPct = 0.0;
+  let liquidCash = { total_liquid_cash: 0.0, broker_cash: 0.0, bank_balance: 0.0 };
+  let availableCash = 0.0;
+
+  if (!options.noPortfolio) {
+    try {
+      liquidCash = getLiquidCashSummary();
+      availableCash = Number(liquidCash.total_liquid_cash || 0.0);
+    } catch {
+      availableCash = 0.0;
+    }
+
+    if (fs.existsSync(portfolioPath)) {
+      try {
+        const rawPortfolio = fs.readFileSync(portfolioPath, 'utf8');
+        const portfolioData = JSON.parse(rawPortfolio);
+        const holdings = Array.isArray(portfolioData.holdings) ? portfolioData.holdings : [];
+        portfolioKnown = true;
+        const match = holdings.find(h => (h.ticker || h.symbol || '').toUpperCase() === clean);
+        if (match) {
+          isHeld = true;
+          currentWeightPct = match.weight_pct || 0.0;
+        }
+      } catch {
+        portfolioKnown = false;
+      }
+    }
+  }
+
+  const competenceEval = isIndexEtf
+    ? { in_circle: true, status: 'IN_CIRCLE', max_position_weight_pct: 15.0, score: 100 }
+    : evaluateCircleOfCompetence(clean);
+
+  return {
+    ticker: clean,
+    market,
+    company_name: financials.name || financials.ticker || clean,
+    is_index_etf: isIndexEtf,
+    financials,
+    principles,
+    circle_of_competence: competenceEval,
+    portfolio_status: {
+      portfolio_known: portfolioKnown,
+      is_held: isHeld,
+      current_weight_pct: currentWeightPct,
+      broker_cash: round2(liquidCash.broker_cash),
+      bank_balance: round2(liquidCash.bank_balance),
+      total_liquid_cash: round2(availableCash),
+      available_cash: round2(availableCash),
+      min_cash_required: 500.0,
+      warnings: []
+    }
+  };
+}
+
+/**
+ * Record Seth Klarman Reasoned Verdict into Canonical UniformVerdictContract Artifacts.
+ */
+async function recordKlarmanVerdict(ticker, advisorVerdict, options = {}) {
+  const diag = await getKlarmanDiagnostics(ticker, options);
+  const clean = diag.ticker;
+  const outDir = options.out || options.outDir || DEFAULT_REPORTS_DIR;
+  const timestamp = options.timestamp || new Date().toISOString();
+
+  const stance = advisorVerdict.canonical_stance || advisorVerdict.stance || 'HOLD';
+  const score = round2(advisorVerdict.score !== undefined ? advisorVerdict.score : (advisorVerdict.composite_score !== undefined ? advisorVerdict.composite_score : 50.0));
+  const call = advisorVerdict.actionable_call || advisorVerdict.call || (stance === 'STRONG_BUY' || stance === 'BUY' ? 'BUY' : (stance === 'STRONG_SELL' || stance === 'REDUCE' ? 'SELL' : 'HOLD'));
+  const callReason = advisorVerdict.call_reason || advisorVerdict.reason || 'Reasoned evaluation by Seth Klarman persona.';
+  const folksyVerdict = advisorVerdict.folksy_verdict || advisorVerdict.verdict_text || 'Margin of safety is the central secret of downside capital preservation.';
+  const summary = advisorVerdict.summary || `${stance}: ${callReason}`;
+
+  const audit = [];
+  const redFlags = [];
+  for (const p of diag.principles) {
+    for (const c of p.checks) {
+      audit.push({
+        check: `${p.name}: ${c.name}`,
+        criterion: c.criterion,
+        value: c.actual || c.value || 'N/A',
+        status: c.status || 'WARN',
+        details: c.details || ''
+      });
+      if (c.status === 'FAIL') {
+        redFlags.push(`${c.name} failed: ${c.details}`);
+      }
+    }
+  }
+
+  const defaultObservations = diag.principles.flatMap(p => p.observations || []);
+  const defaultPositives = diag.principles.flatMap(p => (p.checks || []).filter(c => c.status === 'PASS').map(c => `${c.name}: ${c.details || c.actual}`));
+  const defaultNegatives = diag.principles.flatMap(p => (p.checks || []).filter(c => c.status === 'FAIL' || c.status === 'WARN').map(c => `${c.name}: ${c.details || c.actual}`));
+
+  const positive = (Array.isArray(advisorVerdict.positive) && advisorVerdict.positive.length > 0)
+    ? advisorVerdict.positive
+    : defaultPositives;
+
+  const negative = (Array.isArray(advisorVerdict.negative) && advisorVerdict.negative.length > 0)
+    ? advisorVerdict.negative
+    : defaultNegatives;
+
+  const observations = (Array.isArray(advisorVerdict.observations) && advisorVerdict.observations.length > 0)
+    ? advisorVerdict.observations
+    : defaultObservations;
+
+  const altMetrics = (diag.principles.find(p => p.principle_id === 'altman-z-score') || {}).metrics || {};
+  const debtMetrics = (diag.principles.find(p => p.principle_id === 'debt-maturity-wall') || {}).metrics || {};
+
+  const metrics = {
+    altman_z_score: altMetrics.altman_z_score ?? null,
+    net_debt_to_ebitda: debtMetrics.net_debt_to_ebitda ?? null,
+    interest_coverage: debtMetrics.interest_coverage ?? null,
+    debt_maturing_24m: debtMetrics.debt_maturing_24m ?? 0,
+    cash_to_debt_maturing_ratio: debtMetrics.cash_to_debt_maturing_ratio ?? null,
+    accrual_gap: null,
+    total_debt: debtMetrics.total_debt ?? 0,
+    cash_and_equivalents: debtMetrics.cash_and_equivalents ?? 0,
+    net_debt: debtMetrics.net_debt ?? 0
+  };
+
+  const verdict = {
+    principle: 'klarman_solvency',
+    principle_title: 'Seth Klarman Downside Solvency & Distress',
+    ticker: clean,
+    timestamp,
+    stance,
+    score,
+    is_veto: false,
+    summary
+  };
+
+  const uniformPayload = {
+    principle: 'klarman_solvency',
+    ticker: clean,
+    timestamp,
+    score,
+    stance,
+    is_veto: false,
+    metrics,
+    red_flags: redFlags,
+    summary,
+    verdict,
+    audit,
+    positive,
+    negative,
+    observations,
+    warnings: [...redFlags, ...(diag.portfolio_status.warnings || [])],
+    advisor_verdict: {
+      actionable_call: call,
+      call_reason: callReason,
+      folksy_verdict: folksyVerdict
+    },
+    portfolio_status: diag.portfolio_status
+  };
+
+  const validation = validateUniformVerdict(uniformPayload);
+  if (!validation.ok) {
+    throw new Error(`UniformVerdict validation failed: ${JSON.stringify(validation.errors)}`);
+  }
+
+  let artifacts = null;
+  if (!options.noWrite) {
+    artifacts = writeArtifacts(uniformPayload, outDir, false);
+  }
+
+  return {
+    ticker: clean,
+    company_name: diag.company_name,
+    market: diag.market,
+    composite_score: score,
+    call,
+    call_reason: callReason,
+    folksy_verdict: folksyVerdict,
+    portfolio_status: uniformPayload.portfolio_status,
+    verdict: uniformPayload,
+    artifacts: {
+      json: artifacts ? artifacts.jsonPath : null,
+      html: artifacts ? artifacts.htmlPath : null
+    }
+  };
 }
 
 /**
@@ -829,6 +1136,8 @@ async function processHoldings(holdingsPath, options = {}) {
 module.exports = {
   evaluateKlarmanSolvency,
   analyzeStockWithKlarman,
+  getKlarmanDiagnostics,
+  recordKlarmanVerdict,
   processHoldings,
   parseArgs,
   calculateAltmanZScore
@@ -841,6 +1150,46 @@ if (require.main === module) {
       if (!args.ticker && !args.data && !args.holdings) {
         console.log('Usage: node orchestrate_klarman_analysis.js [--ticker <SYMBOL> | --holdings <PATH>] [--market IN|US]');
         process.exit(1);
+      }
+
+      if (args.ticker && args.diagnostics) {
+        const diag = await getKlarmanDiagnostics(args.ticker, args);
+        console.log(JSON.stringify(diag, null, 2));
+        return;
+      }
+
+      if (args.ticker && args.recordVerdict) {
+        let payload;
+        try {
+          if (fs.existsSync(args.recordVerdict)) {
+            payload = JSON.parse(fs.readFileSync(args.recordVerdict, 'utf8'));
+          } else {
+            let raw = args.recordVerdict.trim();
+            try {
+              payload = JSON.parse(raw);
+            } catch {
+              if ((raw.startsWith("'") && raw.endsWith("'")) || (raw.startsWith('"') && raw.endsWith('"'))) {
+                raw = raw.slice(1, -1).trim();
+              }
+              raw = raw.replace(/\\"/g, '"');
+              payload = JSON.parse(raw);
+            }
+          }
+        } catch (e) {
+          throw new Error(`Failed to parse --record-verdict payload: ${e.message}`);
+        }
+        const res = await recordKlarmanVerdict(args.ticker, payload, args);
+        if (args.jsonOutput) {
+          console.log(JSON.stringify(res, null, 2));
+        } else {
+          console.log(`\n=== Seth Klarman Reasoned Verdict Recorded: ${res.ticker} ===`);
+          console.log(`Stance          : ${res.verdict.stance} | Score: ${res.composite_score}/100`);
+          console.log(`Actionable Call : ${res.call}`);
+          console.log(`Reason          : ${res.call_reason}`);
+          console.log(`Baupost Verdict : ${res.folksy_verdict}`);
+          console.log(`Artifacts written to:\n  ${res.artifacts.json}\n  ${res.artifacts.html}\n`);
+        }
+        return;
       }
 
       if (args.holdings) {

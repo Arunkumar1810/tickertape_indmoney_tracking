@@ -12,6 +12,8 @@ const {
   calculateROIC,
   evaluateBuffettMungerValuation,
   analyzeStockWithBuffett,
+  getBuffettDiagnostics,
+  recordBuffettVerdict,
   inferMarket,
   parseArgs,
   processDataFile,
@@ -214,6 +216,71 @@ test('7. Batch portfolio evaluation: processHoldings generates valid UniformVerd
     jsonPath: batchRes.jsonPath,
     htmlPath: batchRes.htmlPath,
     schemaType: 'verdict-batch'
+  });
+  assert.equal(pairCheck.ok, true);
+
+  fs.rmSync(tmpOut, { recursive: true, force: true });
+});
+
+test('8. getBuffettDiagnostics emits raw metrics and checks without closed verdict', () => {
+  const financials = loadFixture('buffett_wide_moat.json');
+  const diag = getBuffettDiagnostics('WIDE_MOAT_CO', {
+    financials,
+    ignorePortfolio: true
+  });
+
+  assert.equal(diag.ticker, 'WIDE_MOAT_CO');
+  assert.ok(Array.isArray(diag.principles));
+  assert.equal(diag.principles.length, 4);
+
+  // Verify principle metrics and checks exist
+  const moat = diag.principles.find(p => p.principle_id === 'economic-moat');
+  assert.ok(moat);
+  assert.ok(moat.metrics.roic_pct > 20.0);
+  assert.ok(Array.isArray(moat.checks));
+  assert.equal(moat.checks[0].status, 'PASS');
+
+  // Verify no closed final verdict exists in the diagnostics packet
+  assert.equal(diag.verdict, undefined);
+  assert.equal(diag.composite_score, undefined);
+  assert.equal(diag.stance, undefined);
+});
+
+test('9. recordBuffettVerdict accepts reasoned AI verdict and writes validated UniformVerdictContract', () => {
+  const financials = loadFixture('buffett_wide_moat.json');
+  const tmpOut = fs.mkdtempSync(path.join(os.tmpdir(), 'buffett-record-test-'));
+
+  const reasonedInput = {
+    canonical_stance: 'STRONG_BUY',
+    actionable_call: 'BUY',
+    score: 88.0,
+    call_reason: 'Unusually durable economic moat in enterprise software with negligible debt and expanding owner cash.',
+    folksy_verdict: '“When we see an extraordinary moat and disciplined capital allocators, we do not wait. We step up and swing.”',
+    summary: 'STRONG_BUY: Unusually durable economic moat in enterprise software with negligible debt and expanding owner cash.'
+  };
+
+  const res = recordBuffettVerdict('WIDE_MOAT_CO', reasonedInput, {
+    financials,
+    outDir: tmpOut,
+    ignorePortfolio: true
+  });
+
+  assert.equal(res.ticker, 'WIDE_MOAT_CO');
+  assert.equal(res.verdict.stance, 'STRONG_BUY');
+  assert.equal(res.verdict.score, 88.0);
+  assert.equal(res.folksy_verdict, reasonedInput.folksy_verdict);
+  assert.equal(res.call_reason, reasonedInput.call_reason);
+
+  const valRes = validateUniformVerdict(res.verdict);
+  assert.equal(valRes.ok, true, `Validation failed: ${JSON.stringify(valRes.errors)}`);
+
+  assert.ok(fs.existsSync(res.artifacts.json));
+  assert.ok(fs.existsSync(res.artifacts.html));
+
+  const pairCheck = verifyArtifactPair({
+    jsonPath: res.artifacts.json,
+    htmlPath: res.artifacts.html,
+    schemaType: 'verdict'
   });
   assert.equal(pairCheck.ok, true);
 

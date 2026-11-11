@@ -119,6 +119,8 @@ function parseArgs(argv = process.argv.slice(2)) {
     else if (k === '--no-portfolio') args.noPortfolio = true;
     else if (k === '--out') args.out = next();
     else if (k === '--refresh') args.refresh = true;
+    else if (k === '--diagnostics') args.diagnostics = true;
+    else if (k === '--record-verdict') args.recordVerdict = next();
     else if (k === '--json-output' || k === '--json') args.jsonOutput = true;
     else if (k === '-h' || k === '--help') args.help = true;
     else if (!k.startsWith('--') && !args.ticker) args.ticker = k.toUpperCase();
@@ -323,6 +325,312 @@ function writeArtifacts(verdictData, outDir = DEFAULT_REPORTS_DIR, isBatch = fal
   });
 
   return { jsonPath, htmlPath };
+}
+
+async function resolveMungerFinancials(tickerOrData, options = {}) {
+  const clean = typeof tickerOrData === 'string' ? tickerOrData.trim().toUpperCase() : null;
+  const outDir = options.out || DEFAULT_REPORTS_DIR;
+  const market = inferMarket(clean, options.market);
+
+  if (options.data && fs.existsSync(options.data)) {
+    return JSON.parse(fs.readFileSync(options.data, 'utf8'));
+  }
+  if (options.financials) {
+    return options.financials;
+  }
+  if (clean) {
+    const finPath = path.join(FINANCIALS_DIR, `${clean}.json`);
+    if (fs.existsSync(finPath) && !options.refresh) {
+      return JSON.parse(fs.readFileSync(finPath, 'utf8'));
+    } else if (providerTickertape && typeof providerTickertape.fetchAndNormalizeTicker === 'function') {
+      return await providerTickertape.fetchAndNormalizeTicker(clean, {
+        market,
+        refresh: options.refresh,
+        out: outDir
+      });
+    } else if (fs.existsSync(finPath)) {
+      return JSON.parse(fs.readFileSync(finPath, 'utf8'));
+    }
+  }
+  throw new Error(`Unable to resolve NormalizedCompanyFinancials for ${clean || 'provided data'}.`);
+}
+
+/**
+ * Gather Tier 2/3 Principle Diagnostics for Munger Agent Consumption.
+ * Emits raw metrics and principle checks without making a closed stock verdict.
+ */
+async function getMungerDiagnostics(tickerOrData, options = {}) {
+  const financials = await resolveMungerFinancials(tickerOrData, options);
+  const clean = (financials.ticker || tickerOrData || 'UNKNOWN').toUpperCase();
+  const companyName = financials.name || clean;
+  const market = inferMarket(clean, options.market);
+  const isIndexEtf = Boolean(financials.is_index_etf || INDEX_ETF_TICKERS.has(clean));
+
+  // Principle diagnostics
+  const inversionEval = evaluateInversionFailure(financials);
+  const moatEval = evaluateMoat(financials);
+  const incentiveEval = evaluateIncentiveBias(financials);
+  const qualityEval = evaluateQualityAtFairPrice(financials);
+
+  // Portfolio checks
+  let portfolio = null;
+  let portfolioKnown = false;
+  const portfolioPath = options.portfolio || DEFAULT_PORTFOLIO_PATH;
+  if (!options.noPortfolio && fs.existsSync(portfolioPath)) {
+    try {
+      portfolio = JSON.parse(fs.readFileSync(portfolioPath, 'utf8'));
+      portfolioKnown = Boolean(portfolio && Array.isArray(portfolio.holdings));
+    } catch {
+      portfolio = null;
+      portfolioKnown = false;
+    }
+  }
+
+  const liquidCash = getLiquidCashSummary(portfolio, options.bankBalancePath);
+  let availableCash = liquidCash.total_liquid_cash;
+  let currentWeightPct = 0.0;
+  let isHeld = false;
+
+  if (portfolioKnown) {
+    const match = (portfolio.holdings || []).find(h => (h.ticker || '').toUpperCase() === clean);
+    if (match) {
+      isHeld = true;
+      currentWeightPct = match.weight_pct || 0.0;
+    }
+  }
+
+  const competenceEval = isIndexEtf
+    ? { in_circle: true, status: 'IN_CIRCLE', max_position_weight_pct: 15.0, score: 100 }
+    : evaluateCircleOfCompetence(clean);
+  const competenceStatus = competenceEval.status || 'NEEDS_ASSESSMENT';
+  const competenceScore = competenceEval.score || 0;
+  const competenceMaxWeight = competenceEval.max_position_weight_pct !== undefined ? competenceEval.max_position_weight_pct : 15.0;
+
+  const portfolioWarnings = [];
+  if (!portfolioKnown) {
+    portfolioWarnings.push('PORTFOLIO UNKNOWN: Charlie Munger refuses to commit capital blind without inspecting portfolio till balance. Run fetch-all.');
+  } else {
+    if (availableCash < 500) {
+      portfolioWarnings.push(`Insufficient cash till: Available cash is ₹${Number(availableCash || 0).toFixed(2)} (< ₹500 minimum).`);
+    }
+    if (currentWeightPct >= 15.0) {
+      portfolioWarnings.push(`Concentration limit reached: Current weight is ${currentWeightPct.toFixed(1)}% (max 15.0%).`);
+    }
+  }
+
+  return {
+    ticker: clean,
+    company_name: companyName,
+    market,
+    currency: financials.currency || (market === 'US' ? 'USD' : 'INR'),
+    sector: financials.sector || 'Unknown',
+    industry: financials.industry || 'Unknown',
+    is_index_etf: isIndexEtf,
+    portfolio_status: {
+      portfolio_known: portfolioKnown,
+      is_held: isHeld,
+      current_weight_pct: currentWeightPct,
+      broker_cash: round2(liquidCash.broker_cash),
+      bank_balance: round2(liquidCash.bank_balance),
+      total_liquid_cash: round2(availableCash),
+      available_cash: round2(availableCash),
+      min_cash_required: 500.0,
+      cash_till_dry: portfolioKnown ? (availableCash < 500.0) : true,
+      concentration_limit_breached: currentWeightPct >= 15.0,
+      circle_of_competence: {
+        status: competenceStatus,
+        score: competenceScore,
+        max_position_weight_pct: competenceMaxWeight
+      },
+      warnings: portfolioWarnings
+    },
+    principles: [
+      {
+        principle_id: 'inversion-failure',
+        name: 'Inversion & Failure Mode Analysis',
+        metrics: inversionEval.metrics || {},
+        checks: [
+          {
+            name: 'Inversion & Failure Modes',
+            criterion: 'Solvent balance sheet, healthy interest cover & positive FCF',
+            actual: `D/E: ${inversionEval.metrics ? inversionEval.metrics.debt_to_equity + 'x' : 'N/A'}, FCF: ${inversionEval.metrics ? inversionEval.metrics.free_cash_flow : 'N/A'}`,
+            status: inversionEval.status,
+            details: (inversionEval.failure_modes && inversionEval.failure_modes.length > 0) ? inversionEval.failure_modes.join('; ') : inversionEval.summary
+          }
+        ],
+        observations: inversionEval.failure_modes || []
+      },
+      {
+        principle_id: 'economic-moat',
+        name: 'Economic Moat & Pricing Power',
+        metrics: moatEval.metrics || {},
+        checks: moatEval.checks || [
+          {
+            name: 'Economic Moat & ROIC Hurdle',
+            criterion: 'ROIC >= 15.0% (Wide Moat >= 20.0%)',
+            actual: moatEval.metrics ? `${moatEval.metrics.roic_pct}%` : 'N/A',
+            status: moatEval.status,
+            details: moatEval.summary
+          }
+        ],
+        observations: moatEval.observations || []
+      },
+      {
+        principle_id: 'incentive-bias',
+        name: 'Incentive Alignment & Governance',
+        metrics: incentiveEval.metrics || {},
+        checks: [
+          {
+            name: 'Executive Compensation & Dilution Drag',
+            criterion: 'SBC dilution <= 15.0% & modest goodwill asset burden',
+            actual: incentiveEval.metrics ? `SBC: ${incentiveEval.metrics.sbc_dilution_pct}%` : 'N/A',
+            status: incentiveEval.status,
+            details: (incentiveEval.incentive_flags && incentiveEval.incentive_flags.length > 0) ? incentiveEval.incentive_flags.join('; ') : incentiveEval.summary
+          }
+        ],
+        observations: incentiveEval.incentive_flags || []
+      },
+      {
+        principle_id: 'quality-at-fair-price',
+        name: 'Quality Business at a Fair Price',
+        metrics: qualityEval.metrics || {},
+        checks: [
+          {
+            name: 'Quality at a Fair Price',
+            criterion: 'Rejects statistical cigar butts; requires high ROIC at fair multiples',
+            actual: qualityEval.metrics ? `ROIC: ${qualityEval.metrics.roic_pct}%, P/E: ${qualityEval.metrics.pe_ratio}x` : 'N/A',
+            status: qualityEval.status,
+            details: qualityEval.summary
+          }
+        ],
+        observations: qualityEval.observations || []
+      }
+    ]
+  };
+}
+
+/**
+ * Record the Agent's Reasoned Verdict into Canonical UniformVerdictContract Artifacts.
+ */
+async function recordMungerVerdict(tickerOrData, advisorVerdict, options = {}) {
+  const diag = await getMungerDiagnostics(tickerOrData, options);
+  const clean = diag.ticker;
+  const outDir = options.out || DEFAULT_REPORTS_DIR;
+  const timestamp = options.timestamp || new Date().toISOString();
+
+  const stance = advisorVerdict.canonical_stance || advisorVerdict.stance || 'HOLD';
+  const score = round2(advisorVerdict.score !== undefined ? advisorVerdict.score : (advisorVerdict.composite_score !== undefined ? advisorVerdict.composite_score : 50.0));
+  const call = advisorVerdict.actionable_call || advisorVerdict.call || (stance === 'STRONG_BUY' || stance === 'BUY' ? 'BUY' : (stance === 'STRONG_SELL' || stance === 'REDUCE' ? 'SELL' : 'HOLD'));
+  const callReason = advisorVerdict.call_reason || advisorVerdict.reason || 'Reasoned evaluation by Charlie Munger persona.';
+  const folksyVerdict = advisorVerdict.folksy_verdict || advisorVerdict.verdict_text || 'Invert, always invert.';
+  const summary = advisorVerdict.summary || `${stance}: ${callReason}`;
+
+  const audit = [];
+  const redFlags = [];
+  for (const p of diag.principles) {
+    for (const c of p.checks) {
+      audit.push({
+        check: `${p.name}: ${c.name}`,
+        criterion: c.criterion,
+        value: c.actual || c.value || 'N/A',
+        status: c.status || 'WARN',
+        details: c.details || ''
+      });
+      if (c.status === 'FAIL') {
+        redFlags.push(`${c.name} failed: ${c.details}`);
+      }
+    }
+  }
+
+  const defaultObservations = diag.principles.flatMap(p => p.observations || []);
+  const defaultPositives = diag.principles.flatMap(p => (p.checks || []).filter(c => c.status === 'PASS').map(c => `${c.name}: ${c.details || c.actual}`));
+  const defaultNegatives = diag.principles.flatMap(p => (p.checks || []).filter(c => c.status === 'FAIL' || c.status === 'WARN').map(c => `${c.name}: ${c.details || c.actual}`));
+
+  const positive = (Array.isArray(advisorVerdict.positive) && advisorVerdict.positive.length > 0)
+    ? advisorVerdict.positive
+    : defaultPositives;
+
+  const negative = (Array.isArray(advisorVerdict.negative) && advisorVerdict.negative.length > 0)
+    ? advisorVerdict.negative
+    : defaultNegatives;
+
+  const observations = (Array.isArray(advisorVerdict.observations) && advisorVerdict.observations.length > 0)
+    ? advisorVerdict.observations
+    : defaultObservations;
+
+  const moatMetrics = (diag.principles.find(p => p.principle_id === 'economic-moat') || {}).metrics || {};
+  const inversionMetrics = (diag.principles.find(p => p.principle_id === 'inversion-failure') || {}).metrics || {};
+  const incentiveMetrics = (diag.principles.find(p => p.principle_id === 'incentive-bias') || {}).metrics || {};
+  const qualityMetrics = (diag.principles.find(p => p.principle_id === 'quality-at-fair-price') || {}).metrics || {};
+
+  const metrics = {
+    roic_pct: moatMetrics.roic_pct !== undefined ? moatMetrics.roic_pct : null,
+    debt_to_equity: inversionMetrics.debt_to_equity !== undefined ? inversionMetrics.debt_to_equity : null,
+    interest_coverage: inversionMetrics.interest_coverage !== undefined ? inversionMetrics.interest_coverage : null,
+    sbc_dilution_pct: incentiveMetrics.sbc_dilution_pct !== undefined ? incentiveMetrics.sbc_dilution_pct : null,
+    pe_ratio: qualityMetrics.pe_ratio !== undefined ? qualityMetrics.pe_ratio : null
+  };
+
+  const verdict = {
+    principle: 'munger',
+    principle_title: 'Charlie Munger Value Investing & Inversion',
+    ticker: clean,
+    timestamp,
+    stance,
+    score,
+    is_veto: false,
+    summary
+  };
+
+  const uniformPayload = {
+    principle: 'munger',
+    ticker: clean,
+    timestamp,
+    score,
+    stance,
+    is_veto: false,
+    metrics,
+    red_flags: redFlags,
+    summary,
+    verdict,
+    audit,
+    positive,
+    negative,
+    observations,
+    warnings: [...redFlags, ...(diag.portfolio_status.warnings || [])],
+    advisor_verdict: {
+      actionable_call: call,
+      call_reason: callReason,
+      folksy_verdict: folksyVerdict
+    },
+    portfolio_status: diag.portfolio_status
+  };
+
+  const validation = validateUniformVerdict(uniformPayload);
+  if (!validation.ok) {
+    throw new Error(`UniformVerdict validation failed: ${JSON.stringify(validation.errors)}`);
+  }
+
+  let artifacts = null;
+  if (!options.noWrite) {
+    artifacts = writeArtifacts(uniformPayload, outDir, false);
+  }
+
+  return {
+    ticker: clean,
+    company_name: diag.company_name,
+    market: diag.market,
+    composite_score: score,
+    call,
+    call_reason: callReason,
+    folksy_verdict: folksyVerdict,
+    portfolio_status: uniformPayload.portfolio_status,
+    verdict: uniformPayload,
+    artifacts: {
+      json: artifacts ? artifacts.jsonPath : null,
+      html: artifacts ? artifacts.htmlPath : null
+    }
+  };
 }
 
 /**
@@ -618,6 +926,8 @@ async function processHoldings(holdingsPath, options = {}) {
 module.exports = {
   evaluateMungerValuation,
   analyzeStockWithMunger,
+  getMungerDiagnostics,
+  recordMungerVerdict,
   processHoldings,
   parseArgs
 };
@@ -629,6 +939,46 @@ if (require.main === module) {
       if (!args.ticker && !args.data && !args.holdings) {
         console.log('Usage: node orchestrate_munger_analysis.js [--ticker <SYMBOL> | --holdings <PATH>] [--market IN|US]');
         process.exit(1);
+      }
+
+      if (args.ticker && args.diagnostics) {
+        const diag = await getMungerDiagnostics(args.ticker, args);
+        console.log(JSON.stringify(diag, null, 2));
+        return;
+      }
+
+      if (args.ticker && args.recordVerdict) {
+        let payload;
+        try {
+          if (fs.existsSync(args.recordVerdict)) {
+            payload = JSON.parse(fs.readFileSync(args.recordVerdict, 'utf8'));
+          } else {
+            let raw = args.recordVerdict.trim();
+            try {
+              payload = JSON.parse(raw);
+            } catch {
+              if ((raw.startsWith("'") && raw.endsWith("'")) || (raw.startsWith('"') && raw.endsWith('"'))) {
+                raw = raw.slice(1, -1).trim();
+              }
+              raw = raw.replace(/\\"/g, '"');
+              payload = JSON.parse(raw);
+            }
+          }
+        } catch (e) {
+          throw new Error(`Failed to parse --record-verdict payload: ${e.message}`);
+        }
+        const res = await recordMungerVerdict(args.ticker, payload, args);
+        if (args.jsonOutput) {
+          console.log(JSON.stringify(res, null, 2));
+        } else {
+          console.log(`\n=== Charlie Munger Reasoned Verdict Recorded: ${res.ticker} ===`);
+          console.log(`Stance          : ${res.verdict.stance} | Score: ${res.composite_score}/100`);
+          console.log(`Actionable Call : ${res.call}`);
+          console.log(`Reason          : ${res.call_reason}`);
+          console.log(`Pasadena Verdict: ${res.folksy_verdict}`);
+          console.log(`Artifacts written to:\n  ${res.artifacts.json}\n  ${res.artifacts.html}\n`);
+        }
+        return;
       }
 
       if (args.holdings) {
