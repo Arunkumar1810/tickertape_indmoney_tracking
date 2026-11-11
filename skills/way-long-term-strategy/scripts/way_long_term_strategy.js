@@ -495,7 +495,19 @@ function processStrategyWay(wayId, options = {}) {
   const manifest = loadManifestFile(manifestPath);
 
   const ways = (manifest && manifest.investment_ways) || {};
-  const way = Array.isArray(ways) ? ways.find(w => w.id === wayId) : ways[wayId];
+  let way = Array.isArray(ways) ? ways.find(w => w.id === wayId) : ways[wayId];
+  if (!way) {
+    const aliasMap = {
+      'fundamental_lts': 'lts',
+      'lts': 'fundamental_lts',
+      'fundamental_foreign': 'lts_foreign',
+      'lts_foreign': 'fundamental_foreign'
+    };
+    const altKey = aliasMap[wayId];
+    if (altKey && ways[altKey]) {
+      way = ways[altKey];
+    }
+  }
   if (!way) {
     throw new Error(`Investment Way "${wayId}" not found in manifest at ${manifestPath}`);
   }

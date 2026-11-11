@@ -6,6 +6,9 @@ const contractValidator = require('./contract_validator');
 const artifactHarness = require('./artifact_harness');
 const authManager = require('./auth_manager');
 const bankBalance = require('./bank_balance');
+const xirrMath = require('./xirr_math');
+const ledgerAggregator = require('./ledger_aggregator');
+const frictionTracker = require('./friction_tracker');
 
 module.exports = {
   ...yamlLoader,
@@ -13,5 +16,8 @@ module.exports = {
   ...contractValidator,
   ...artifactHarness,
   ...authManager,
-  ...bankBalance
+  ...bankBalance,
+  ...xirrMath,
+  ...ledgerAggregator,
+  ...frictionTracker
 };

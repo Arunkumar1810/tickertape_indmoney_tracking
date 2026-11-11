@@ -30,20 +30,13 @@ const {
   verifyArtifactPair,
   verifyHtmlSelfContainment,
   loadManifestFile,
-  renderCacheWarningBanner
+  renderCacheWarningBanner,
+  calculateXirr
 } = require(path.join(REPO_ROOT, 'scripts', 'framework'));
 
 const DEFAULT_REPORTS_DIR = path.join(REPO_ROOT, 'reports');
 const DEFAULT_MANIFEST_PATH = path.join(REPO_ROOT, 'config', 'investment_ways.yaml');
 const TEMPLATE_PATH = path.join(SKILL_ROOT, 'assets', 'report-template.html');
-
-let calculateXirr;
-try {
-  const xirrModule = require(path.join(REPO_ROOT, 'skills', 'strategy-xirr', 'scripts', 'lib', 'xirr_math'));
-  calculateXirr = xirrModule.calculateXirr;
-} catch {
-  calculateXirr = null;
-}
 
 function computeXirr(cashflows) {
   if (typeof calculateXirr === 'function') {

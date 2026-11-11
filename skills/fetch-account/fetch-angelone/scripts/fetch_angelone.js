@@ -25,7 +25,8 @@ const {
   verifyArtifactPair,
   detectAuthError,
   formatRenewalInstructions,
-  renderCacheWarningBanner
+  renderCacheWarningBanner,
+  calculateXirr
 } = require(path.join(REPO_ROOT, 'scripts', 'framework'));
 
 let createAngelOneClient;
@@ -34,14 +35,6 @@ try {
   createAngelOneClient = sharedAngelOne.createAngelOneClient;
 } catch {
   createAngelOneClient = null;
-}
-
-let calculateXirr;
-try {
-  const xirrModule = require(path.join(REPO_ROOT, 'skills', 'strategy-xirr', 'scripts', 'lib', 'xirr_math'));
-  calculateXirr = xirrModule.calculateXirr;
-} catch {
-  calculateXirr = null;
 }
 
 function computeXirr(cashflows) {

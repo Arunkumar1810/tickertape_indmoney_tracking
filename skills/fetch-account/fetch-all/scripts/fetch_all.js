@@ -24,7 +24,8 @@ const REPO_ROOT = findRepoRoot(__dirname);
 const {
   validateAccountHoldingsSnapshot,
   verifyArtifactPair,
-  renderCacheWarningBanner
+  renderCacheWarningBanner,
+  calculateXirr
 } = require(path.join(REPO_ROOT, 'scripts', 'framework'));
 
 const angelOnePath = fs.existsSync(path.join(__dirname, '..', '..', 'fetch-angelone', 'scripts', 'fetch_angelone.js'))
@@ -48,14 +49,6 @@ const fetchIndmoneyModule = require(indmoneyPath);
 
 const SKILL_ROOT = path.resolve(__dirname, '..');
 const DEFAULT_REPORTS_DIR = path.resolve(REPO_ROOT, 'reports');
-
-let calculateXirr;
-try {
-  const xirrModule = require(path.join(REPO_ROOT, 'skills', 'strategy-xirr', 'scripts', 'lib', 'xirr_math'));
-  calculateXirr = xirrModule.calculateXirr;
-} catch {
-  calculateXirr = null;
-}
 
 function computeXirr(cashflows) {
   if (typeof calculateXirr === 'function') {
