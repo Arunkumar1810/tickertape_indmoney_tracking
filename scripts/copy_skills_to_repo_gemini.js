@@ -21,7 +21,7 @@ const SKILLS = [
   'fundamental-stock-analysis',
   'fundamental-us-stock-analysis',
   'guardrail-engine',
-  'holding-blender',
+  'fetch-strategy-stocks',
   'provider-tickertape',
   'strategy-xirr',
   'way-long-term-strategy'

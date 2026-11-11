@@ -13,9 +13,10 @@ Portfolio tracking and multi-pillar fundamental valuation across Indian and US e
 
 ## Where things are
 
-- Tier 2 Providers: Tickertape ingestion at `skills/stat-provider/provider-tickertape/`, Angel One at `skills/fetch-account/fetch-angelone/`, INDmoney US at `skills/fetch-account/fetch-indmoney-us/`, Combined at `skills/fetch-account/fetch-all/`.
+- Account Fetchers & Blenders: Angel One at `skills/fetch-account/fetch-angelone/`, INDmoney US at `skills/fetch-account/fetch-indmoney-us/`, Combined at `skills/fetch-account/fetch-all/`, Strategy Holdings at `skills/fetch-account/fetch-strategy-stocks/`.
+- Tier 2 Providers: Tickertape ingestion at `skills/stat-provider/provider-tickertape/`.
 - Tier 3 Valuation Engines: `skills/agents/agent-graham/`, `skills/agents/agent-lynch/`, `skills/agents/agent-buffet/`, `skills/agents/agent-munger/`, `skills/agents/agent-klarman/`, `skills/agents/agent-schilit/`.
-- Tier 4 Orchestrators: `skills/way-long-term-strategy/`, `skills/guardrail-engine/`, `skills/holding-blender/`, `skills/strategy-xirr/`.
+- Tier 4 Orchestrators: `skills/way-long-term-strategy/`, `skills/guardrail-engine/`, `skills/strategy-xirr/`.
 - Canonical output reports: `reports/financials/<TICKER>.json` and offline visual dashboard `reports/financials/<TICKER>.html`.
 
 ## Running and verifying

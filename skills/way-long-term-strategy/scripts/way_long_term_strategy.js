@@ -390,6 +390,20 @@ function processOfflineFiles(blendedPath, xirrPath, synthesisPath, options = {})
   if (blendedPath && fs.existsSync(blendedPath)) {
     const raw = JSON.parse(fs.readFileSync(path.resolve(blendedPath), 'utf8'));
     blendedHoldings = raw.blended_holdings || raw;
+    if (blendedHoldings && !blendedHoldings.positions && Array.isArray(blendedHoldings.holdings)) {
+      blendedHoldings.positions = blendedHoldings.holdings;
+    }
+    if (blendedHoldings && blendedHoldings.summary) {
+      if (blendedHoldings.summary.pooled_cash === undefined && blendedHoldings.summary.available_cash !== undefined) {
+        blendedHoldings.summary.pooled_cash = blendedHoldings.summary.available_cash;
+      }
+      if (blendedHoldings.summary.total_strategy_equity === undefined && blendedHoldings.summary.total_account_equity !== undefined) {
+        blendedHoldings.summary.total_strategy_equity = blendedHoldings.summary.total_account_equity;
+      }
+      if (blendedHoldings.summary.positions_count === undefined && blendedHoldings.summary.holdings_count !== undefined) {
+        blendedHoldings.summary.positions_count = blendedHoldings.summary.holdings_count;
+      }
+    }
     if (raw.performance && !performance) performance = raw.performance;
     if (raw.verdict_synthesis && !verdictSynthesis) verdictSynthesis = raw.verdict_synthesis;
     if (raw.embedded_audits && !options.embeddedAudits) options.embeddedAudits = raw.embedded_audits;
@@ -491,6 +505,8 @@ function processStrategyWay(wayId, options = {}) {
   // 1. Locate blended holdings or fallback
   const blendedCandidates = [
     path.join(REPO_ROOT, 'strategies', wayId, 'holdings_blended.json'),
+    path.join(REPO_ROOT, 'reports', 'strategies', `${wayId}_holdings.json`),
+    path.join(REPO_ROOT, 'reports', 'accounts', `${wayId}.json`),
     path.join(REPO_ROOT, 'reports', 'strategies', `${wayId}_blended_holdings.json`),
     path.join(REPO_ROOT, 'reports', 'strategy_holdings_blended.json'),
     path.join(REPO_ROOT, 'reports', 'holdings_blended.json'),

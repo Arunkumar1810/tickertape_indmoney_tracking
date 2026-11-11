@@ -211,8 +211,36 @@
           "sector": {
             "type": "string",
             "description": "Economic sector classification (e.g., Information Technology, Financials, Healthcare)."
+          },
+          "market": {
+            "type": "string",
+            "enum": ["IN", "US"],
+            "description": "Market geography classification."
+          },
+          "attribution": {
+            "type": "array",
+            "description": "Account lot-level attribution tranches for blended strategy holdings.",
+            "items": {
+              "type": "object"
+            }
           }
         }
+      }
+    },
+    "strategy_id": {
+      "type": "string",
+      "description": "Unique identifier of the strategy."
+    },
+    "base_currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "Strategy base currency."
+    },
+    "accounts_blended": {
+      "type": "array",
+      "description": "Summary metadata of accounts blended into this snapshot.",
+      "items": {
+        "type": "object"
       }
     },
     "ledger": {

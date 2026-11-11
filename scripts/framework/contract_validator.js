@@ -175,7 +175,10 @@ const HOLDINGS_SNAPSHOT_REQUIRED_KEYS = new Set([
 
 const HOLDINGS_SNAPSHOT_TOP_KEYS = new Set([
   ...HOLDINGS_SNAPSHOT_REQUIRED_KEYS,
-  'ledger'
+  'ledger',
+  'accounts_blended',
+  'strategy_id',
+  'base_currency'
 ]);
 
 const HOLDINGS_SUMMARY_REQUIRED_KEYS = new Set([
@@ -222,7 +225,9 @@ const HOLDING_ITEM_ALL_KEYS = new Set([
   ...HOLDING_ITEM_REQUIRED_KEYS,
   'fractional_shares',
   'buy_date',
-  'sector'
+  'sector',
+  'attribution',
+  'market'
 ]);
 
 const BLENDED_HOLDINGS_TOP_KEYS = new Set([
@@ -269,6 +274,13 @@ const BLENDED_POSITION_REQUIRED_KEYS = new Set([
   'unrealized_pnl_pct',
   'weight_pct',
   'attribution'
+]);
+
+const BLENDED_POSITION_ALL_KEYS = new Set([
+  ...BLENDED_POSITION_REQUIRED_KEYS,
+  'fractional_shares',
+  'buy_date',
+  'sector'
 ]);
 
 const BLENDED_ATTRIBUTION_REQUIRED_KEYS = new Set([
@@ -1511,7 +1523,7 @@ function validateBlendedHoldings(payload) {
           return;
         }
         for (const k of Object.keys(pos)) {
-          if (!BLENDED_POSITION_REQUIRED_KEYS.has(k)) {
+          if (!BLENDED_POSITION_ALL_KEYS.has(k)) {
             addError('ERR_UNKNOWN_FIELD', `${pPath}.${k}`, `Unknown field "${pPath}.${k}"`);
           }
         }

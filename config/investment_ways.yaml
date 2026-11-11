@@ -27,27 +27,16 @@ gatekeepers:
   agent-schilit:
     skill: "agent-schilit"
     description: "Howard Schilit Forensic Accounting & Corporate Governance Veto Gatekeeper"
-  forensic-governance:
-    skill: "agent-schilit"
-    description: "Howard Schilit Forensic Accounting & Corporate Governance Veto Filter (Alias to agent-schilit)"
 
 analysis_principles:
   agent-graham:
     skill: "agent-graham"
     category: "deep_value"
     description: "Benjamin Graham Net-Net Working Capital & Graham Number Floor"
-  analyze-graham:
-    skill: "agent-graham"
-    category: "deep_value"
-    description: "Benjamin Graham Net-Net Working Capital & Graham Number Floor (Alias to agent-graham)"
   agent-lynch:
     skill: "agent-lynch"
     category: "garp"
     description: "Peter Lynch PEG Ratio, Stock Categorization & Inventory Velocity"
-  analyze-lynch:
-    skill: "agent-lynch"
-    category: "garp"
-    description: "Peter Lynch PEG Ratio, Stock Categorization & Inventory Velocity (Alias to agent-lynch)"
   agent-buffet:
     skill: "agent-buffet"
     category: "compounding_moat"
@@ -56,45 +45,64 @@ analysis_principles:
     skill: "agent-klarman"
     category: "solvency_stress"
     description: "Seth Klarman Altman Z-Score, Debt Maturity Wall & Liquidation Stress"
-  analyze-klarman-solvency:
-    skill: "agent-klarman"
-    category: "solvency_stress"
-    description: "Seth Klarman Altman Z-Score, Debt Maturity Wall & Liquidation Stress (Alias to agent-klarman)"
 
 investment_ways:
-  fundamental_lts:
+  lts:
+    title: "Fundamental Long-Term Stocks"
+    skill: "way-long-term-strategy"
+    base_currency: "INR"
+    accounts: ["angelone", "indmoney_us"]
+    data_provider: "provider-tickertape"
+    gatekeepers: ["agent-schilit"]
+    analysis_principles:
+      - "agent-buffet"
+      - "agent-graham"
+      - "agent-klarman"
+      - "agent-lynch"
+      - "agent-munger"
+    weights:
+      agent-buffet: 0.25
+      agent-graham: 0.20
+      agent-klarman: 0.15
+      agent-lynch: 0.20
+      agent-munger: 0.20
+
+  lts_india:
     title: "Fundamental Long-Term Stocks (India)"
     skill: "way-long-term-strategy"
     base_currency: "INR"
     accounts: ["angelone"]
     data_provider: "provider-tickertape"
-    gatekeepers: ["forensic-governance"]
+    gatekeepers: ["agent-schilit"]
     analysis_principles:
-      - "analyze-graham"
-      - "analyze-lynch"
       - "agent-buffet"
-      - "analyze-klarman-solvency"
+      - "agent-graham"
+      - "agent-klarman"
+      - "agent-lynch"
+      - "agent-munger"
     weights:
-      analyze-graham: 0.25
-      analyze-lynch: 0.25
-      agent-buffet: 0.30
-      analyze-klarman-solvency: 0.20
+      agent-buffet: 0.25
+      agent-graham: 0.20
+      agent-klarman: 0.15
+      agent-lynch: 0.20
+      agent-munger: 0.20
 
-  fundamental_foreign:
+  lts_foreign:
     title: "Fundamental Foreign Stocks (US)"
     skill: "way-foreign-strategy"
     base_currency: "USD"
     accounts: ["indmoney_us"]
     data_provider: "provider-tickertape"
-    gatekeepers: ["forensic-governance"]
+    gatekeepers: ["agent-schilit"]
     analysis_principles:
-      - "analyze-graham"
-      - "analyze-lynch"
       - "agent-buffet"
-      - "analyze-klarman-solvency"
+      - "agent-graham"
+      - "agent-klarman"
+      - "agent-lynch"
+      - "agent-munger"
     weights:
-      analyze-graham: 0.20
-      analyze-lynch: 0.25
-      agent-buffet: 0.35
-      analyze-klarman-solvency: 0.20
-
+      agent-buffet: 0.25
+      agent-graham: 0.20
+      agent-klarman: 0.15
+      agent-lynch: 0.20
+      agent-munger: 0.20
